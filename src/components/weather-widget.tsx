@@ -47,17 +47,29 @@ export function WeatherWidget() {
         try {
           const { latitude, longitude } = position.coords;
 
-          // Fetch city name
-          const geoRes = await fetch(
-            `https://geocoding-api.open-meteo.com/v1/search?latitude=${latitude}&longitude=${longitude}&count=1&language=ru&format=json`
-          );
-          if (!geoRes.ok) {
-            throw new Error('Geocoding API request failed');
+          let city = 'Ваше местоположение'; // Default/fallback city name
+          try {
+            const geoRes = await fetch(
+              `https://geocoding-api.open-meteo.com/v1/search?latitude=${latitude}&longitude=${longitude}&count=1&language=ru&format=json`
+            );
+            if (geoRes.ok) {
+              const geoData = await geoRes.json();
+              if (geoData?.results?.[0]?.name) {
+                city = geoData.results[0].name;
+              } else {
+                console.warn(
+                  'Geocoding API call successful but no city name found.'
+                );
+              }
+            } else {
+              console.warn(
+                `Geocoding API request failed with status: ${geoRes.status}`
+              );
+            }
+          } catch (geoError) {
+            console.error('Geocoding fetch failed:', geoError);
           }
-          const geoData = await geoRes.json();
-          const city = geoData?.results?.[0]?.name || 'Неизвестный город';
 
-          // Fetch weather
           const weatherRes = await fetch(
             `https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&current=temperature_2m&timezone=auto`
           );
