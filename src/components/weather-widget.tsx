@@ -71,15 +71,8 @@ export function WeatherWidget() {
           });
         } catch (error) {
           console.error('Failed to fetch weather data', error);
-          let errorMessage =
+          const errorMessage =
             'Не удалось загрузить погоду. Проверьте интернет-соединение и попробуйте снова.';
-          if (
-            error instanceof Error &&
-            (error.message.includes('город') ||
-              error.message.includes('температур'))
-          ) {
-            errorMessage = error.message;
-          }
           setWeather({
             status: 'error',
             data: null,
