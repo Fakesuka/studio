@@ -11,7 +11,14 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
-import { mockProducts } from '@/lib/data';
+import {
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+  CarouselNext,
+  CarouselPrevious,
+} from '@/components/ui/carousel';
+import { mockProducts, mockShops } from '@/lib/data';
 import { useToast } from '@/hooks/use-toast';
 import { ShoppingCart, Minus, Plus } from 'lucide-react';
 import { useAppContext } from '@/context/AppContext';
@@ -54,6 +61,47 @@ export default function MarketplacePage() {
           <Button variant="outline">Стать продавцом</Button>
         </Link>
       </div>
+
+      <div className="mb-8">
+        <h2 className="mb-4 text-2xl font-bold">Магазины</h2>
+        <Carousel
+          opts={{
+            align: 'start',
+          }}
+          className="w-full"
+        >
+          <CarouselContent>
+            {mockShops.map(shop => (
+              <CarouselItem
+                key={shop.id}
+                className="basis-1/3 pl-4 sm:basis-1/4 md:basis-1/5 lg:basis-1/6"
+              >
+                <Link
+                  href="#"
+                  className="group flex flex-col items-center gap-2 text-center"
+                >
+                  <div className="relative h-24 w-24 overflow-hidden rounded-full border-2 border-border transition-colors group-hover:border-primary">
+                    <Image
+                      src={shop.imageUrl}
+                      alt={shop.name}
+                      fill
+                      className="object-cover"
+                      data-ai-hint={shop.imageHint}
+                    />
+                  </div>
+                  <p className="w-full truncate text-sm font-medium">
+                    {shop.name}
+                  </p>
+                </Link>
+              </CarouselItem>
+            ))}
+          </CarouselContent>
+          <CarouselPrevious className="ml-12 hidden sm:flex" />
+          <CarouselNext className="mr-12 hidden sm:flex" />
+        </Carousel>
+      </div>
+
+      <h2 className="mb-4 text-2xl font-bold">Товары</h2>
       <div className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-4">
         {mockProducts.map(product => (
           <Card key={product.id} className="flex flex-col">

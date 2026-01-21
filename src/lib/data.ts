@@ -1,4 +1,4 @@
-import type { Order, Product, ServiceProvider } from '@/lib/types';
+import type { Order, Product, ServiceProvider, Shop } from '@/lib/types';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 
 export const mockOrders: Order[] = [
@@ -24,4 +24,13 @@ export const mockProviders: ServiceProvider[] = [
   { id: 'prov-1', name: 'Алексей', avatarUrl: findImage('provider-1').imageUrl, rating: 4.9, distance: 2.5, vehicle: 'Toyota Hilux' },
   { id: 'prov-2', name: 'Михаил', avatarUrl: findImage('provider-2').imageUrl, rating: 4.8, distance: 4.1, vehicle: 'УАЗ Патриот' },
   { id: 'prov-3', name: 'Семен', avatarUrl: findImage('provider-3').imageUrl, rating: 4.7, distance: 7.8, vehicle: 'Mitsubishi L200' },
+];
+
+export const mockShops: Shop[] = [
+    { id: 'shop-1', name: 'Авто-Мир', ...findImage('shop-1') },
+    { id: 'shop-2', name: 'Все для авто', ...findImage('shop-2') },
+    { id: 'shop-3', name: 'Шинный двор', ...findImage('shop-3') },
+    { id: 'shop-4', name: 'Ремонт-Профи', ...findImage('shop-4') },
+    { id: 'shop-5', name: 'Запчасти-Экспресс', ...findImage('shop-5') },
+    { id: 'shop-6', name: 'Японские запчасти', ...findImage('shop-1') },
 ];

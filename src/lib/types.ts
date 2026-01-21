@@ -49,3 +49,10 @@ export type SellerProfile = {
   storeName: string;
   storeDescription: string;
 };
+
+export type Shop = {
+  id: string;
+  name: string;
+  imageUrl: string;
+  imageHint: string;
+};

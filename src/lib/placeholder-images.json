@@ -53,6 +53,36 @@
       "description": "Аватар третьего поставщика услуг.",
       "imageUrl": "https://images.unsplash.com/flagged/photo-1595514191830-3e96a518989b?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxMHx8cGVyc29uJTIwcG9ydHJhaXR8ZW58MHx8fHwxNzY4ODc1NTMwfDA&ixlib=rb-4.1.0&q=80&w=1080",
       "imageHint": "person portrait"
+    },
+    {
+      "id": "shop-1",
+      "description": "Витрина магазина автозапчастей.",
+      "imageUrl": "https://images.unsplash.com/photo-1570129477492-45c003edd2be?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw0fHxzdG9yZSUyMGZyb250fGVufDB8fHx8MTc2ODk1NzQ2MHww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "store front"
+    },
+    {
+      "id": "shop-2",
+      "description": "Современный магазин аксессуаров для авто.",
+      "imageUrl": "https://images.unsplash.com/photo-1556740738-b6a63e27c4df?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxhdXRvJTIwcGFydHMlMjBzdG9yZXxlbnwwfHx8fDE3Njg5NTc0NjB8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "auto parts"
+    },
+    {
+      "id": "shop-3",
+      "description": "Магазин с шинами и дисками.",
+      "imageUrl": "https://images.unsplash.com/photo-1605333139369-a221139b4b02?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwzfHx0aXJlJTIwc2hvcHxlbnwwfHx8fDE3Njg5NTc0NjB8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "tire shop"
+    },
+    {
+      "id": "shop-4",
+      "description": "Мастерская по ремонту автомобилей.",
+      "imageUrl": "https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxhdXRvJTIwcmVwYWlyJTIwc2hvcHxlbnwwfHx8fDE3Njg5NTc0NjB8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "auto repair"
+    },
+    {
+      "id": "shop-5",
+      "description": "Большой магазин автозапчастей.",
+      "imageUrl": "https://images.unsplash.com/photo-1626233225257-89196b01b672?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw1fHxhdXRvJTIwcGFydHMlMjBzdG9yZXxlbnwwfHx8fDE3Njg5NTc0NjB8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "auto parts"
     }
   ]
 }
