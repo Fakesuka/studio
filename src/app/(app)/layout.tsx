@@ -47,6 +47,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
     onSwiped: handleSwiped,
     preventScrollOnSwipe: true,
     trackMouse: false, // Disable for mouse to avoid conflicts with selection etc.
+    trackY: false,
   });
 
   return (
