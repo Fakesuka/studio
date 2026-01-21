@@ -25,8 +25,7 @@ export default function MarketplacePage() {
   const handleAddToCart = (productId: string, productName: string) => {
     setCartQuantities(prev => ({ ...prev, [productId]: 1 }));
     toast({
-      title: 'Добавлено в корзину',
-      description: `${productName} был добавлен в вашу корзину.`,
+      title: `${productName} в корзине`,
     });
   };
 
@@ -63,7 +62,7 @@ export default function MarketplacePage() {
           <Button variant="outline">Стать продавцом</Button>
         </Link>
       </div>
-      <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
+      <div className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-4">
         {mockProducts.map(product => (
           <Card key={product.id}>
             <CardHeader className="p-0">
@@ -73,7 +72,7 @@ export default function MarketplacePage() {
                   alt={product.name}
                   fill
                   className="object-cover"
-                  sizes="(max-width: 640px) 100vw, 50vw"
+                  sizes="(max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
                   data-ai-hint={product.imageHint}
                 />
               </div>
