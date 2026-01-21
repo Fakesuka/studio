@@ -1,11 +1,11 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { Flame, Fuel, Truck, Wrench } from 'lucide-react';
+import { Flame, Fuel, Truck, Wrench, Sparkles, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -36,6 +36,12 @@ import { useToast } from '@/hooks/use-toast';
 import { useAppContext } from '@/context/AppContext';
 import { mockProviders } from '@/lib/data';
 import type { ServiceType } from '@/lib/types';
+import {
+  diagnoseProblem,
+  type DiagnoseProblemOutput,
+} from '@/ai/flows/diagnose-problem-flow';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 
 const formSchema = z.object({
   serviceType: z.string({ required_error: 'Пожалуйста, выберите тип услуги.' }),
@@ -61,14 +67,65 @@ export function ServiceRequestForm() {
   const searchParams = useSearchParams();
   const serviceParam = searchParams.get('service');
 
+  const [useWithoutAI, setUseWithoutAI] = useState(false);
+  const [aiDiagnosis, setAiDiagnosis] = useState<DiagnoseProblemOutput | null>(
+    null
+  );
+  const [isDiagnosing, setIsDiagnosing] = useState(false);
+
   const form = useForm<ServiceRequestFormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       description: '',
       location: '',
-      serviceType: serviceParam && serviceTypes.some(s => s.value === serviceParam) ? serviceParam : undefined,
+      serviceType:
+        serviceParam && serviceTypes.some(s => s.value === serviceParam)
+          ? serviceParam
+          : undefined,
     },
   });
+
+  const descriptionValue = form.watch('description');
+  const photoValue = form.watch('photo');
+
+  useEffect(() => {
+    if (useWithoutAI || !descriptionValue || descriptionValue.length < 20) {
+      setAiDiagnosis(null);
+      return;
+    }
+
+    const handler = setTimeout(() => {
+      setIsDiagnosing(true);
+      setAiDiagnosis(null);
+      diagnoseProblem({
+        description: descriptionValue,
+        photoDataUri: photoValue,
+      })
+        .then(result => {
+          setAiDiagnosis(result);
+          if (result?.suggestedService) {
+            form.setValue('serviceType', result.suggestedService, {
+              shouldValidate: true,
+            });
+          }
+        })
+        .catch(error => {
+          console.error('AI diagnosis failed:', error);
+          setAiDiagnosis({
+            diagnosis:
+              'Не удалось получить диагноз от AI. Пожалуйста, выберите услугу вручную.',
+            suggestedService: 'техпомощь',
+          });
+        })
+        .finally(() => {
+          setIsDiagnosing(false);
+        });
+    }, 1000); // 1-second debounce
+
+    return () => {
+      clearTimeout(handler);
+    };
+  }, [descriptionValue, photoValue, useWithoutAI, form]);
 
   const fileToDataUri = (file: File): Promise<string> => {
     return new Promise((resolve, reject) => {
@@ -125,7 +182,7 @@ export function ServiceRequestForm() {
       <CardHeader>
         <CardTitle>Новая заявка</CardTitle>
         <CardDescription>
-          Опишите проблему, и мы найдем для вас помощь.
+          Опишите проблему, и наш AI поможет определить тип услуги.
         </CardDescription>
       </CardHeader>
       <Form {...form}>
@@ -133,13 +190,94 @@ export function ServiceRequestForm() {
           <CardContent className="space-y-6">
             <FormField
               control={form.control}
+              name="description"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Опишите проблему подробнее</FormLabel>
+                  <FormControl>
+                    <Textarea
+                      placeholder="Например, машина не заводится, кажется, сел аккумулятор..."
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="photo"
+              render={() => (
+                <FormItem>
+                  <FormLabel>Приложите фото (по желанию)</FormLabel>
+                  <FormControl>
+                    <Input
+                      type="file"
+                      accept="image/*"
+                      onChange={handlePhotoChange}
+                    />
+                  </FormControl>
+                  {photoPreview && (
+                    <div className="relative mt-2">
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img
+                        src={photoPreview}
+                        alt="Preview"
+                        className="max-h-40 rounded-md object-cover"
+                      />
+                    </div>
+                  )}
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <div className="flex items-center space-x-2">
+              <Checkbox
+                id="no-ai"
+                checked={useWithoutAI}
+                onCheckedChange={(checked: boolean) => {
+                  setUseWithoutAI(checked);
+                  if (checked) {
+                    setAiDiagnosis(null);
+                  }
+                }}
+              />
+              <label
+                htmlFor="no-ai"
+                className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+              >
+                Я выберу услугу сам, без помощи AI
+              </label>
+            </div>
+
+            {(isDiagnosing || aiDiagnosis) && !useWithoutAI && (
+              <Alert>
+                <Sparkles className="h-4 w-4" />
+                <AlertTitle className="flex items-center gap-2">
+                  {isDiagnosing
+                    ? 'AI диагностика...'
+                    : 'Результат AI диагностики'}
+                  {isDiagnosing && <Loader2 className="h-4 w-4 animate-spin" />}
+                </AlertTitle>
+                <AlertDescription>
+                  {aiDiagnosis?.diagnosis ||
+                    'Искусственный интеллект анализирует вашу проблему, чтобы предложить наиболее подходящее решение.'}
+                </AlertDescription>
+              </Alert>
+            )}
+
+            <FormField
+              control={form.control}
               name="serviceType"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Что случилось?</FormLabel>
+                  <FormLabel>Тип услуги</FormLabel>
                   <Select
                     onValueChange={field.onChange}
-                    defaultValue={field.value}
+                    value={field.value}
+                    disabled={!useWithoutAI && (isDiagnosing || !!aiDiagnosis)}
                   >
                     <FormControl>
                       <SelectTrigger>
@@ -178,54 +316,14 @@ export function ServiceRequestForm() {
                 </FormItem>
               )}
             />
-
-            <FormField
-              control={form.control}
-              name="description"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Опишите проблему подробнее</FormLabel>
-                  <FormControl>
-                    <Textarea
-                      placeholder="Например, машина не заводится, кажется, сел аккумулятор..."
-                      {...field}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="photo"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Приложите фото (по желанию)</FormLabel>
-                  <FormControl>
-                    <Input
-                      type="file"
-                      accept="image/*"
-                      onChange={handlePhotoChange}
-                    />
-                  </FormControl>
-                  {photoPreview && (
-                    <div className="relative mt-2">
-                      {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img
-                        src={photoPreview}
-                        alt="Preview"
-                        className="max-h-40 rounded-md object-cover"
-                      />
-                    </div>
-                  )}
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
           </CardContent>
           <CardFooter>
-            <Button type="submit" size="lg" className="w-full">
+            <Button
+              type="submit"
+              size="lg"
+              className="w-full"
+              disabled={form.formState.isSubmitting}
+            >
               Найти исполнителя
             </Button>
           </CardFooter>
