@@ -51,7 +51,9 @@ export function WeatherWidget() {
           const geoRes = await fetch(
             `https://geocoding-api.open-meteo.com/v1/search?latitude=${latitude}&longitude=${longitude}&count=1&language=ru&format=json`
           );
-          if (!geoRes.ok) throw new Error('Не удалось получить название города.');
+          if (!geoRes.ok) {
+            throw new Error('Geocoding API request failed');
+          }
           const geoData = await geoRes.json();
           const city = geoData?.results?.[0]?.name || 'Неизвестный город';
 
@@ -59,8 +61,10 @@ export function WeatherWidget() {
           const weatherRes = await fetch(
             `https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&current=temperature_2m&timezone=auto`
           );
-          if (!weatherRes.ok)
-            throw new Error('Не удалось получить данные о температуре.');
+          if (!weatherRes.ok) {
+            throw new Error('Weather API request failed');
+          }
+
           const weatherData = await weatherRes.json();
           const temperature = Math.round(weatherData.current.temperature_2m);
 
@@ -108,11 +112,11 @@ export function WeatherWidget() {
         <CardTitle className="text-sm font-medium">Погода</CardTitle>
         <Snowflake className="h-4 w-4 text-muted-foreground" />
       </CardHeader>
-      <CardContent className="min-h-[124px]">
+      <CardContent className="flex min-h-[124px] flex-col justify-center">
         {weather.status === 'idle' && (
-          <div className="flex h-full flex-col items-center justify-center gap-2 pt-2">
+          <div className="flex flex-col items-center justify-center gap-2 text-center">
             <LocateFixed className="h-6 w-6 text-muted-foreground" />
-            <p className="text-center text-sm text-muted-foreground">
+            <p className="text-sm text-muted-foreground">
               Нажмите, чтобы получить данные о погоде.
             </p>
             <Button size="sm" onClick={fetchWeather}>
@@ -121,17 +125,15 @@ export function WeatherWidget() {
           </div>
         )}
         {weather.status === 'loading' && (
-          <div className="space-y-2 pt-1">
+          <div className="space-y-2">
             <Skeleton className="h-7 w-20" />
             <Skeleton className="h-4 w-24" />
           </div>
         )}
         {weather.status === 'error' && (
-          <div className="flex h-full flex-col items-center justify-center gap-2 pt-2">
+          <div className="flex flex-col items-center justify-center gap-2 text-center">
             <AlertTriangle className="h-6 w-6 text-destructive" />
-            <p className="text-center text-sm text-destructive">
-              {weather.error}
-            </p>
+            <p className="text-sm text-destructive">{weather.error}</p>
             <Button
               size="sm"
               variant="outline"
@@ -143,7 +145,7 @@ export function WeatherWidget() {
           </div>
         )}
         {weather.status === 'success' && weather.data && (
-          <div className="pt-1">
+          <div>
             <div className="text-2xl font-bold">
               {weather.data.temperature}°C
             </div>
