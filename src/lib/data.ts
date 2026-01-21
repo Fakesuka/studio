@@ -1,13 +1,6 @@
 import type { Order, Product, ServiceProvider } from '@/lib/types';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 
-export const mockUser = {
-  name: 'Иван Петров',
-  email: 'ivan.p@example.com',
-  phone: '+7 (914) 271-23-45',
-  avatarUrl: 'https://picsum.photos/seed/user/100/100',
-};
-
 export const mockOrders: Order[] = [
   { id: 'SAHA-001', service: 'Отогрев авто', date: '2024-01-15', status: 'Завершен', price: 2500 },
   { id: 'SAHA-002', service: 'Доставка топлива', date: '2024-01-20', status: 'Завершен', price: 1800 },

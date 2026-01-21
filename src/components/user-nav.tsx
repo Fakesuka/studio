@@ -11,12 +11,17 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { mockUser } from '@/lib/data';
 import { User, Settings } from 'lucide-react';
 import Link from 'next/link';
 
 export function UserNav() {
+  // MOCK DATA since TWA SDK is temporarily removed
+  const name = 'Иван Петров';
+  const email = '@ivan_petrov';
+  const photoUrl = 'https://picsum.photos/seed/user/100/100';
+
   const getInitials = (name: string) => {
+    if (!name) return '..';
     return name
       .split(' ')
       .map(n => n[0])
@@ -28,17 +33,17 @@ export function UserNav() {
       <DropdownMenuTrigger asChild>
         <Button variant="ghost" className="relative h-8 w-8 rounded-full">
           <Avatar className="h-9 w-9">
-            <AvatarImage src={mockUser.avatarUrl} alt={`@${mockUser.name}`} />
-            <AvatarFallback>{getInitials(mockUser.name)}</AvatarFallback>
+            <AvatarImage src={photoUrl} alt={name} />
+            <AvatarFallback>{getInitials(name)}</AvatarFallback>
           </Avatar>
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent className="w-56" align="end" forceMount>
         <DropdownMenuLabel className="font-normal">
           <div className="flex flex-col space-y-1">
-            <p className="text-sm font-medium leading-none">{mockUser.name}</p>
+            <p className="text-sm font-medium leading-none">{name}</p>
             <p className="text-xs leading-none text-muted-foreground">
-              {mockUser.email}
+              {email}
             </p>
           </div>
         </DropdownMenuLabel>
