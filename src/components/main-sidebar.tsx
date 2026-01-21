@@ -17,7 +17,6 @@ import {
   Store,
   User,
   Settings,
-  LogOut,
   Car,
 } from 'lucide-react';
 import { usePathname } from 'next/navigation';
@@ -67,14 +66,6 @@ export function MainSidebar() {
               <Settings />
               <span>Настройки</span>
             </SidebarMenuButton>
-          </SidebarMenuItem>
-          <SidebarMenuItem>
-            <Link href="/">
-                <SidebarMenuButton tooltip={{ children: 'Выйти', side: 'right' }}>
-                <LogOut />
-                <span>Выйти</span>
-                </SidebarMenuButton>
-            </Link>
           </SidebarMenuItem>
         </SidebarMenu>
       </SidebarFooter>

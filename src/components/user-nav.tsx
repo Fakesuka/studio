@@ -12,7 +12,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { mockUser } from '@/lib/data';
-import { LogOut, User, Settings } from 'lucide-react';
+import { User, Settings } from 'lucide-react';
 import Link from 'next/link';
 
 export function UserNav() {
@@ -55,13 +55,6 @@ export function UserNav() {
             <span>Настройки</span>
           </DropdownMenuItem>
         </DropdownMenuGroup>
-        <DropdownMenuSeparator />
-        <Link href="/">
-            <DropdownMenuItem>
-                <LogOut className="mr-2 h-4 w-4" />
-                <span>Выйти</span>
-            </DropdownMenuItem>
-        </Link>
       </DropdownMenuContent>
     </DropdownMenu>
   );
