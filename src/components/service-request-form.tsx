@@ -82,7 +82,7 @@ const simulateAiDiagnosis = (description: string): DiagnoseProblemOutput => {
   if (evacuatorKeywords.test(lowerCaseDescription)) {
     return {
       diagnosis:
-        'Имитация AI: Обнаружена серьезная неисправность. Рекомендуется эвакуатор.',
+        'Обнаружена серьезная неисправность, рекомендуем эвакуатор.',
       suggestedService: 'эвакуатор',
     };
   }
@@ -97,7 +97,7 @@ const simulateAiDiagnosis = (description: string): DiagnoseProblemOutput => {
   if (heatingKeywords.test(lowerCaseDescription)) {
     return {
       diagnosis:
-        'Имитация AI: Проблема связана с низкой температурой. Вероятно, требуется отогрев.',
+        'Симптомы указывают на проблему, связанную с низкой температурой.',
       suggestedService: 'отогрев',
     };
   }
@@ -112,7 +112,7 @@ const simulateAiDiagnosis = (description: string): DiagnoseProblemOutput => {
   if (fuelKeywords.test(lowerCaseDescription)) {
     return {
       diagnosis:
-        'Имитация AI: Вероятно, закончилось топливо. Рекомендуется доставка.',
+        'Похоже, что закончилось топливо.',
       suggestedService: 'доставка топлива',
     };
   }
@@ -127,7 +127,7 @@ const simulateAiDiagnosis = (description: string): DiagnoseProblemOutput => {
   if (assistanceKeywords.test(lowerCaseDescription)) {
     return {
       diagnosis:
-        'Имитация AI: Обнаружена техническая неисправность. Рекомендуется техпомощь.',
+        'Обнаружена техническая неисправность, которую можно устранить на месте.',
       suggestedService: 'техпомощь',
     };
   }
@@ -135,7 +135,7 @@ const simulateAiDiagnosis = (description: string): DiagnoseProblemOutput => {
   // Default case if no keywords match
   return {
     diagnosis:
-      'Имитация AI: Не удалось автоматически определить проблему. Пожалуйста, выберите услугу вручную или опишите проблему подробнее.',
+      'Не удалось автоматически определить проблему. Пожалуйста, выберите услугу вручную.',
     suggestedService: null,
   };
 };
@@ -255,6 +255,10 @@ export function ServiceRequestForm() {
       router.push('/dashboard');
     }, 2000);
   }
+  
+  const suggestedServiceLabel = aiDiagnosis?.suggestedService
+    ? serviceTypes.find(s => s.value === aiDiagnosis.suggestedService)?.label
+    : '';
 
   return (
     <Card className="w-full max-w-2xl">
@@ -333,16 +337,18 @@ export function ServiceRequestForm() {
 
             {(isDiagnosing || aiDiagnosis) && !useWithoutAI && (
               <Alert>
-                <Sparkles className="h-4 w-4" />
                 <AlertTitle className="flex items-center gap-2">
                   {isDiagnosing
                     ? 'Анализ проблемы...'
-                    : 'Результат анализа'}
+                    : `Рекомендуемая услуга${suggestedServiceLabel ? `: ${suggestedServiceLabel}` : ''}`
+                  }
                   {isDiagnosing && <Loader2 className="h-4 w-4 animate-spin" />}
                 </AlertTitle>
                 <AlertDescription>
-                  {aiDiagnosis?.diagnosis ||
-                    'Анализируем вашу проблему, чтобы предложить наиболее подходящее решение.'}
+                  {isDiagnosing
+                    ? 'Анализируем вашу проблему, чтобы предложить наиболее подходящее решение.'
+                    : aiDiagnosis?.diagnosis
+                  }
                 </AlertDescription>
               </Alert>
             )}
