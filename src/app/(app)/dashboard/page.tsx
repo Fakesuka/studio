@@ -9,6 +9,7 @@ import {
   Wrench,
   Truck,
   Flame,
+  Plus,
 } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
@@ -21,6 +22,12 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import { mockProviders } from '@/lib/data';
 import type { Order, ServiceProvider, ServiceType } from '@/lib/types';
 import Link from 'next/link';
@@ -48,7 +55,8 @@ function ActiveOrderCard({ order }: { order: Order }) {
       <CardHeader>
         <CardTitle>Активный вызов: {order.id}</CardTitle>
         <CardDescription>
-          {order.service} - Статус: <Badge variant="default">{order.status}</Badge>
+          {order.service} - Статус:{' '}
+          <Badge variant="default">{order.status}</Badge>
         </CardDescription>
       </CardHeader>
       <CardContent className="grid gap-4">
@@ -68,7 +76,7 @@ function ActiveOrderCard({ order }: { order: Order }) {
                 {order.provider.vehicle}
               </p>
               <div className="flex items-center gap-1">
-                <Star className="h-4 w-4 text-primary fill-primary" />
+                <Star className="h-4 w-4 fill-primary text-primary" />
                 <span>{order.provider.rating}</span>
               </div>
             </div>
@@ -76,18 +84,22 @@ function ActiveOrderCard({ order }: { order: Order }) {
         )}
         <div className="relative aspect-[4/3] w-full overflow-hidden rounded-md">
           <Map2GIS center={[62.5353, 113.9613]} zoom={13} />
-           {order.arrivalTime && 
-           <div className="absolute bottom-4 right-4 rounded-md bg-background/80 p-2 text-foreground shadow-lg backdrop-blur-sm">
-                <div className="flex items-center gap-2">
-                    <Clock className="h-5 w-5 text-primary" />
-                    <span className="font-bold">Прибытие: {order.arrivalTime} мин</span>
-                </div>
-           </div>
-           }
+          {order.arrivalTime && (
+            <div className="absolute bottom-4 right-4 rounded-md bg-background/80 p-2 text-foreground shadow-lg backdrop-blur-sm">
+              <div className="flex items-center gap-2">
+                <Clock className="h-5 w-5 text-primary" />
+                <span className="font-bold">
+                  Прибытие: {order.arrivalTime} мин
+                </span>
+              </div>
+            </div>
+          )}
         </div>
       </CardContent>
       <CardFooter>
-        <Button variant="secondary" className="w-full">Детали вызова</Button>
+        <Button variant="secondary" className="w-full">
+          Детали вызова
+        </Button>
       </CardFooter>
     </Card>
   );
@@ -108,7 +120,7 @@ function ProviderCard({ provider }: { provider: ServiceProvider }) {
         </div>
       </div>
       <div className="flex items-center gap-1 text-sm font-medium">
-        <Star className="h-4 w-4 text-primary fill-primary" />
+        <Star className="h-4 w-4 fill-primary text-primary" />
         {provider.rating}
       </div>
     </div>
@@ -118,10 +130,18 @@ function ProviderCard({ provider }: { provider: ServiceProvider }) {
 export default function Dashboard() {
   const { activeOrder } = useAppContext();
 
+  const serviceTypes = [
+    { value: 'отогрев', label: 'Отогрев авто', icon: Flame },
+    { value: 'доставка топлива', label: 'Доставка топлива', icon: Fuel },
+    { value: 'техпомощь', label: 'Техпомощь', icon: Wrench },
+    { value: 'эвакуатор', label: 'Эвакуатор', icon: Truck },
+    { value: 'прочее', label: 'Прочее', icon: Plus },
+  ];
+
   return (
     <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3 lg:gap-6">
       <div className="col-span-1 flex flex-col gap-4 lg:gap-6">
-         <Card>
+        <Card>
           <CardHeader>
             <CardTitle>Нужна помощь?</CardTitle>
             <CardDescription>
@@ -129,12 +149,30 @@ export default function Dashboard() {
             </CardDescription>
           </CardHeader>
           <CardContent>
-             <Link href="/services/new" className="w-full">
-              <Button size="lg" className="w-full h-full flex-col py-6 gap-2">
-                <Wrench className="h-10 w-10" />
-                <span className="text-lg">Создать заявку</span>
-              </Button>
-            </Link>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  size="lg"
+                  className="h-full w-full flex-col gap-2 py-6"
+                >
+                  <Wrench className="h-10 w-10" />
+                  <span className="text-lg">Создать заявку</span>
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent className="w-64" align="start">
+                {serviceTypes.map(service => (
+                  <Link
+                    href={`/services/new?service=${service.value}`}
+                    key={service.value}
+                  >
+                    <DropdownMenuItem className="cursor-pointer py-2 text-base">
+                      <service.icon className="mr-3 h-5 w-5 text-muted-foreground" />
+                      <span>{service.label}</span>
+                    </DropdownMenuItem>
+                  </Link>
+                ))}
+              </DropdownMenuContent>
+            </DropdownMenu>
           </CardContent>
         </Card>
         <Card>
@@ -156,18 +194,35 @@ export default function Dashboard() {
         <ActiveOrderCard order={activeOrder} />
       ) : (
         <Card className="col-span-1 flex flex-col items-center justify-center text-center lg:col-span-2">
-            <CardHeader>
-                <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-secondary">
-                    <Car className="h-8 w-8 text-secondary-foreground" />
-                </div>
-                <CardTitle>Нет активных вызовов</CardTitle>
-                <CardDescription>В данный момент у вас нет активных заявок.</CardDescription>
-            </CardHeader>
-            <CardContent>
-                <Link href="/services/new">
-                    <Button>Создать заявку</Button>
-                </Link>
-            </CardContent>
+          <CardHeader>
+            <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-secondary">
+              <Car className="h-8 w-8 text-secondary-foreground" />
+            </div>
+            <CardTitle>Нет активных вызовов</CardTitle>
+            <CardDescription>
+              В данный момент у вас нет активных заявок.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button>Создать заявку</Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent className="w-64" align="start">
+                {serviceTypes.map(service => (
+                  <Link
+                    href={`/services/new?service=${service.value}`}
+                    key={service.value}
+                  >
+                    <DropdownMenuItem className="cursor-pointer py-2 text-base">
+                      <service.icon className="mr-3 h-5 w-5 text-muted-foreground" />
+                      <span>{service.label}</span>
+                    </DropdownMenuItem>
+                  </Link>
+                ))}
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </CardContent>
         </Card>
       )}
     </div>

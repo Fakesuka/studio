@@ -12,7 +12,6 @@ import {
 } from '@/components/ui/sidebar';
 import {
   LayoutDashboard,
-  Wrench,
   ScrollText,
   Store,
   User,
@@ -27,7 +26,6 @@ export function MainSidebar() {
 
   const menuItems = [
     { href: '/dashboard', label: 'Панель управления', icon: LayoutDashboard },
-    { href: '/services/new', label: 'Новый запрос', icon: Wrench },
     { href: '/orders', label: 'Мои заказы', icon: ScrollText },
     { href: '/marketplace', label: 'Маркетплейс', icon: Store },
     { href: '/profile', label: 'Профиль', icon: User },

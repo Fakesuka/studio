@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { Flame, Fuel, Truck, Wrench } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
@@ -58,12 +58,15 @@ export function ServiceRequestForm() {
   const { toast } = useToast();
   const router = useRouter();
   const { setActiveOrder } = useAppContext();
+  const searchParams = useSearchParams();
+  const serviceParam = searchParams.get('service');
 
   const form = useForm<ServiceRequestFormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       description: '',
       location: '',
+      serviceType: serviceParam && serviceTypes.some(s => s.value === serviceParam) ? serviceParam : undefined,
     },
   });
 
@@ -207,12 +210,12 @@ export function ServiceRequestForm() {
                     />
                   </FormControl>
                   {photoPreview && (
-                    <div className="mt-2 relative">
+                    <div className="relative mt-2">
                       {/* eslint-disable-next-line @next/next/no-img-element */}
                       <img
                         src={photoPreview}
                         alt="Preview"
-                        className="rounded-md object-cover max-h-40"
+                        className="max-h-40 rounded-md object-cover"
                       />
                     </div>
                   )}

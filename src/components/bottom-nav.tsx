@@ -4,7 +4,6 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import {
   LayoutDashboard,
-  Wrench,
   ScrollText,
   Store,
   User,
@@ -13,7 +12,6 @@ import { cn } from '@/lib/utils';
 
 const menuItems = [
   { href: '/dashboard', label: 'Главная', icon: LayoutDashboard },
-  { href: '/services/new', label: 'Заявка', icon: Wrench },
   { href: '/orders', label: 'Заказы', icon: ScrollText },
   { href: '/marketplace', label: 'Маркет', icon: Store },
   { href: '/profile', label: 'Профиль', icon: User },
@@ -24,7 +22,7 @@ export function BottomNav() {
 
   return (
     <nav className="fixed bottom-0 left-0 right-0 z-50 border-t bg-card md:hidden">
-      <div className="grid h-16 grid-cols-5 items-center">
+      <div className="grid h-16 grid-cols-4 items-center">
         {menuItems.map(item => {
           const isActive = pathname === item.href;
           return (
