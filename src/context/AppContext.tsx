@@ -8,8 +8,8 @@ import {
   useEffect,
   useCallback,
 } from 'react';
-import type { Order, CartItem, SellerProfile } from '@/lib/types';
-import { mockProducts } from '@/lib/data';
+import type { Order, CartItem, SellerProfile, Product, Shop } from '@/lib/types';
+import { mockProducts, mockShops } from '@/lib/data';
 
 interface AppContextType {
   activeOrder: Order | null;
@@ -23,6 +23,9 @@ interface AppContextType {
   isSeller: boolean;
   sellerProfile: SellerProfile | null;
   registerAsSeller: (profile: SellerProfile) => void;
+  products: Product[];
+  shops: Shop[];
+  addProduct: (productData: Omit<Product, 'id'>) => void;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
@@ -34,7 +37,11 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [sellerProfile, setSellerProfile] = useState<SellerProfile | null>(
     null
   );
+  const [products, setProducts] = useState<Product[]>([]);
+  const [shops, setShops] = useState<Shop[]>([]);
   const [isContextLoading, setIsContextLoading] = useState(true);
+
+  const MOCK_USER_ID = 'self';
 
   // On initial client-side render, load data from localStorage
   useEffect(() => {
@@ -55,12 +62,14 @@ export function AppProvider({ children }: { children: ReactNode }) {
       if (sellerProfileItem) {
         setSellerProfile(JSON.parse(sellerProfileItem));
       }
+      const productsItem = window.localStorage.getItem('products');
+      setProducts(productsItem ? JSON.parse(productsItem) : mockProducts);
+
+      const shopsItem = window.localStorage.getItem('shops');
+      setShops(shopsItem ? JSON.parse(shopsItem) : mockShops);
     } catch (error) {
       console.error('Failed to load data from localStorage', error);
-      localStorage.removeItem('activeOrder');
-      localStorage.removeItem('cart');
-      localStorage.removeItem('isSeller');
-      localStorage.removeItem('sellerProfile');
+      localStorage.clear(); // Clear all keys on error
     }
     setIsContextLoading(false); // Loading is complete
   }, []);
@@ -87,8 +96,26 @@ export function AppProvider({ children }: { children: ReactNode }) {
     }
   };
 
+  const saveProducts = (newProducts: Product[]) => {
+    setProducts(newProducts);
+    try {
+      window.localStorage.setItem('products', JSON.stringify(newProducts));
+    } catch (error) {
+      console.error('Failed to save products to localStorage', error);
+    }
+  };
+
+  const saveShops = (newShops: Shop[]) => {
+    setShops(newShops);
+    try {
+      window.localStorage.setItem('shops', JSON.stringify(newShops));
+    } catch (error) {
+      console.error('Failed to save shops to localStorage', error);
+    }
+  };
+
   const addToCart = (productId: string) => {
-    const productToAdd = mockProducts.find(p => p.id === productId);
+    const productToAdd = products.find(p => p.id === productId);
     if (!productToAdd) return;
 
     const existingItem = cart.find(item => item.id === productId);
@@ -123,9 +150,30 @@ export function AppProvider({ children }: { children: ReactNode }) {
     [cart]
   );
 
+  const addProduct = (productData: Omit<Product, 'id'>) => {
+    const newProduct: Product = {
+      id: `prod-${Date.now()}`,
+      ...productData,
+    };
+    saveProducts([...products, newProduct]);
+  };
+
   const registerAsSeller = (profile: SellerProfile) => {
     setIsSeller(true);
     setSellerProfile(profile);
+
+    const newShop: Shop = {
+      id: `shop-${Date.now()}`,
+      name: profile.storeName,
+      description: profile.storeDescription,
+      userId: MOCK_USER_ID,
+      imageUrl: 'https://picsum.photos/seed/newshop/200/200',
+      imageHint: 'store front',
+      bannerUrl: 'https://picsum.photos/seed/newshop-banner/800/200',
+      bannerHint: 'store banner',
+    };
+    saveShops([...shops, newShop]);
+
     try {
       window.localStorage.setItem('isSeller', JSON.stringify(true));
       window.localStorage.setItem('sellerProfile', JSON.stringify(profile));
@@ -148,6 +196,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
         isSeller,
         sellerProfile,
         registerAsSeller,
+        products,
+        shops,
+        addProduct,
       }}
     >
       {children}

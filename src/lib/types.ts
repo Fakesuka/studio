@@ -54,6 +54,7 @@ export type SellerProfile = {
 export type Shop = {
   id: string;
   name: string;
+  userId?: string;
   imageUrl: string;
   imageHint: string;
   bannerUrl: string;

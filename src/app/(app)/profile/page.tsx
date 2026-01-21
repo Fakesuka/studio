@@ -25,7 +25,19 @@ import {
 } from '@/components/ui/form';
 import { useAppContext } from '@/context/AppContext';
 import { useToast } from '@/hooks/use-toast';
-import { Store, CheckCircle } from 'lucide-react';
+import { Store, CheckCircle, PlusCircle } from 'lucide-react';
+import { useState } from 'react';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+  DialogFooter,
+  DialogClose,
+  DialogDescription,
+} from '@/components/ui/dialog';
+import Image from 'next/image';
 
 const sellerFormSchema = z.object({
   storeName: z
@@ -38,11 +50,29 @@ const sellerFormSchema = z.object({
 
 type SellerFormValues = z.infer<typeof sellerFormSchema>;
 
-export default function ProfilePage() {
-  const { isSeller, sellerProfile, registerAsSeller } = useAppContext();
-  const { toast } = useToast();
+const productFormSchema = z.object({
+  name: z.string().min(3, 'Название товара должно быть длиннее 3 символов.'),
+  description: z.string().min(10, 'Описание должно быть длиннее 10 символов.'),
+  price: z.coerce.number().positive('Цена должна быть положительным числом.'),
+  image: z.any().optional(),
+});
 
-  const form = useForm<SellerFormValues>({
+type ProductFormValues = z.infer<typeof productFormSchema>;
+
+export default function ProfilePage() {
+  const MOCK_USER_ID = 'self'; // In a real app, this would come from auth.
+  const { isSeller, registerAsSeller, products, addProduct, shops } =
+    useAppContext();
+  const { toast } = useToast();
+  const [isAddProductDialogOpen, setIsAddProductDialogOpen] = useState(false);
+  const [photoPreview, setPhotoPreview] = useState<string | null>(null);
+
+  const userShop = shops.find(shop => shop.userId === MOCK_USER_ID);
+  const sellerProducts = userShop
+    ? products.filter(p => p.shopId === userShop.id)
+    : [];
+
+  const sellerForm = useForm<SellerFormValues>({
     resolver: zodResolver(sellerFormSchema),
     defaultValues: {
       storeName: '',
@@ -50,12 +80,60 @@ export default function ProfilePage() {
     },
   });
 
-  const onSubmit = (data: SellerFormValues) => {
+  const productForm = useForm<ProductFormValues>({
+    resolver: zodResolver(productFormSchema),
+    defaultValues: {
+      name: '',
+      description: '',
+      price: 0,
+    },
+  });
+
+  const onSellerSubmit = (data: SellerFormValues) => {
     registerAsSeller(data);
     toast({
       title: 'Поздравляем!',
       description: 'Вы успешно зарегистрированы как продавец.',
     });
+  };
+
+  const onProductSubmit = (data: ProductFormValues) => {
+    if (!userShop) {
+      toast({
+        variant: 'destructive',
+        title: 'Ошибка',
+        description: 'Ваш магазин не найден.',
+      });
+      return;
+    }
+    addProduct({
+      ...data,
+      shopId: userShop.id,
+      imageUrl:
+        photoPreview || `https://picsum.photos/seed/${data.name}/600/400`,
+      imageHint: `photo of ${data.name}`,
+    });
+    toast({
+      title: 'Товар добавлен!',
+      description: `${data.name} теперь в вашем магазине.`,
+    });
+    setIsAddProductDialogOpen(false);
+    productForm.reset();
+    setPhotoPreview(null);
+  };
+
+  const handlePhotoChange = async (
+    event: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setPhotoPreview(reader.result as string);
+        productForm.setValue('image', reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
   };
 
   // MOCK DATA since TWA SDK is removed
@@ -88,32 +166,174 @@ export default function ProfilePage() {
         </CardFooter>
       </Card>
 
-      {isSeller ? (
+      {isSeller && userShop ? (
         <Card>
           <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Store className="h-6 w-6" />
-              Ваш магазин
+            <CardTitle className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Store className="h-6 w-6" />
+                Ваш магазин: {userShop.name}
+              </div>
+              <Dialog
+                open={isAddProductDialogOpen}
+                onOpenChange={setIsAddProductDialogOpen}
+              >
+                <DialogTrigger asChild>
+                  <Button variant="outline" size="sm">
+                    <PlusCircle className="mr-2 h-4 w-4" />
+                    Добавить товар
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="sm:max-w-[425px]">
+                  <DialogHeader>
+                    <DialogTitle>Новый товар</DialogTitle>
+                    <DialogDescription>
+                      Заполните информацию о товаре, чтобы добавить его в
+                      магазин.
+                    </DialogDescription>
+                  </DialogHeader>
+                  <Form {...productForm}>
+                    <form
+                      onSubmit={productForm.handleSubmit(onProductSubmit)}
+                      className="space-y-4"
+                    >
+                      <FormField
+                        control={productForm.control}
+                        name="name"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Название товара</FormLabel>
+                            <FormControl>
+                              <Input
+                                placeholder="Например, 'Зимние шины'"
+                                {...field}
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <FormField
+                        control={productForm.control}
+                        name="description"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Описание</FormLabel>
+                            <FormControl>
+                              <Textarea
+                                placeholder="Опишите товар..."
+                                {...field}
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <FormField
+                        control={productForm.control}
+                        name="price"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Цена (в рублях)</FormLabel>
+                            <FormControl>
+                              <Input
+                                type="number"
+                                placeholder="5000"
+                                {...field}
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <FormField
+                        control={productForm.control}
+                        name="image"
+                        render={() => (
+                          <FormItem>
+                            <FormLabel>Фотография</FormLabel>
+                            <FormControl>
+                              <Input
+                                type="file"
+                                accept="image/*"
+                                onChange={handlePhotoChange}
+                              />
+                            </FormControl>
+                            {photoPreview && (
+                              <div className="mt-2">
+                                {/* eslint-disable-next-line @next/next/no-img-element */}
+                                <img
+                                  src={photoPreview}
+                                  alt="Предпросмотр"
+                                  className="max-h-40 rounded-md"
+                                />
+                              </div>
+                            )}
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <DialogFooter>
+                        <DialogClose asChild>
+                          <Button type="button" variant="secondary">
+                            Отмена
+                          </Button>
+                        </DialogClose>
+                        <Button
+                          type="submit"
+                          disabled={productForm.formState.isSubmitting}
+                        >
+                          Добавить
+                        </Button>
+                      </DialogFooter>
+                    </form>
+                  </Form>
+                </DialogContent>
+              </Dialog>
             </CardTitle>
-            <CardDescription>
-              Вы зарегистрированы как продавец. Здесь вы скоро сможете управлять
-              своим магазином.
-            </CardDescription>
+            <CardDescription>{userShop.description}</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="flex items-center gap-2 rounded-md border border-green-500 bg-green-50 p-4 text-green-700">
               <CheckCircle className="h-5 w-5" />
               <p className="text-sm font-medium">Статус продавца: Активен</p>
             </div>
-            <div>
-              <h4 className="font-semibold">{sellerProfile?.storeName}</h4>
-              <p className="text-sm text-muted-foreground">
-                {sellerProfile?.storeDescription}
+            <h4 className="font-semibold">Ваши товары</h4>
+            {sellerProducts.length > 0 ? (
+              <div className="space-y-4">
+                {sellerProducts.map(product => (
+                  <div
+                    key={product.id}
+                    className="flex items-center gap-4 rounded-md border p-2"
+                  >
+                    <Image
+                      src={product.imageUrl}
+                      alt={product.name}
+                      width={64}
+                      height={64}
+                      className="rounded-md object-cover"
+                      data-ai-hint={product.imageHint}
+                    />
+                    <div className="flex-1">
+                      <p className="font-medium">{product.name}</p>
+                      <p className="text-sm text-muted-foreground">
+                        {product.price.toLocaleString('ru-RU', {
+                          style: 'currency',
+                          currency: 'RUB',
+                        })}
+                      </p>
+                    </div>
+                    <Button variant="ghost" size="sm" disabled>
+                      Управлять
+                    </Button>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="py-4 text-center text-sm text-muted-foreground">
+                У вас пока нет товаров. Нажмите "Добавить товар", чтобы начать.
               </p>
-            </div>
-            <Button className="w-full" disabled>
-              Управлять магазином (скоро)
-            </Button>
+            )}
           </CardContent>
         </Card>
       ) : (
@@ -128,11 +348,11 @@ export default function ProfilePage() {
               площадке.
             </CardDescription>
           </CardHeader>
-          <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)}>
+          <Form {...sellerForm}>
+            <form onSubmit={sellerForm.handleSubmit(onSellerSubmit)}>
               <CardContent className="space-y-4">
                 <FormField
-                  control={form.control}
+                  control={sellerForm.control}
                   name="storeName"
                   render={({ field }) => (
                     <FormItem>
@@ -148,7 +368,7 @@ export default function ProfilePage() {
                   )}
                 />
                 <FormField
-                  control={form.control}
+                  control={sellerForm.control}
                   name="storeDescription"
                   render={({ field }) => (
                     <FormItem>
@@ -168,7 +388,7 @@ export default function ProfilePage() {
                 <Button
                   type="submit"
                   className="w-full"
-                  disabled={form.formState.isSubmitting}
+                  disabled={sellerForm.formState.isSubmitting}
                 >
                   Зарегистрировать магазин
                 </Button>

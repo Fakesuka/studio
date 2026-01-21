@@ -18,15 +18,19 @@ import {
   CarouselNext,
   CarouselPrevious,
 } from '@/components/ui/carousel';
-import { mockProducts, mockShops } from '@/lib/data';
 import { useToast } from '@/hooks/use-toast';
 import { ShoppingCart, Minus, Plus } from 'lucide-react';
 import { useAppContext } from '@/context/AppContext';
 
 export default function MarketplacePage() {
   const { toast } = useToast();
-  const { addToCart, updateCartItemQuantity, getCartItemQuantity } =
-    useAppContext();
+  const {
+    products,
+    shops,
+    addToCart,
+    updateCartItemQuantity,
+    getCartItemQuantity,
+  } = useAppContext();
 
   const handleAddToCart = (productId: string, productName: string) => {
     addToCart(productId);
@@ -71,7 +75,7 @@ export default function MarketplacePage() {
           className="w-full"
         >
           <CarouselContent>
-            {mockShops.map(shop => (
+            {shops.map(shop => (
               <CarouselItem
                 key={shop.id}
                 className="basis-1/3 pl-4 sm:basis-1/4 md:basis-1/5 lg:basis-1/6"
@@ -103,7 +107,7 @@ export default function MarketplacePage() {
 
       <h2 className="mb-4 text-2xl font-bold">Товары</h2>
       <div className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-4">
-        {mockProducts.map(product => (
+        {products.map(product => (
           <Card key={product.id} className="flex flex-col">
             <div className="flex flex-1 flex-col">
               <CardHeader className="p-0">

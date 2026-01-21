@@ -13,7 +13,6 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
-import { mockProducts, mockShops } from '@/lib/data';
 import { useAppContext } from '@/context/AppContext';
 import { useToast } from '@/hooks/use-toast';
 
@@ -21,11 +20,16 @@ export default function ShopPage() {
   const params = useParams();
   const shopId = params.shopId as string;
   const { toast } = useToast();
-  const { addToCart, updateCartItemQuantity, getCartItemQuantity } =
-    useAppContext();
+  const {
+    shops,
+    products,
+    addToCart,
+    updateCartItemQuantity,
+    getCartItemQuantity,
+  } = useAppContext();
 
-  const shop = mockShops.find(s => s.id === shopId);
-  const products = mockProducts.filter(p => p.shopId === shopId);
+  const shop = shops.find(s => s.id === shopId);
+  const shopProducts = products.filter(p => p.shopId === shopId);
 
   if (!shop) {
     notFound();
@@ -82,9 +86,9 @@ export default function ShopPage() {
 
       <h3 className="mb-4 text-2xl font-bold">Товары магазина</h3>
 
-      {products.length > 0 ? (
+      {shopProducts.length > 0 ? (
         <div className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-4">
-          {products.map(product => (
+          {shopProducts.map(product => (
             <Card key={product.id} className="flex flex-col">
               <div className="flex flex-1 flex-col">
                 <CardHeader className="p-0">
