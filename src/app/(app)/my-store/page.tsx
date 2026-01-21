@@ -11,7 +11,7 @@ import {
   PlusCircle,
   Trash2,
   Store,
-  Loader2,
+  Snowflake,
   PackageOpen,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -126,7 +126,7 @@ export default function MyStorePage() {
   if (isContextLoading) {
     return (
       <div className="flex h-full w-full items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        <Snowflake className="h-8 w-8 animate-spin text-primary" />
       </div>
     );
   }

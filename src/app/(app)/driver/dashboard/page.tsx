@@ -3,7 +3,7 @@ import { useAppContext } from '@/context/AppContext';
 import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
 import {
-  Loader2,
+  Snowflake,
   Bell,
   MapPin,
   MessageSquare,
@@ -170,7 +170,7 @@ export default function DriverDashboard() {
   if (isContextLoading || !isDriver) {
     return (
       <div className="flex h-full w-full items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        <Snowflake className="h-8 w-8 animate-spin text-primary" />
       </div>
     );
   }

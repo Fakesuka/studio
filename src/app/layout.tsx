@@ -7,7 +7,7 @@ import './globals.css';
 const inter = Inter({ subsets: ['latin'], variable: '--font-inter' });
 
 export const metadata: Metadata = {
-  title: 'Vroom',
+  title: 'YakGo',
   description: 'Ваш надежный помощник на дорогах Якутии.',
   viewport: {
     width: 'device-width',

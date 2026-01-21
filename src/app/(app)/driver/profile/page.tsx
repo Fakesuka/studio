@@ -3,7 +3,7 @@
 import { useAppContext } from '@/context/AppContext';
 import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
-import { Loader2, User, Wallet, Plus, ArrowRight } from 'lucide-react';
+import { Snowflake, User, Wallet, Plus, ArrowRight } from 'lucide-react';
 import {
   Card,
   CardContent,
@@ -36,7 +36,7 @@ export default function DriverProfilePage() {
   if (isContextLoading || !isDriver || !driverProfile) {
     return (
       <div className="flex h-full w-full items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        <Snowflake className="h-8 w-8 animate-spin text-primary" />
       </div>
     );
   }

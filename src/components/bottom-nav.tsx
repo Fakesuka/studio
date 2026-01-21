@@ -2,20 +2,8 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import {
-  LayoutDashboard,
-  ScrollText,
-  Store,
-  User,
-} from 'lucide-react';
 import { cn } from '@/lib/utils';
-
-const menuItems = [
-  { href: '/dashboard', label: 'Главная', icon: LayoutDashboard },
-  { href: '/orders', label: 'Заказы', icon: ScrollText },
-  { href: '/marketplace', label: 'Маркет', icon: Store },
-  { href: '/profile', label: 'Профиль', icon: User },
-];
+import { bottomMenuItems } from '@/lib/menu-items';
 
 export function BottomNav() {
   const pathname = usePathname();
@@ -23,7 +11,7 @@ export function BottomNav() {
   return (
     <nav className="fixed bottom-0 left-0 right-0 z-50 border-t bg-card md:hidden">
       <div className="grid h-16 grid-cols-4 items-center">
-        {menuItems.map(item => {
+        {bottomMenuItems.map(item => {
           const isActive = pathname === item.href;
           return (
             <Link

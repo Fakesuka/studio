@@ -16,7 +16,7 @@ import {
   Store,
   User,
   Settings,
-  Car,
+  Snowflake,
 } from 'lucide-react';
 import { usePathname } from 'next/navigation';
 import Link from 'next/link';
@@ -35,8 +35,8 @@ export function MainSidebar() {
     <Sidebar>
       <SidebarHeader>
         <Link href="/dashboard" className="flex items-center gap-2 font-semibold">
-            <Car className="h-7 w-7 text-primary" />
-            <span className="text-xl font-bold">Vroom</span>
+            <Snowflake className="h-7 w-7 text-primary" />
+            <span className="text-xl font-bold">YakGo</span>
         </Link>
       </SidebarHeader>
       <SidebarContent className="p-2">

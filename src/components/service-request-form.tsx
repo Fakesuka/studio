@@ -5,7 +5,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { Flame, Fuel, Truck, Wrench, Sparkles, Loader2 } from 'lucide-react';
+import { Flame, Fuel, Truck, Wrench, Sparkles, Snowflake } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -249,7 +249,7 @@ export function ServiceRequestForm() {
                     : `Рекомендуемая услуга${
                         suggestedServiceLabel ? `: ${suggestedServiceLabel}` : ''
                       }`}
-                  {isDiagnosing && <Loader2 className="h-4 w-4 animate-spin" />}
+                  {isDiagnosing && <Snowflake className="h-4 w-4 animate-spin" />}
                 </AlertTitle>
                 <AlertDescription>
                   {isDiagnosing

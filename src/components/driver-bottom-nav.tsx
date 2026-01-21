@@ -2,15 +2,8 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Bell, ListChecks, Store, User } from 'lucide-react';
 import { cn } from '@/lib/utils';
-
-const menuItems = [
-  { href: '/driver/dashboard', label: 'Заказы', icon: Bell },
-  { href: '/driver/history', label: 'История', icon: ListChecks },
-  { href: '/marketplace', label: 'Маркет', icon: Store },
-  { href: '/driver/profile', label: 'Профиль', icon: User },
-];
+import { driverBottomMenuItems } from '@/lib/menu-items';
 
 export function DriverBottomNav() {
   const pathname = usePathname();
@@ -18,7 +11,7 @@ export function DriverBottomNav() {
   return (
     <nav className="fixed bottom-0 left-0 right-0 z-50 border-t bg-card md:hidden">
       <div className="grid h-16 grid-cols-4 items-center">
-        {menuItems.map(item => {
+        {driverBottomMenuItems.map(item => {
           const isActive = pathname.startsWith(item.href);
           return (
             <Link

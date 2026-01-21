@@ -12,7 +12,7 @@ import {
 } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Separator } from '@/components/ui/separator';
-import { Minus, Plus, Trash2, ArrowLeft, Loader2 } from 'lucide-react';
+import { Minus, Plus, Trash2, ArrowLeft, Snowflake } from 'lucide-react';
 import { useAppContext } from '@/context/AppContext';
 
 export default function CartPage() {
@@ -29,7 +29,7 @@ export default function CartPage() {
   if (isContextLoading) {
     return (
       <div className="flex h-full w-full items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        <Snowflake className="h-8 w-8 animate-spin text-primary" />
       </div>
     );
   }

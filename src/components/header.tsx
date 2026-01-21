@@ -1,6 +1,6 @@
 'use client';
 
-import { ShoppingCart, Car, UserCog } from 'lucide-react';
+import { ShoppingCart, Snowflake, UserCog } from 'lucide-react';
 import Link from 'next/link';
 import { Button } from './ui/button';
 import { useAppContext } from '@/context/AppContext';
@@ -12,8 +12,8 @@ export function Header() {
   return (
     <header className="flex h-14 items-center gap-4 border-b bg-card px-4 lg:h-[60px] lg:px-6">
       <Link href="/dashboard" className="flex items-center gap-2 font-semibold">
-        <Car className="h-6 w-6 text-primary" />
-        <span className="text-lg font-bold">Vroom</span>
+        <Snowflake className="h-6 w-6 text-primary" />
+        <span className="text-lg font-bold">YakGo</span>
       </Link>
       <div className="flex-1" />
       <Link href="/driver/dashboard" passHref>

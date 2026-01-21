@@ -16,7 +16,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
-import { Car } from 'lucide-react';
+import { Snowflake } from 'lucide-react';
 
 function VerificationForm() {
   const router = useRouter();
@@ -59,7 +59,7 @@ function VerificationForm() {
     <Card className="w-full max-w-sm bg-card/80 backdrop-blur-sm">
       <CardHeader className="text-center">
         <div className="mb-2 flex items-center justify-center gap-2">
-          <Car className="h-8 w-8 text-primary" />
+          <Snowflake className="h-8 w-8 text-primary" />
           <CardTitle className="text-3xl font-bold">Подтверждение</CardTitle>
         </div>
         <CardDescription>
@@ -93,28 +93,41 @@ function VerificationForm() {
         </form>
       </CardContent>
     </Card>
-  );
-}
+  </change>
+  <change>
+    <file>src/components/bottom-nav.tsx</file>
+    <content><![CDATA['use client';
 
+import Link from 'next/link';
+import { usePathname } from 'next/navigation';
+import { cn } from '@/lib/utils';
+import { bottomMenuItems } from '@/lib/menu-items';
 
-export default function VerifyPage() {
-  const loginBg = PlaceHolderImages.find(p => p.id === 'login-bg');
+export function BottomNav() {
+  const pathname = usePathname();
 
   return (
-    <div className="relative flex min-h-screen w-full flex-col items-center justify-center">
-      {loginBg && (
-        <Image
-          src={loginBg.imageUrl}
-          alt={loginBg.description}
-          fill
-          className="absolute inset-0 -z-10 h-full w-full object-cover brightness-50"
-          data-ai-hint={loginBg.imageHint}
-          priority
-        />
-      )}
-      <Suspense fallback={<div>Загрузка...</div>}>
-         <VerificationForm />
-      </Suspense>
-    </div>
+    <nav className="fixed bottom-0 left-0 right-0 z-50 border-t bg-card md:hidden">
+      <div className="grid h-16 grid-cols-4 items-center">
+        {bottomMenuItems.map(item => {
+          const isActive = pathname === item.href;
+          return (
+            <Link
+              key={item.href}
+              href={item.href}
+              className={cn(
+                'flex h-full flex-col items-center justify-center gap-1 p-2 text-sm font-medium transition-colors',
+                isActive
+                  ? 'text-primary'
+                  : 'text-muted-foreground hover:text-primary'
+              )}
+            >
+              <item.icon className="h-5 w-5" />
+              <span className="text-[10px] tracking-tighter">{item.label}</span>
+            </Link>
+          );
+        })}
+      </div>
+    </nav>
   );
 }
