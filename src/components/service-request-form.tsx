@@ -36,10 +36,6 @@ import { useToast } from '@/hooks/use-toast';
 import { useAppContext } from '@/context/AppContext';
 import { mockProviders } from '@/lib/data';
 import type { ServiceType } from '@/lib/types';
-import {
-  diagnoseProblem,
-  type DiagnoseProblemOutput,
-} from '@/ai/flows/diagnose-problem-flow';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 
@@ -58,6 +54,64 @@ const serviceTypes = [
   { value: 'техпомощь', label: 'Техпомощь', icon: Wrench },
   { value: 'эвакуатор', label: 'Эвакуатор', icon: Truck },
 ];
+
+const serviceTypeValues = [
+  'отогрев',
+  'доставка топлива',
+  'техпомощь',
+  'эвакуатор',
+] as const;
+
+// Local type for AI diagnosis simulation
+type DiagnoseProblemOutput = {
+  diagnosis: string;
+  suggestedService: (typeof serviceTypeValues)[number];
+};
+
+// Keyword-based AI simulation
+const simulateAiDiagnosis = (description: string): DiagnoseProblemOutput => {
+  const lowerCaseDescription = description.toLowerCase();
+
+  if (/\b(отогреть|замерз|холод|мороз)\b/.test(lowerCaseDescription)) {
+    return {
+      diagnosis:
+        'Имитация AI: Обнаружены ключевые слова, связанные с холодом. Вероятно, требуется отогрев автомобиля.',
+      suggestedService: 'отогрев',
+    };
+  }
+  if (/\b(топлив|бензин|солярк|заглох|пустой бак)\b/.test(lowerCaseDescription)) {
+    return {
+      diagnosis:
+        'Имитация AI: Проблема, вероятно, связана с нехваткой топлива.',
+      suggestedService: 'доставка топлива',
+    };
+  }
+  if (/\b(дтп|авари|удар|увезти|эвакуа)\b/.test(lowerCaseDescription)) {
+    return {
+      diagnosis:
+        'Имитация AI: Описание похоже на последствия ДТП. Рекомендуется вызов эвакуатора.',
+      suggestedService: 'эвакуатор',
+    };
+  }
+  if (
+    /\b(аккумулятор|акб|сел|завестись|зажигание|щелкает|крутит)\b/.test(
+      lowerCaseDescription
+    ) ||
+    /\b(колесо|прокол|шина|спустило)\b/.test(lowerCaseDescription)
+  ) {
+    return {
+      diagnosis:
+        'Имитация AI: Похоже, у вас техническая неисправность (например, сел аккумулятор или проблема с колесом).',
+      suggestedService: 'техпомощь',
+    };
+  }
+
+  return {
+    diagnosis:
+      'Имитация AI: Не удалось автоматически определить проблему. Пожалуйста, выберите услугу вручную или опишите проблему подробнее.',
+    suggestedService: 'техпомощь', // Default suggestion
+  };
+};
 
 export function ServiceRequestForm() {
   const [photoPreview, setPhotoPreview] = useState<string | null>(null);
@@ -86,7 +140,6 @@ export function ServiceRequestForm() {
   });
 
   const descriptionValue = form.watch('description');
-  const photoValue = form.watch('photo');
 
   useEffect(() => {
     if (useWithoutAI || !descriptionValue || descriptionValue.length < 20) {
@@ -97,9 +150,15 @@ export function ServiceRequestForm() {
     const handler = setTimeout(() => {
       setIsDiagnosing(true);
       setAiDiagnosis(null);
-      diagnoseProblem({
-        description: descriptionValue,
-        photoDataUri: photoValue,
+      
+      // Simulate AI call with keywords
+      const result = simulateAiDiagnosis(descriptionValue);
+
+      // Use a promise to keep the structure similar and simulate network delay
+      new Promise<DiagnoseProblemOutput | null>(resolve => {
+        setTimeout(() => {
+          resolve(result);
+        }, 500); // 500ms delay for simulation
       })
         .then(result => {
           setAiDiagnosis(result);
@@ -109,14 +168,6 @@ export function ServiceRequestForm() {
             });
           }
         })
-        .catch(error => {
-          console.error('AI diagnosis failed:', error);
-          setAiDiagnosis({
-            diagnosis:
-              'Не удалось получить диагноз от AI. Пожалуйста, выберите услугу вручную.',
-            suggestedService: 'техпомощь',
-          });
-        })
         .finally(() => {
           setIsDiagnosing(false);
         });
@@ -125,7 +176,7 @@ export function ServiceRequestForm() {
     return () => {
       clearTimeout(handler);
     };
-  }, [descriptionValue, photoValue, useWithoutAI, form]);
+  }, [descriptionValue, useWithoutAI, form]);
 
   const fileToDataUri = (file: File): Promise<string> => {
     return new Promise((resolve, reject) => {
@@ -182,7 +233,7 @@ export function ServiceRequestForm() {
       <CardHeader>
         <CardTitle>Новая заявка</CardTitle>
         <CardDescription>
-          Опишите проблему, и наш AI поможет определить тип услуги.
+          Опишите проблему, и мы попробуем определить тип услуги.
         </CardDescription>
       </CardHeader>
       <Form {...form}>
@@ -248,7 +299,7 @@ export function ServiceRequestForm() {
                 htmlFor="no-ai"
                 className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
               >
-                Я выберу услугу сам, без помощи AI
+                Я выберу услугу сам
               </label>
             </div>
 
@@ -257,13 +308,13 @@ export function ServiceRequestForm() {
                 <Sparkles className="h-4 w-4" />
                 <AlertTitle className="flex items-center gap-2">
                   {isDiagnosing
-                    ? 'AI диагностика...'
-                    : 'Результат AI диагностики'}
+                    ? 'Анализ проблемы...'
+                    : 'Результат анализа'}
                   {isDiagnosing && <Loader2 className="h-4 w-4 animate-spin" />}
                 </AlertTitle>
                 <AlertDescription>
                   {aiDiagnosis?.diagnosis ||
-                    'Искусственный интеллект анализирует вашу проблему, чтобы предложить наиболее подходящее решение.'}
+                    'Анализируем вашу проблему, чтобы предложить наиболее подходящее решение.'}
                 </AlertDescription>
               </Alert>
             )}
