@@ -46,6 +46,9 @@ const diagnoseProblemPrompt = ai.definePrompt({
   name: 'diagnoseProblemPrompt',
   input: { schema: DiagnoseProblemInputSchema },
   output: { schema: DiagnoseProblemOutputSchema },
+  config: {
+    model: 'googleai/gemini-2.5-flash',
+  },
   prompt: `You are an expert car mechanic in Yakutia, Russia. Your task is to diagnose a car problem based on a user's description and an optional photo. Provide a short, one or two-sentence diagnosis in Russian and suggest the most appropriate service type *value* from the following list of values: ${serviceTypeValues.join(
     ', '
   )}.
