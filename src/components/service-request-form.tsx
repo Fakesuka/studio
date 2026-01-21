@@ -18,6 +18,7 @@ import {
 import {
   Form,
   FormControl,
+  FormDescription,
   FormField,
   FormItem,
   FormLabel,
@@ -44,6 +45,9 @@ const formSchema = z.object({
   location: z.string().min(5, 'Пожалуйста, укажите ваше местоположение.'),
   description: z.string().min(10, 'Пожалуйста, предоставьте больше деталей.'),
   photo: z.any().optional(),
+  suggestedPrice: z.coerce
+    .number()
+    .positive('Цена должна быть положительным числом.'),
 });
 
 type ServiceRequestFormValues = z.infer<typeof formSchema>;
@@ -163,6 +167,7 @@ export function ServiceRequestForm() {
         serviceParam && serviceTypes.some(s => s.value === serviceParam)
           ? serviceParam
           : undefined,
+      suggestedPrice: undefined,
     },
   });
 
@@ -241,7 +246,7 @@ export function ServiceRequestForm() {
         service: (service?.label as ServiceType) || 'Техпомощь',
         date: new Date().toISOString().split('T')[0],
         status: 'В процессе' as const,
-        price: Math.floor(Math.random() * 4000) + 1500,
+        price: data.suggestedPrice,
         provider:
           mockProviders[Math.floor(Math.random() * mockProviders.length)],
         arrivalTime: Math.floor(Math.random() * 10) + 5,
@@ -401,6 +406,27 @@ export function ServiceRequestForm() {
                       {...field}
                     />
                   </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="suggestedPrice"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Предлагаемая цена (₽)</FormLabel>
+                  <FormControl>
+                    <Input
+                      type="number"
+                      placeholder="2000"
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormDescription>
+                    Укажите цену, которую вы готовы заплатить за услугу.
+                  </FormDescription>
                   <FormMessage />
                 </FormItem>
               )}
