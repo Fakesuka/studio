@@ -65,28 +65,28 @@ const serviceTypeValues = [
 // Local type for AI diagnosis simulation
 type DiagnoseProblemOutput = {
   diagnosis: string;
-  suggestedService: (typeof serviceTypeValues)[number];
+  suggestedService: (typeof serviceTypeValues)[number] | null;
 };
 
 // Keyword-based AI simulation
 const simulateAiDiagnosis = (description: string): DiagnoseProblemOutput => {
   const lowerCaseDescription = description.toLowerCase();
 
-  if (/\b(отогреть|замерз|холод|мороз)\b/.test(lowerCaseDescription)) {
+  if (/\b(отогреть|замерз|холод|мороз|не заводится)\b/.test(lowerCaseDescription)) {
     return {
       diagnosis:
         'Имитация AI: Обнаружены ключевые слова, связанные с холодом. Вероятно, требуется отогрев автомобиля.',
       suggestedService: 'отогрев',
     };
   }
-  if (/\b(топлив|бензин|солярк|заглох|пустой бак)\b/.test(lowerCaseDescription)) {
+  if (/\b(топлив|бензин|солярк|заглох|пустой бак|кончился бензин)\b/.test(lowerCaseDescription)) {
     return {
       diagnosis:
         'Имитация AI: Проблема, вероятно, связана с нехваткой топлива.',
       suggestedService: 'доставка топлива',
     };
   }
-  if (/\b(дтп|авари|удар|увезти|эвакуа)\b/.test(lowerCaseDescription)) {
+  if (/\b(дтп|авария|удар|увезти|эвакуа)\b/.test(lowerCaseDescription)) {
     return {
       diagnosis:
         'Имитация AI: Описание похоже на последствия ДТП. Рекомендуется вызов эвакуатора.',
@@ -94,7 +94,7 @@ const simulateAiDiagnosis = (description: string): DiagnoseProblemOutput => {
     };
   }
   if (
-    /\b(аккумулятор|акб|сел|завестись|зажигание|щелкает|крутит)\b/.test(
+    /\b(аккумулятор|акб|сел|завестись|зажигание|щелкает|крутит|сломалась|не едет)\b/.test(
       lowerCaseDescription
     ) ||
     /\b(колесо|прокол|шина|спустило)\b/.test(lowerCaseDescription)
@@ -109,7 +109,7 @@ const simulateAiDiagnosis = (description: string): DiagnoseProblemOutput => {
   return {
     diagnosis:
       'Имитация AI: Не удалось автоматически определить проблему. Пожалуйста, выберите услугу вручную или опишите проблему подробнее.',
-    suggestedService: 'техпомощь', // Default suggestion
+    suggestedService: null,
   };
 };
 
@@ -329,7 +329,7 @@ export function ServiceRequestForm() {
                   <Select
                     onValueChange={field.onChange}
                     value={field.value}
-                    disabled={!useWithoutAI && (isDiagnosing || !!aiDiagnosis)}
+                    disabled={!useWithoutAI && (isDiagnosing || (!!aiDiagnosis && !!aiDiagnosis.suggestedService))}
                   >
                     <FormControl>
                       <SelectTrigger>
