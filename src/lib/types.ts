@@ -96,3 +96,27 @@ export type Shop = {
   address?: string;
   workingHours?: string;
 };
+
+// New types for marketplace orders
+export type MarketplaceOrderStatus =
+  | 'Новый'
+  | 'В обработке'
+  | 'Доставляется'
+  | 'Завершен'
+  | 'Отменен';
+
+export type CustomerInfo = {
+  name: string;
+  phone: string;
+  address: string;
+};
+
+export type MarketplaceOrder = {
+  id: string;
+  userId: string;
+  date: string;
+  items: CartItem[];
+  total: number;
+  status: MarketplaceOrderStatus;
+  customer: CustomerInfo;
+};

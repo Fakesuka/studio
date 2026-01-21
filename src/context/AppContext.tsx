@@ -16,6 +16,8 @@ import type {
   Shop,
   DriverProfile,
   ServiceType,
+  MarketplaceOrder, // Import new type
+  CustomerInfo, // Import new type
 } from '@/lib/types';
 import { mockProducts, mockShops, mockProviders } from '@/lib/data';
 
@@ -44,6 +46,12 @@ interface AppContextType {
   isDriver: boolean;
   driverProfile: DriverProfile | null;
   registerAsDriver: (profile: Omit<DriverProfile, 'id' | 'balance'>) => void;
+  marketplaceOrders: MarketplaceOrder[];
+  placeMarketplaceOrder?: (details: {
+    customer: CustomerInfo;
+    items: CartItem[];
+    total: number;
+  }) => void;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
@@ -62,6 +70,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
     null
   );
   const [isContextLoading, setIsContextLoading] = useState(true);
+  const [marketplaceOrders, setMarketplaceOrders] = useState<
+    MarketplaceOrder[]
+  >([]); // New state
 
   const MOCK_USER_ID = 'self';
 
@@ -90,6 +101,12 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
       const driverProfileItem = window.localStorage.getItem('driverProfile');
       if (driverProfileItem) setDriverProfile(JSON.parse(driverProfileItem));
+
+      // Load marketplace orders from localStorage
+      const marketplaceOrdersItem =
+        window.localStorage.getItem('marketplaceOrders');
+      if (marketplaceOrdersItem)
+        setMarketplaceOrders(JSON.parse(marketplaceOrdersItem));
     } catch (error) {
       console.error('Failed to load data from localStorage', error);
     }
@@ -102,6 +119,22 @@ export function AppProvider({ children }: { children: ReactNode }) {
       window.localStorage.setItem('orders', JSON.stringify(newOrders));
     } catch (error) {
       console.error('Failed to save orders to localStorage', error);
+    }
+  };
+
+  // New function to save marketplace orders
+  const saveMarketplaceOrders = (newOrders: MarketplaceOrder[]) => {
+    setMarketplaceOrders(newOrders);
+    try {
+      window.localStorage.setItem(
+        'marketplaceOrders',
+        JSON.stringify(newOrders)
+      );
+    } catch (error) {
+      console.error(
+        'Failed to save marketplace orders to localStorage',
+        error
+      );
     }
   };
 
@@ -307,6 +340,23 @@ export function AppProvider({ children }: { children: ReactNode }) {
     }
   };
 
+  // New function to place a marketplace order
+  const placeMarketplaceOrder = (details: {
+    customer: CustomerInfo;
+    items: CartItem[];
+    total: number;
+  }) => {
+    const newOrder: MarketplaceOrder = {
+      id: `MARKET-${Date.now()}`,
+      userId: MOCK_USER_ID,
+      date: new Date().toISOString(),
+      status: 'Новый',
+      ...details,
+    };
+    saveMarketplaceOrders([...marketplaceOrders, newOrder]);
+    saveCart([]); // Clear cart after order is placed
+  };
+
   return (
     <AppContext.Provider
       value={{
@@ -332,6 +382,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
         isDriver,
         driverProfile,
         registerAsDriver,
+        marketplaceOrders,
+        placeMarketplaceOrder,
       }}
     >
       {children}
