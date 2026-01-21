@@ -37,9 +37,15 @@ import { useToast } from '@/hooks/use-toast';
 import { useAppContext } from '@/context/AppContext';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import {
+  diagnoseProblem,
+  type DiagnoseProblemOutput,
+} from '@/ai/diagnose-problem';
 
 const formSchema = z.object({
-  serviceType: z.string({ required_error: 'Пожалуйста, выберите тип услуги.' }),
+  serviceType: z.string({
+    required_error: 'Пожалуйста, выберите тип услуги.',
+  }),
   location: z.string().min(5, 'Пожалуйста, укажите ваше местоположение.'),
   description: z.string().min(10, 'Пожалуйста, предоставьте больше деталей.'),
   photo: z.any().optional(),
@@ -56,94 +62,6 @@ const serviceTypes = [
   { value: 'Техпомощь', label: 'Техпомощь', icon: Wrench },
   { value: 'Эвакуатор', label: 'Эвакуатор', icon: Truck },
 ];
-
-const serviceTypeValues = [
-  'Отогрев авто',
-  'Доставка топлива',
-  'Техпомощь',
-  'Эвакуатор',
-] as const;
-
-// Local type for AI diagnosis simulation
-type DiagnoseProblemOutput = {
-  diagnosis: string;
-  suggestedService: (typeof serviceTypeValues)[number] | null;
-};
-
-// Keyword-based AI simulation
-const simulateAiDiagnosis = (description: string): DiagnoseProblemOutput => {
-  const lowerCaseDescription = description.toLowerCase();
-  const evacuatorKeywords = new RegExp(
-    [
-      'дверь заблокирована',
-      'колесо отвалилось',
-      'авария',
-      'дтп',
-      'не заводится',
-      'сломалась',
-      'увезти',
-      'забрать',
-      'эвакуатор',
-    ].join('|'),
-    'i'
-  );
-  if (evacuatorKeywords.test(lowerCaseDescription)) {
-    return {
-      diagnosis:
-        'Обнаружена серьезная неисправность, рекомендуем эвакуатор.',
-      suggestedService: 'Эвакуатор',
-    };
-  }
-  const heatingKeywords = new RegExp(
-    ['замерзла', 'замерз', 'отогреть', 'отогрев', 'холод', 'мороз'].join(
-      '|'
-    ),
-    'i'
-  );
-  if (heatingKeywords.test(lowerCaseDescription)) {
-    return {
-      diagnosis:
-        'Симптомы указывают на проблему, связанную с низкой температурой.',
-      suggestedService: 'Отогрев авто',
-    };
-  }
-  const fuelKeywords = new RegExp(
-    ['бензин', 'топливо', 'кончилось', 'закончилось', 'пустой бак', 'заглох'].join(
-      '|'
-    ),
-    'i'
-  );
-  if (fuelKeywords.test(lowerCaseDescription)) {
-    return {
-      diagnosis: 'Похоже, что закончилось топливо.',
-      suggestedService: 'Доставка топлива',
-    };
-  }
-  const assistanceKeywords = new RegExp(
-    [
-      'колесо',
-      'прокол',
-      'поменять',
-      'спустило',
-      'аккумулятор',
-      'прикурить',
-      'сел акб',
-    ].join('|'),
-    'i'
-  );
-  if (assistanceKeywords.test(lowerCaseDescription)) {
-    return {
-      diagnosis:
-        'Обнаружена техническая неисправность, которую можно устранить на месте.',
-      suggestedService: 'Техпомощь',
-    };
-  }
-  return {
-    diagnosis:
-      'Не удалось автоматически определить проблему. Пожалуйста, выберите услугу вручную.',
-    suggestedService: null,
-  };
-};
 
 export function ServiceRequestForm() {
   const [photoPreview, setPhotoPreview] = useState<string | null>(null);
@@ -185,20 +103,24 @@ export function ServiceRequestForm() {
       setIsDiagnosing(true);
       setAiDiagnosis(null);
 
-      const result = simulateAiDiagnosis(descriptionValue);
-
-      new Promise<DiagnoseProblemOutput | null>(resolve => {
-        setTimeout(() => {
-          resolve(result);
-        }, 500);
-      })
+      diagnoseProblem({ description: descriptionValue })
         .then(result => {
-          setAiDiagnosis(result);
-          if (result?.suggestedService) {
-            setValue('serviceType', result.suggestedService, {
-              shouldValidate: true,
-            });
+          if (result) {
+            setAiDiagnosis(result);
+            if (result.suggestedService) {
+              setValue('serviceType', result.suggestedService, {
+                shouldValidate: true,
+              });
+            }
           }
+        })
+        .catch(err => {
+          console.error('AI Diagnosis failed:', err);
+          setAiDiagnosis({
+            diagnosis:
+              'Не удалось связаться с AI-помощником. Выберите услугу вручную.',
+            suggestedService: null,
+          });
         })
         .finally(() => {
           setIsDiagnosing(false);
@@ -320,6 +242,7 @@ export function ServiceRequestForm() {
 
             {(isDiagnosing || aiDiagnosis) && !useWithoutAI && (
               <Alert>
+                <Sparkles className="h-4 w-4" />
                 <AlertTitle className="flex items-center gap-2">
                   {isDiagnosing
                     ? 'Анализ проблемы...'
