@@ -8,6 +8,9 @@ import {
   MapPin,
   MessageSquare,
   DollarSign,
+  CheckCircle,
+  Phone,
+  Navigation,
 } from 'lucide-react';
 import {
   Card,
@@ -81,8 +84,81 @@ function AvailableOrderCard({ order }: { order: Order }) {
   );
 }
 
+function ActiveDriverOrderCard({ order }: { order: Order }) {
+  const { completeOrder } = useAppContext();
+  const { toast } = useToast();
+
+  const handleComplete = () => {
+    completeOrder(order.id);
+    toast({
+      title: 'Заказ завершен!',
+      description: `Заказ #${order.id} выполнен. Оплата зачислена на ваш кошелек.`,
+    });
+  };
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>Активный заказ: {order.service}</CardTitle>
+        <CardDescription>
+          Выполните заказ #{order.id} по адресу: {order.location}
+        </CardDescription>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        <div>
+          <h3 className="mb-2 font-semibold">Детали заказа</h3>
+          <p className="flex items-start gap-2 text-sm">
+            <MessageSquare className="mt-1 h-4 w-4 flex-shrink-0 text-muted-foreground" />
+            <span>
+              <strong>Описание от клиента:</strong> {order.description}
+            </span>
+          </p>
+        </div>
+        {order.photo && (
+          <div className="relative aspect-video w-full max-w-sm overflow-hidden rounded-md">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={order.photo}
+              alt="Фото к заказу"
+              className="object-cover"
+            />
+          </div>
+        )}
+        <div className="flex flex-col gap-2 sm:flex-row">
+          <Button variant="outline" className="flex-1">
+            <Phone className="mr-2 h-4 w-4" />
+            Позвонить клиенту
+          </Button>
+          <Button variant="outline" className="flex-1">
+            <Navigation className="mr-2 h-4 w-4" />
+            Маршрут
+          </Button>
+        </div>
+      </CardContent>
+      <CardFooter className="flex-col items-stretch gap-2">
+        <div className="flex items-center justify-center gap-2 rounded-md bg-secondary p-3">
+          <DollarSign className="h-6 w-6 text-primary" />
+          <span className="text-2xl font-bold">
+            Ваш доход: {order.price.toLocaleString('ru-RU', { currency: 'RUB' })}{' '}
+            ₽
+          </span>
+        </div>
+        <Button
+          onClick={handleComplete}
+          size="lg"
+          className="w-full bg-green-600 hover:bg-green-700"
+        >
+          <CheckCircle className="mr-2 h-5 w-5" />
+          Завершить заказ
+        </Button>
+      </CardFooter>
+    </Card>
+  );
+}
+
 export default function DriverDashboard() {
-  const { isDriver, isContextLoading, orders } = useAppContext();
+  const { isDriver, isContextLoading, orders, activeDriverOrder } =
+    useAppContext();
   const router = useRouter();
 
   useEffect(() => {
@@ -95,6 +171,20 @@ export default function DriverDashboard() {
     return (
       <div className="flex h-full w-full items-center justify-center">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    );
+  }
+
+  if (activeDriverOrder) {
+    return (
+      <div className="space-y-6">
+        <div>
+          <h1 className="text-3xl font-bold">Выполняется заказ</h1>
+          <p className="text-muted-foreground">
+            Информация о вашем текущем заказе.
+          </p>
+        </div>
+        <ActiveDriverOrderCard order={activeDriverOrder} />
       </div>
     );
   }

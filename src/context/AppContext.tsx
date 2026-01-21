@@ -22,6 +22,7 @@ import { mockProducts, mockShops, mockProviders } from '@/lib/data';
 interface AppContextType {
   orders: Order[];
   activeClientOrder: Order | null;
+  activeDriverOrder: Order | null;
   createServiceRequest: (data: any) => void;
   acceptOrder: (orderId: string) => void;
   completeOrder: (orderId: string) => void;
@@ -143,15 +144,38 @@ export function AppProvider({ children }: { children: ReactNode }) {
   };
 
   const completeOrder = (orderId: string) => {
+    const orderToComplete = orders.find(o => o.id === orderId);
+    if (!orderToComplete || !driverProfile) return;
+
+    // Update order status
     const newOrders = orders.map(o =>
       o.id === orderId ? { ...o, status: 'Завершен' as const } : o
     );
     saveOrders(newOrders);
+
+    // Update driver balance
+    const newBalance = (driverProfile.balance || 0) + orderToComplete.price;
+    const updatedDriverProfile = { ...driverProfile, balance: newBalance };
+    setDriverProfile(updatedDriverProfile);
+    try {
+      window.localStorage.setItem(
+        'driverProfile',
+        JSON.stringify(updatedDriverProfile)
+      );
+    } catch (error) {
+      console.error('Failed to save driver profile to localStorage', error);
+    }
   };
 
   const activeClientOrder =
     orders.find(o => o.userId === MOCK_USER_ID && o.status === 'В процессе') ||
     null;
+
+  const activeDriverOrder = driverProfile
+    ? orders.find(
+        o => o.driverId === driverProfile.id && o.status === 'В процессе'
+      ) || null
+    : null;
 
   const saveCart = (newCart: CartItem[]) => {
     setCart(newCart);
@@ -288,6 +312,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       value={{
         orders,
         activeClientOrder,
+        activeDriverOrder,
         createServiceRequest,
         acceptOrder,
         completeOrder,
