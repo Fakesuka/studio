@@ -9,7 +9,6 @@ import {
   Wrench,
   Truck,
   Flame,
-  Plus,
 } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
@@ -22,12 +21,6 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
 import { mockProviders } from '@/lib/data';
 import type { Order, ServiceProvider, ServiceType } from '@/lib/types';
 import Link from 'next/link';
@@ -130,14 +123,6 @@ function ProviderCard({ provider }: { provider: ServiceProvider }) {
 export default function Dashboard() {
   const { activeOrder } = useAppContext();
 
-  const serviceTypes = [
-    { value: 'отогрев', label: 'Отогрев авто', icon: Flame },
-    { value: 'доставка топлива', label: 'Доставка топлива', icon: Fuel },
-    { value: 'техпомощь', label: 'Техпомощь', icon: Wrench },
-    { value: 'эвакуатор', label: 'Эвакуатор', icon: Truck },
-    { value: 'прочее', label: 'Прочее', icon: Plus },
-  ];
-
   return (
     <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3 lg:gap-6">
       <div className="col-span-1 flex flex-col gap-4 lg:gap-6">
@@ -149,34 +134,15 @@ export default function Dashboard() {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button
-                  size="lg"
-                  className="h-full w-full flex-col gap-2 py-6 transition-transform active:scale-95"
-                >
-                  <Wrench className="h-10 w-10" />
-                  <span className="text-lg">Создать заявку</span>
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent
-                className="w-[var(--radix-dropdown-menu-trigger-width)]"
-                align="start"
-                sideOffset={10}
+            <Link href="/services/new" className="w-full">
+              <Button
+                size="lg"
+                className="h-full w-full flex-col gap-2 py-6 transition-transform active:scale-95"
               >
-                {serviceTypes.map(service => (
-                  <Link
-                    href={`/services/new?service=${service.value}`}
-                    key={service.value}
-                  >
-                    <DropdownMenuItem className="cursor-pointer py-3 text-base">
-                      <service.icon className="mr-3 h-6 w-6 text-muted-foreground" />
-                      <span>{service.label}</span>
-                    </DropdownMenuItem>
-                  </Link>
-                ))}
-              </DropdownMenuContent>
-            </DropdownMenu>
+                <Wrench className="h-10 w-10" />
+                <span className="text-lg">Создать заявку</span>
+              </Button>
+            </Link>
           </CardContent>
         </Card>
         <Card>
@@ -208,30 +174,11 @@ export default function Dashboard() {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button className="transition-transform active:scale-95">
-                  Создать заявку
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent
-                className="w-[var(--radix-dropdown-menu-trigger-width)]"
-                align="start"
-                sideOffset={10}
-              >
-                {serviceTypes.map(service => (
-                  <Link
-                    href={`/services/new?service=${service.value}`}
-                    key={service.value}
-                  >
-                    <DropdownMenuItem className="cursor-pointer py-3 text-base">
-                      <service.icon className="mr-3 h-6 w-6 text-muted-foreground" />
-                      <span>{service.label}</span>
-                    </DropdownMenuItem>
-                  </Link>
-                ))}
-              </DropdownMenuContent>
-            </DropdownMenu>
+            <Link href="/services/new">
+              <Button className="transition-transform active:scale-95">
+                Создать заявку
+              </Button>
+            </Link>
           </CardContent>
         </Card>
       )}
