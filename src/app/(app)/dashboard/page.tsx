@@ -153,20 +153,24 @@ export default function Dashboard() {
               <DropdownMenuTrigger asChild>
                 <Button
                   size="lg"
-                  className="h-full w-full flex-col gap-2 py-6"
+                  className="h-full w-full flex-col gap-2 py-6 transition-transform active:scale-95"
                 >
                   <Wrench className="h-10 w-10" />
                   <span className="text-lg">Создать заявку</span>
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent className="w-64" align="start">
+              <DropdownMenuContent
+                className="w-80"
+                align="start"
+                sideOffset={10}
+              >
                 {serviceTypes.map(service => (
                   <Link
                     href={`/services/new?service=${service.value}`}
                     key={service.value}
                   >
-                    <DropdownMenuItem className="cursor-pointer py-2 text-base">
-                      <service.icon className="mr-3 h-5 w-5 text-muted-foreground" />
+                    <DropdownMenuItem className="cursor-pointer py-3 text-base">
+                      <service.icon className="mr-3 h-6 w-6 text-muted-foreground" />
                       <span>{service.label}</span>
                     </DropdownMenuItem>
                   </Link>
@@ -206,16 +210,22 @@ export default function Dashboard() {
           <CardContent>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button>Создать заявку</Button>
+                <Button className="transition-transform active:scale-95">
+                  Создать заявку
+                </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent className="w-64" align="start">
+              <DropdownMenuContent
+                className="w-80"
+                align="start"
+                sideOffset={10}
+              >
                 {serviceTypes.map(service => (
                   <Link
                     href={`/services/new?service=${service.value}`}
                     key={service.value}
                   >
-                    <DropdownMenuItem className="cursor-pointer py-2 text-base">
-                      <service.icon className="mr-3 h-5 w-5 text-muted-foreground" />
+                    <DropdownMenuItem className="cursor-pointer py-3 text-base">
+                      <service.icon className="mr-3 h-6 w-6 text-muted-foreground" />
                       <span>{service.label}</span>
                     </DropdownMenuItem>
                   </Link>

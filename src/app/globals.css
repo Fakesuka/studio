@@ -67,3 +67,31 @@
     @apply bg-background text-foreground;
   }
 }
+
+@layer utilities {
+  @keyframes liquid-in {
+    from {
+      transform: scale(0.95);
+      opacity: 0;
+      border-radius: 2rem;
+    }
+    to {
+      transform: scale(1);
+      opacity: 1;
+      border-radius: var(--radius);
+    }
+  }
+
+  @keyframes liquid-out {
+    from {
+      transform: scale(1);
+      opacity: 1;
+      border-radius: var(--radius);
+    }
+    to {
+      transform: scale(0.95);
+      opacity: 0;
+      border-radius: 2rem;
+    }
+  }
+}

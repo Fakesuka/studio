@@ -87,10 +87,36 @@ module.exports = {
             height: '0',
           },
         },
+        'liquid-in': {
+          from: {
+            transform: 'scale(0.95)',
+            opacity: '0',
+            borderRadius: '2rem',
+          },
+          to: {
+            transform: 'scale(1)',
+            opacity: '1',
+            borderRadius: 'var(--radius)',
+          },
+        },
+        'liquid-out': {
+          from: {
+            transform: 'scale(1)',
+            opacity: '1',
+            borderRadius: 'var(--radius)',
+          },
+          to: {
+            transform: 'scale(0.95)',
+            opacity: '0',
+            borderRadius: '2rem',
+          },
+        },
       },
       animation: {
         'accordion-down': 'accordion-down 0.2s ease-out',
         'accordion-up': 'accordion-up 0.2s ease-out',
+        'liquid-in': 'liquid-in 0.3s cubic-bezier(0.34, 1.56, 0.64, 1)',
+        'liquid-out': 'liquid-out 0.2s ease-out',
       },
     },
   },
