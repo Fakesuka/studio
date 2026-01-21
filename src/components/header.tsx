@@ -1,6 +1,6 @@
 'use client';
 
-import { ShoppingCart, Car } from 'lucide-react';
+import { ShoppingCart, Car, UserCog } from 'lucide-react';
 import Link from 'next/link';
 import { Button } from './ui/button';
 import { useAppContext } from '@/context/AppContext';
@@ -16,6 +16,12 @@ export function Header() {
         <span className="text-lg font-bold">Vroom</span>
       </Link>
       <div className="flex-1" />
+      <Link href="/driver/dashboard" passHref>
+        <Button variant="ghost" size="icon" className="rounded-full">
+          <UserCog className="h-5 w-5" />
+          <span className="sr-only">Режим водителя</span>
+        </Button>
+      </Link>
       <Link href="/cart" passHref>
         <Button variant="ghost" size="icon" className="relative rounded-full">
           <ShoppingCart className="h-5 w-5" />
