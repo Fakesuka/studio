@@ -51,7 +51,7 @@ const Map2GIS: React.FC<Map2GISProps> = ({ center, zoom, className }) => {
     
   }, [center, zoom]);
 
-  return <div ref={mapRef} className={cn('w-full h-full', className)} />;
+  return <div ref={mapRef} className={cn('w-full h-full', className)} data-map-container="true" />;
 };
 
 export default Map2GIS;

@@ -5,7 +5,7 @@ import { BottomNav } from '@/components/bottom-nav';
 import { DriverBottomNav } from '@/components/driver-bottom-nav';
 import { AppProvider } from '@/context/AppContext';
 import { usePathname, useRouter } from 'next/navigation';
-import { useSwipeable } from 'react-swipeable';
+import { useSwipeable, type EventData } from 'react-swipeable';
 import { bottomMenuItems, driverBottomMenuItems } from '@/lib/menu-items';
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
@@ -24,8 +24,15 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
 
   const routes = isDriverRoute ? driverRoutes : clientRoutes;
 
-  const handleSwiped = (eventData: { dir: string }) => {
-    // Disable swipe on pages with complex touch interactions like carousels
+  const handleSwiped = (eventData: EventData) => {
+    const target = eventData.event.target as HTMLElement;
+
+    // Disable swipe if it originates from inside a map.
+    if (target.closest('[data-map-container="true"]')) {
+      return;
+    }
+
+    // Disable swipe on pages with carousels to avoid conflicts.
     const noSwipePaths = ['/marketplace'];
     if (noSwipePaths.some(p => pathname.startsWith(p))) {
       return;
@@ -45,9 +52,8 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
 
   const handlers = useSwipeable({
     onSwiped: handleSwiped,
-    preventScrollOnSwipe: true,
-    trackMouse: false, // Disable for mouse to avoid conflicts with selection etc.
-    trackY: false,
+    trackMouse: false,
+    trackY: false, // Only track horizontal movement to prevent blocking vertical scroll.
   });
 
   return (
