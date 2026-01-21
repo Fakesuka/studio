@@ -1,3 +1,5 @@
+'use client';
+
 import Image from 'next/image';
 import { Button } from '@/components/ui/button';
 import {
@@ -9,8 +11,19 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { mockProducts } from '@/lib/data';
+import { useToast } from '@/hooks/use-toast';
+import { ShoppingCart } from 'lucide-react';
 
 export default function MarketplacePage() {
+  const { toast } = useToast();
+
+  const handleAddToCart = (productName: string) => {
+    toast({
+      title: 'Добавлено в корзину',
+      description: `${productName} был добавлен в вашу корзину.`,
+    });
+  };
+
   return (
     <div>
       <div className="mb-6">
@@ -45,7 +58,9 @@ export default function MarketplacePage() {
                   currency: 'RUB',
                 })}
               </p>
-              <Button>В корзину</Button>
+              <Button onClick={() => handleAddToCart(product.name)}>
+                <ShoppingCart className="mr-2 h-4 w-4" />В корзину
+              </Button>
             </CardFooter>
           </Card>
         ))}
