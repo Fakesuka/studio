@@ -23,10 +23,9 @@ import {
 } from '@/components/ui/card';
 import { mockProviders } from '@/lib/data';
 import type { Order, ServiceProvider, ServiceType } from '@/lib/types';
-import { PlaceHolderImages } from '@/lib/placeholder-images';
-import Image from 'next/image';
 import Link from 'next/link';
 import { useAppContext } from '@/context/AppContext';
+import Map2GIS from '@/components/map-2gis';
 
 function getServiceIcon(serviceType: ServiceType) {
   switch (serviceType) {
@@ -44,8 +43,6 @@ function getServiceIcon(serviceType: ServiceType) {
 }
 
 function ActiveOrderCard({ order }: { order: Order }) {
-  const mapPlaceholder = PlaceHolderImages.find(p => p.id === 'map-placeholder');
-
   return (
     <Card className="col-span-1 lg:col-span-2">
       <CardHeader>
@@ -78,15 +75,7 @@ function ActiveOrderCard({ order }: { order: Order }) {
           </div>
         )}
         <div className="relative aspect-[4/3] w-full overflow-hidden rounded-md">
-          {mapPlaceholder && (
-            <Image
-              src={mapPlaceholder.imageUrl}
-              alt={mapPlaceholder.description}
-              fill
-              className="object-cover"
-              data-ai-hint={mapPlaceholder.imageHint}
-            />
-          )}
+          <Map2GIS center={[62.5353, 113.9613]} zoom={13} />
            {order.arrivalTime && 
            <div className="absolute bottom-4 right-4 rounded-md bg-background/80 p-2 text-foreground shadow-lg backdrop-blur-sm">
                 <div className="flex items-center gap-2">
