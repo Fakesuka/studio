@@ -38,7 +38,7 @@ export default function RootLayout({
         <script
           async
           charSet="utf-8"
-          src="https://maps.api.2gis.ru/2.0/loader.js?pkg=full"
+          src="https://maps.api.2gis.ru/2.0/loader.js?pkg=full&key=1e0bb99c-b88d-4624-974a-63ab8c556c19"
         ></script>
       </head>
       <body className={`${inter.variable} font-body antialiased`}>
