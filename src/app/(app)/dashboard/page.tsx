@@ -25,9 +25,10 @@ import { mockProviders } from '@/lib/data';
 import type { Order, ServiceProvider, ServiceType } from '@/lib/types';
 import Link from 'next/link';
 import { useAppContext } from '@/context/AppContext';
-import Map2GIS from '@/components/map-2gis';
+import Map2GIS, { type MapMarker } from '@/components/map-2gis';
 import { Skeleton } from '@/components/ui/skeleton';
 import { WeatherWidget } from '@/components/weather-widget';
+import { useState, useEffect } from 'react';
 
 function getServiceIcon(serviceType: ServiceType) {
   switch (serviceType) {
@@ -45,6 +46,64 @@ function getServiceIcon(serviceType: ServiceType) {
 }
 
 function ActiveOrderCard({ order }: { order: Order }) {
+  const customerCoords: [number, number] = [62.035, 129.675]; // Based on existing hardcoded value
+  const [driverCoords, setDriverCoords] = useState<[number, number] | null>(
+    null
+  );
+
+  // Simulate driver location update
+  useEffect(() => {
+    // A random starting point for the driver, somewhere around the customer
+    const initialDriverLat = customerCoords[0] + (Math.random() - 0.5) * 0.1;
+    const initialDriverLng = customerCoords[1] + (Math.random() - 0.5) * 0.1;
+    setDriverCoords([initialDriverLat, initialDriverLng]);
+
+    const journeySteps = 50;
+    let currentStep = 0;
+
+    const interval = setInterval(() => {
+      currentStep++;
+      if (currentStep > journeySteps) {
+        clearInterval(interval);
+        setDriverCoords(customerCoords); // Arrived
+        return;
+      }
+
+      setDriverCoords(() => {
+        // Linear interpolation
+        const lat =
+          initialDriverLat +
+          (customerCoords[0] - initialDriverLat) * (currentStep / journeySteps);
+        const lng =
+          initialDriverLng +
+          (customerCoords[1] - initialDriverLng) * (currentStep / journeySteps);
+        return [lat, lng];
+      });
+    }, 2000); // Update every 2 seconds
+
+    return () => clearInterval(interval);
+  }, []);
+
+  const markers: MapMarker[] = [
+    {
+      id: 'customer',
+      coords: customerCoords,
+      label: 'Вы здесь',
+      iconUrl: `data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjQiIGhlaWdodD0iMjQiIHZpZXdCb3g9IjAgMCAyNCAyNCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cGF0aCBkPSJNMTEuOTg0MSA0LjAxMzk4QzguNTk5MyA0LjAxMzk4IDUuODg5MyA2LjcyMzk4IDUuODg5MyAxMC4xMDk0QzUuODg5MyAxMi4zNTU1IDcuMiA0LjE0MDYgMTEuOTg0MSAxOS45NTA4QzE2Ljc2NzggMTQuMTQwNiAxOC4wNzg4IDEyLjM1NTUgMTguMDc4OCAxMC4xMDk0QzE4LjA3ODggNi43MjM5OCAxNS4zNjkgNC4wMTM5OCAxMS45ODQxIDQuMDEzOThaIiBmaWxsPSIjZGMyNjI2Ii8+PGNpcmNsZSBjeD0iMTIiIGN5PSIxMCIgcj0iMi41IiBmaWxsPSJ3aGl0ZSIvPjwvc3ZnPg==`,
+      iconSize: [32, 32],
+    },
+  ];
+
+  if (driverCoords) {
+    markers.push({
+      id: 'driver',
+      coords: driverCoords,
+      label: 'Водитель',
+      iconUrl: `data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjQiIGhlaWdodD0iMjQiIHZpZXdCb3g9IjAgMCAyNCAyNCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cGF0aCBkPSJNMTEuOTg0MSA0LjAxMzk4QzguNTk5MyA0LjAxMzk4IDUuODg5MyA2LjcyMzk4IDUuODg5MyAxMC4xMDk0QzUuODg5MyAxMi4zNTU1IDcuMiA0LjE0MDYgMTEuOTg0MSAxOS45NTA4QzE2Ljc2NzggMTQuMTQwNiAxOC4wNzg4IDEyLjM1NTUgMTguMDc4OCAxMC4xMDk0QzE4LjA3ODggNi43MjM5OCAxNS4zNjkgNC4wMTM5OCAxMS45ODQxIDQuMDEzOThaIiBmaWxsPSIjMjU2M2ViIi8+PGNpcmNsZSBjeD0iMTIiIGN5PSIxMCIgcj0iMi41IiBmaWxsPSJ3aGl0ZSIvPjwvc3ZnPg==`,
+      iconSize: [32, 32],
+    });
+  }
+
   return (
     <Card className="col-span-1 lg:col-span-2">
       <CardHeader>
@@ -78,7 +137,7 @@ function ActiveOrderCard({ order }: { order: Order }) {
           </div>
         )}
         <div className="relative aspect-[4/3] w-full overflow-hidden rounded-md">
-          <Map2GIS center={[62.035, 129.675]} zoom={13} />
+          <Map2GIS center={customerCoords} zoom={11} markers={markers} />
           {order.arrivalTime && (
             <div className="absolute bottom-4 right-4 rounded-md bg-background/80 p-2 text-foreground shadow-lg backdrop-blur-sm">
               <div className="flex items-center gap-2">
