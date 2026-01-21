@@ -4,66 +4,17 @@ import { Header } from '@/components/header';
 import { BottomNav } from '@/components/bottom-nav';
 import { DriverBottomNav } from '@/components/driver-bottom-nav';
 import { AppProvider } from '@/context/AppContext';
-import { usePathname, useRouter } from 'next/navigation';
-import { useSwipeable, type EventData } from 'react-swipeable';
-import { bottomMenuItems, driverBottomMenuItems } from '@/lib/menu-items';
+import { usePathname } from 'next/navigation';
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
-  const router = useRouter();
   const isDriverRoute = pathname.startsWith('/driver');
-
-  const clientRoutes = bottomMenuItems.map(i => i.href);
-  // Correctly order the driver routes for swipe logic
-  const driverRoutes = [
-    '/driver/dashboard',
-    '/driver/history',
-    '/marketplace',
-    '/driver/profile',
-  ];
-
-  const routes = isDriverRoute ? driverRoutes : clientRoutes;
-
-  const handleSwiped = (eventData: EventData) => {
-    const target = eventData.event.target as HTMLElement;
-
-    // Disable swipe if it originates from inside a map.
-    if (target.closest('[data-map-container="true"]')) {
-      return;
-    }
-
-    // Disable swipe on pages with carousels to avoid conflicts.
-    const noSwipePaths = ['/marketplace'];
-    if (noSwipePaths.some(p => pathname.startsWith(p))) {
-      return;
-    }
-
-    const currentIndex = routes.findIndex(route => pathname.startsWith(route));
-    if (currentIndex === -1) return;
-
-    if (eventData.dir === 'Left') {
-      const nextIndex = (currentIndex + 1) % routes.length;
-      router.push(routes[nextIndex]);
-    } else if (eventData.dir === 'Right') {
-      const prevIndex = (currentIndex - 1 + routes.length) % routes.length;
-      router.push(routes[prevIndex]);
-    }
-  };
-
-  const handlers = useSwipeable({
-    onSwiped: handleSwiped,
-    trackMouse: false,
-    trackY: false, // Only track horizontal movement to prevent blocking vertical scroll.
-  });
 
   return (
     <AppProvider>
       <div className="flex min-h-screen w-full flex-col bg-muted/40">
         <Header />
-        <main
-          {...handlers}
-          className="flex flex-1 flex-col bg-background p-4 pb-20 md:gap-8 md:p-8 md:pb-20"
-        >
+        <main className="flex flex-1 flex-col bg-background p-4 pb-20 md:gap-8 md:p-8 md:pb-20">
           {children}
         </main>
         {isDriverRoute ? <DriverBottomNav /> : <BottomNav />}
