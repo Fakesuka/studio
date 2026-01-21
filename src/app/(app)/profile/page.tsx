@@ -25,7 +25,14 @@ import {
 } from '@/components/ui/form';
 import { useAppContext } from '@/context/AppContext';
 import { useToast } from '@/hooks/use-toast';
-import { Store, CheckCircle, ArrowRight, Wallet, Plus, Paintbrush } from 'lucide-react';
+import {
+  Store,
+  CheckCircle,
+  ArrowRight,
+  Wallet,
+  Plus,
+  Paintbrush,
+} from 'lucide-react';
 import Link from 'next/link';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { ThemeSwitcher } from '@/components/theme-switcher';
@@ -86,6 +93,13 @@ export default function ProfilePage() {
     toast({
       title: 'Поздравляем!',
       description: 'Вы успешно зарегистрированы как продавец.',
+    });
+  };
+
+  const handleWalletAction = () => {
+    toast({
+      title: 'В разработке',
+      description: 'Интеграция с платежной системой скоро появится.',
     });
   };
 
@@ -180,11 +194,15 @@ export default function ProfilePage() {
               </p>
             </CardContent>
             <CardFooter className="gap-2">
-              <Button className="flex-1">
+              <Button className="flex-1" onClick={handleWalletAction}>
                 <Plus className="mr-2 h-4 w-4" />
                 Пополнить
               </Button>
-              <Button variant="secondary" className="flex-1">
+              <Button
+                variant="secondary"
+                className="flex-1"
+                onClick={handleWalletAction}
+              >
                 <ArrowRight className="mr-2 h-4 w-4" />
                 Вывести
               </Button>

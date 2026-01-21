@@ -13,16 +13,25 @@ import {
   CardFooter,
 } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { useToast } from '@/hooks/use-toast';
 
 export default function DriverProfilePage() {
   const { isDriver, driverProfile, isContextLoading } = useAppContext();
   const router = useRouter();
+  const { toast } = useToast();
 
   useEffect(() => {
     if (!isContextLoading && !isDriver) {
       router.replace('/driver/register');
     }
   }, [isDriver, isContextLoading, router]);
+
+  const handleWalletAction = () => {
+    toast({
+      title: 'В разработке',
+      description: 'Интеграция с платежной системой скоро появится.',
+    });
+  };
 
   if (isContextLoading || !isDriver || !driverProfile) {
     return (
@@ -85,11 +94,15 @@ export default function DriverProfilePage() {
           </p>
         </CardContent>
         <CardFooter className="gap-2">
-          <Button className="flex-1">
+          <Button className="flex-1" onClick={handleWalletAction}>
             <Plus className="mr-2 h-4 w-4" />
             Пополнить
           </Button>
-          <Button variant="secondary" className="flex-1">
+          <Button
+            variant="secondary"
+            className="flex-1"
+            onClick={handleWalletAction}
+          >
             <ArrowRight className="mr-2 h-4 w-4" />
             Вывести
           </Button>
