@@ -25,9 +25,10 @@ import {
 } from '@/components/ui/form';
 import { useAppContext } from '@/context/AppContext';
 import { useToast } from '@/hooks/use-toast';
-import { Store, CheckCircle, ArrowRight, Wallet, Plus } from 'lucide-react';
+import { Store, CheckCircle, ArrowRight, Wallet, Plus, Paintbrush } from 'lucide-react';
 import Link from 'next/link';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { ThemeSwitcher } from '@/components/theme-switcher';
 
 const sellerFormSchema = z
   .object({
@@ -116,6 +117,21 @@ export default function ProfilePage() {
         <CardFooter>
           <Button>Сохранить изменения</Button>
         </CardFooter>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Paintbrush className="h-6 w-6" />
+            Тема оформления
+          </CardTitle>
+          <CardDescription>
+            Выберите светлую, темную или системную тему.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <ThemeSwitcher />
+        </CardContent>
       </Card>
 
       {isSeller && userShop ? (

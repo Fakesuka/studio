@@ -184,8 +184,8 @@ export default function MarketplacePage() {
                 </div>
               </CardHeader>
               <CardContent className="flex-1 p-4">
-                <CardTitle className="mb-1 text-lg">{product.name}</CardTitle>
-                <CardDescription>{product.description}</CardDescription>
+                <CardTitle className="mb-1 line-clamp-1 text-lg">{product.name}</CardTitle>
+                <CardDescription className="line-clamp-2 h-10">{product.description}</CardDescription>
                 <div className="mt-2 flex flex-wrap gap-2">
                   {product.delivery && (
                     <Badge variant="secondary">
