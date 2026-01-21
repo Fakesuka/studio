@@ -36,6 +36,7 @@ import {
 import Link from 'next/link';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { ThemeSwitcher } from '@/components/theme-switcher';
+import { Checkbox } from '@/components/ui/checkbox';
 
 const sellerFormSchema = z
   .object({
@@ -50,6 +51,9 @@ const sellerFormSchema = z
       .min(10, 'Описание должно быть длиннее 10 символов.'),
     address: z.string().optional(),
     workingHours: z.string().optional(),
+    agreement: z.literal(true, {
+      errorMap: () => ({ message: 'Вы должны принять правила для продавцов.' }),
+    }),
   })
   .refine(
     data => {
@@ -84,12 +88,14 @@ export default function ProfilePage() {
       type: 'person',
       storeName: '',
       storeDescription: '',
+      agreement: false,
     },
   });
   const sellerType = sellerForm.watch('type');
 
   const onSellerSubmit = (data: SellerFormValues) => {
-    registerAsSeller(data);
+    const { agreement, ...sellerData } = data;
+    registerAsSeller(sellerData);
     toast({
       title: 'Поздравляем!',
       description: 'Вы успешно зарегистрированы как продавец.',
@@ -331,6 +337,34 @@ export default function ProfilePage() {
                     />
                   </>
                 )}
+                <FormField
+                  control={sellerForm.control}
+                  name="agreement"
+                  render={({ field }) => (
+                    <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
+                      <FormControl>
+                        <Checkbox
+                          checked={field.value}
+                          onCheckedChange={field.onChange}
+                        />
+                      </FormControl>
+                      <div className="space-y-1 leading-none">
+                        <FormLabel>
+                          Я принимаю{' '}
+                          <Link
+                            href="/seller-rules"
+                            className="text-primary underline"
+                            onClick={e => e.preventDefault()}
+                          >
+                            правила для продавцов
+                          </Link>
+                          .
+                        </FormLabel>
+                        <FormMessage />
+                      </div>
+                    </FormItem>
+                  )}
+                />
               </CardContent>
               <CardFooter>
                 <Button

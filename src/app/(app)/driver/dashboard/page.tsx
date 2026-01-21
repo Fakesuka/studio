@@ -1,7 +1,7 @@
 'use client';
 import { useAppContext } from '@/context/AppContext';
 import { useRouter } from 'next/navigation';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import {
   Snowflake,
   Bell,
@@ -11,6 +11,7 @@ import {
   CheckCircle,
   Phone,
   Navigation,
+  Wallet,
 } from 'lucide-react';
 import {
   Card,
@@ -25,62 +26,140 @@ import { useToast } from '@/hooks/use-toast';
 import type { Order } from '@/lib/types';
 import { format } from 'date-fns';
 import { ru } from 'date-fns/locale';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 
 function AvailableOrderCard({ order }: { order: Order }) {
-  const { acceptOrder } = useAppContext();
+  const { acceptOrder, driverProfile } = useAppContext();
   const { toast } = useToast();
+  const router = useRouter();
 
-  const handleAccept = () => {
-    acceptOrder(order.id);
-    toast({
-      title: 'Заказ принят!',
-      description: `Вы приняли заказ #${order.id}.`,
-    });
+  const [isAccepting, setIsAccepting] = useState(false);
+  const [showLowBalanceDialog, setShowLowBalanceDialog] = useState(false);
+
+  const COMMISSION_RATE = 0.10;
+  const orderCommission = order.price * COMMISSION_RATE;
+  const currentBalance = driverProfile?.balance ?? 0;
+  const hasEnoughBalance = currentBalance >= orderCommission;
+
+  const handleAcceptAttempt = () => {
+    setIsAccepting(true);
+    if (!driverProfile) {
+      toast({
+        variant: 'destructive',
+        title: 'Ошибка',
+        description: 'Профиль водителя не найден.',
+      });
+      setIsAccepting(false);
+      return;
+    }
+
+    if (!hasEnoughBalance) {
+      setShowLowBalanceDialog(true);
+      setIsAccepting(false);
+    } else {
+      acceptOrder(order.id);
+      toast({
+        title: 'Заказ принят!',
+        description: `Вы приняли заказ #${order.id}.`,
+      });
+      setIsAccepting(false);
+    }
   };
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>{order.service}</CardTitle>
-        <CardDescription>
-          Заказ #{order.id} от{' '}
-          {format(new Date(order.date), 'd MMM, HH:mm', { locale: ru })}
-        </CardDescription>
-      </CardHeader>
-      <CardContent className="space-y-4">
-        <div>
-          <p className="flex items-center gap-2 text-sm">
-            <MapPin className="h-4 w-4 text-muted-foreground" />
-            <strong>Адрес:</strong> {order.location}
-          </p>
-        </div>
-        <div>
-          <p className="flex items-start gap-2 text-sm">
-            <MessageSquare className="mt-1 h-4 w-4 flex-shrink-0 text-muted-foreground" />
-            <span>
-              <strong>Описание:</strong> {order.description}
-            </span>
-          </p>
-        </div>
-        {order.photo && (
-          <div className="relative aspect-video w-full max-w-sm overflow-hidden rounded-md">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={order.photo} alt="Фото к заказу" className="object-cover" />
+    <>
+      <Card>
+        <CardHeader>
+          <CardTitle>{order.service}</CardTitle>
+          <CardDescription>
+            Заказ #{order.id} от{' '}
+            {format(new Date(order.date), 'd MMM, HH:mm', { locale: ru })}
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div>
+            <p className="flex items-center gap-2 text-sm">
+              <MapPin className="h-4 w-4 text-muted-foreground" />
+              <strong>Адрес:</strong> {order.location}
+            </p>
           </div>
-        )}
-      </CardContent>
-      <CardFooter className="flex-col items-stretch gap-2 md:flex-row md:justify-between">
-        <div className="flex items-center justify-center gap-2 rounded-md bg-secondary p-2">
-          <DollarSign className="h-5 w-5 text-primary" />
-          <span className="text-xl font-bold">
-            {order.price.toLocaleString('ru-RU', { currency: 'RUB' })} ₽
-          </span>
-        </div>
-        <Button onClick={handleAccept} size="lg" className="w-full md:w-auto">
-          Принять заказ
-        </Button>
-      </CardFooter>
-    </Card>
+          <div>
+            <p className="flex items-start gap-2 text-sm">
+              <MessageSquare className="mt-1 h-4 w-4 flex-shrink-0 text-muted-foreground" />
+              <span>
+                <strong>Описание:</strong> {order.description}
+              </span>
+            </p>
+          </div>
+          {order.photo && (
+            <div className="relative aspect-video w-full max-w-sm overflow-hidden rounded-md">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={order.photo}
+                alt="Фото к заказу"
+                className="object-cover"
+              />
+            </div>
+          )}
+        </CardContent>
+        <CardFooter className="flex-col items-stretch gap-2 md:flex-row md:justify-between">
+          <div className="flex items-center justify-center gap-2 rounded-md bg-secondary p-2">
+            <DollarSign className="h-5 w-5 text-primary" />
+            <span className="text-xl font-bold">
+              {order.price.toLocaleString('ru-RU', { currency: 'RUB' })} ₽
+            </span>
+          </div>
+          <Button
+            onClick={handleAcceptAttempt}
+            size="lg"
+            className="w-full md:w-auto"
+            disabled={isAccepting}
+          >
+            Принять заказ
+          </Button>
+        </CardFooter>
+      </Card>
+      <AlertDialog
+        open={showLowBalanceDialog}
+        onOpenChange={setShowLowBalanceDialog}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Недостаточно средств</AlertDialogTitle>
+            <AlertDialogDescription>
+              Ваш текущий баланс:{' '}
+              <span className="font-medium text-foreground">
+                {currentBalance.toLocaleString('ru-RU', { currency: 'RUB' })} ₽
+              </span>
+              .
+              <br />
+              Для принятия этого заказа необходима комиссия в размере{' '}
+              <span className="font-medium text-foreground">
+                {orderCommission.toLocaleString('ru-RU', { currency: 'RUB' })}{' '}
+                ₽
+              </span>
+              .
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Закрыть</AlertDialogCancel>
+            <AlertDialogAction onClick={() => router.push('/driver/profile')}>
+              <Wallet className="mr-2 h-4 w-4" />
+              Пополнить кошелек
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </>
   );
 }
 
@@ -95,6 +174,9 @@ function ActiveDriverOrderCard({ order }: { order: Order }) {
       description: `Заказ #${order.id} выполнен. Оплата зачислена на ваш кошелек.`,
     });
   };
+
+  const COMMISSION_RATE = 0.10;
+  const driverEarnings = order.price * (1 - COMMISSION_RATE);
 
   return (
     <Card>
@@ -139,7 +221,7 @@ function ActiveDriverOrderCard({ order }: { order: Order }) {
         <div className="flex items-center justify-center gap-2 rounded-md bg-secondary p-3">
           <DollarSign className="h-6 w-6 text-primary" />
           <span className="text-2xl font-bold">
-            Ваш доход: {order.price.toLocaleString('ru-RU', { currency: 'RUB' })}{' '}
+            Ваш доход: {driverEarnings.toLocaleString('ru-RU', { currency: 'RUB' })}{' '}
             ₽
           </span>
         </div>

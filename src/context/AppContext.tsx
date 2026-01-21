@@ -37,7 +37,7 @@ interface AppContextType {
   isSeller: boolean;
   sellerProfile: SellerProfile | null;
   registerAsSeller: (
-    profile: Omit<SellerProfile, 'id' | 'balance'>
+    profile: Omit<SellerProfile, 'id' | 'balance' | 'agreement'>
   ) => void;
   products: Product[];
   shops: Shop[];
@@ -45,7 +45,9 @@ interface AppContextType {
   deleteProduct: (productId: string) => void;
   isDriver: boolean;
   driverProfile: DriverProfile | null;
-  registerAsDriver: (profile: Omit<DriverProfile, 'id' | 'balance'>) => void;
+  registerAsDriver: (
+    profile: Omit<DriverProfile, 'id' | 'balance' | 'agreement'>
+  ) => void;
   marketplaceOrders: MarketplaceOrder[];
   placeMarketplaceOrder?: (details: {
     customer: CustomerInfo;
@@ -72,7 +74,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [isContextLoading, setIsContextLoading] = useState(true);
   const [marketplaceOrders, setMarketplaceOrders] = useState<
     MarketplaceOrder[]
-  >([]); // New state
+  >([]);
 
   const MOCK_USER_ID = 'self';
 
@@ -102,7 +104,6 @@ export function AppProvider({ children }: { children: ReactNode }) {
       const driverProfileItem = window.localStorage.getItem('driverProfile');
       if (driverProfileItem) setDriverProfile(JSON.parse(driverProfileItem));
 
-      // Load marketplace orders from localStorage
       const marketplaceOrdersItem =
         window.localStorage.getItem('marketplaceOrders');
       if (marketplaceOrdersItem)
@@ -122,7 +123,6 @@ export function AppProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  // New function to save marketplace orders
   const saveMarketplaceOrders = (newOrders: MarketplaceOrder[]) => {
     setMarketplaceOrders(newOrders);
     try {
@@ -165,9 +165,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
               id: driverProfile.id,
               name: driverProfile.name,
               vehicle: driverProfile.vehicle,
-              avatarUrl: 'https://picsum.photos/seed/driver-self/100/100', // Placeholder
-              rating: 5.0, // Placeholder
-              distance: 0, // Placeholder
+              avatarUrl: 'https://picsum.photos/seed/driver-self/100/100',
+              rating: 5.0,
+              distance: 0,
             },
             arrivalTime: Math.floor(Math.random() * 10) + 5,
           }
@@ -180,14 +180,14 @@ export function AppProvider({ children }: { children: ReactNode }) {
     const orderToComplete = orders.find(o => o.id === orderId);
     if (!orderToComplete || !driverProfile) return;
 
-    // Update order status
     const newOrders = orders.map(o =>
       o.id === orderId ? { ...o, status: 'Завершен' as const } : o
     );
     saveOrders(newOrders);
 
-    // Update driver balance
-    const newBalance = (driverProfile.balance || 0) + orderToComplete.price;
+    const COMMISSION_RATE = 0.1; // 10% commission
+    const earnings = orderToComplete.price * (1 - COMMISSION_RATE);
+    const newBalance = (driverProfile.balance ?? 0) + earnings;
     const updatedDriverProfile = { ...driverProfile, balance: newBalance };
     setDriverProfile(updatedDriverProfile);
     try {
@@ -291,7 +291,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   };
 
   const registerAsSeller = (
-    profile: Omit<SellerProfile, 'id' | 'balance'>
+    profile: Omit<SellerProfile, 'id' | 'balance' | 'agreement'>
   ) => {
     const newSellerProfile = { ...profile, id: MOCK_USER_ID, balance: 0 };
     setIsSeller(true);
@@ -324,9 +324,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
   };
 
   const registerAsDriver = (
-    profile: Omit<DriverProfile, 'id' | 'balance'>
+    profile: Omit<DriverProfile, 'id' | 'balance' | 'agreement'>
   ) => {
-    const newDriverProfile = { ...profile, id: 'driver-self', balance: 0 };
+    const newDriverProfile = { ...profile, id: 'driver-self', balance: 50 }; // Start with 50 rub balance for testing
     setIsDriver(true);
     setDriverProfile(newDriverProfile);
     try {
@@ -340,7 +340,6 @@ export function AppProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  // New function to place a marketplace order
   const placeMarketplaceOrder = (details: {
     customer: CustomerInfo;
     items: CartItem[];
@@ -354,7 +353,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       ...details,
     };
     saveMarketplaceOrders([...marketplaceOrders, newOrder]);
-    saveCart([]); // Clear cart after order is placed
+    saveCart([]);
   };
 
   return (

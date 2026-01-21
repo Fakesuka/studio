@@ -30,6 +30,7 @@ import { UserCog } from 'lucide-react';
 import type { ServiceType, LegalStatus } from '@/lib/types';
 import { serviceTypesList } from '@/lib/types';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import Link from 'next/link';
 
 const driverFormSchema = z.object({
   name: z.string().min(3, 'Имя должно быть длиннее 3 символов.'),
@@ -39,6 +40,9 @@ const driverFormSchema = z.object({
   }),
   legalStatus: z.enum(['Самозанятый', 'ИП'], {
     required_error: 'Пожалуйста, выберите ваш юридический статус.',
+  }),
+  agreement: z.literal(true, {
+    errorMap: () => ({ message: 'Вы должны принять условия использования.' }),
   }),
 });
 
@@ -55,14 +59,16 @@ export default function DriverRegisterPage() {
       name: '',
       vehicle: '',
       services: [],
+      agreement: false,
     },
   });
 
   function onSubmit(data: DriverFormValues) {
+    const { agreement, ...driverData } = data;
     registerAsDriver({
-      ...data,
-      services: data.services as ServiceType[],
-      legalStatus: data.legalStatus as LegalStatus,
+      ...driverData,
+      services: driverData.services as ServiceType[],
+      legalStatus: driverData.legalStatus as LegalStatus,
     });
     toast({
       title: 'Вы стали водителем!',
@@ -203,6 +209,35 @@ export default function DriverRegisterPage() {
                       />
                     ))}
                     <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="agreement"
+                render={({ field }) => (
+                  <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
+                    <FormControl>
+                      <Checkbox
+                        checked={field.value}
+                        onCheckedChange={field.onChange}
+                      />
+                    </FormControl>
+                    <div className="space-y-1 leading-none">
+                      <FormLabel>
+                        Я принимаю{' '}
+                        <Link
+                          href="/terms"
+                          className="text-primary underline"
+                          onClick={e => e.preventDefault()}
+                        >
+                          условия использования
+                        </Link>
+                        .
+                      </FormLabel>
+                      <FormMessage />
+                    </div>
                   </FormItem>
                 )}
               />
