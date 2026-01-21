@@ -54,11 +54,18 @@ export function WeatherWidget() {
             );
             if (geoRes.ok) {
               const geoData = await geoRes.json();
-              if (geoData?.results?.[0]?.name) {
-                city = geoData.results[0].name;
+              const result = geoData?.results?.[0];
+              if (result) {
+                // Try city name first, then fall back to region name (admin1)
+                city = result.name || result.admin1 || city;
+                if (!result.name) {
+                  console.warn(
+                    'Geocoding: city name not found, using admin1 as fallback.'
+                  );
+                }
               } else {
                 console.warn(
-                  'Geocoding API call successful but no city name found.'
+                  'Geocoding API call successful but no results found.'
                 );
               }
             } else {
