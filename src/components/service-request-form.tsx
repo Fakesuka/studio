@@ -140,9 +140,10 @@ export function ServiceRequestForm() {
   });
 
   const descriptionValue = form.watch('description');
+  const { setValue } = form;
 
   useEffect(() => {
-    if (useWithoutAI || !descriptionValue || descriptionValue.length < 20) {
+    if (useWithoutAI || !descriptionValue || descriptionValue.length < 10) {
       setAiDiagnosis(null);
       return;
     }
@@ -163,7 +164,7 @@ export function ServiceRequestForm() {
         .then(result => {
           setAiDiagnosis(result);
           if (result?.suggestedService) {
-            form.setValue('serviceType', result.suggestedService, {
+            setValue('serviceType', result.suggestedService, {
               shouldValidate: true,
             });
           }
@@ -176,7 +177,7 @@ export function ServiceRequestForm() {
     return () => {
       clearTimeout(handler);
     };
-  }, [descriptionValue, useWithoutAI, form]);
+  }, [descriptionValue, useWithoutAI, setValue]);
 
   const fileToDataUri = (file: File): Promise<string> => {
     return new Promise((resolve, reject) => {
