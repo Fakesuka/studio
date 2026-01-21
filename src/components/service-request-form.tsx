@@ -4,12 +4,8 @@ import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import {
-  Flame,
-  Fuel,
-  Truck,
-  Wrench,
-} from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import { Flame, Fuel, Truck, Wrench } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -37,6 +33,9 @@ import {
 } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
+import { useAppContext } from '@/context/AppContext';
+import { mockProviders } from '@/lib/data';
+import type { ServiceType } from '@/lib/types';
 
 const formSchema = z.object({
   serviceType: z.string({ required_error: 'Пожалуйста, выберите тип услуги.' }),
@@ -57,6 +56,8 @@ const serviceTypes = [
 export function ServiceRequestForm() {
   const [photoPreview, setPhotoPreview] = useState<string | null>(null);
   const { toast } = useToast();
+  const router = useRouter();
+  const { setActiveOrder } = useAppContext();
 
   const form = useForm<ServiceRequestFormValues>({
     resolver: zodResolver(formSchema),
@@ -86,13 +87,34 @@ export function ServiceRequestForm() {
     }
   };
 
-
-  async function onSubmit(data: ServiceRequestFormValues) {
-     toast({
-      title: "Заявка отправлена!",
-      description: "Мы ищем ближайшего исполнителя.",
+  function onSubmit(data: ServiceRequestFormValues) {
+    toast({
+      title: 'Заявка отправлена!',
+      description: 'Мы ищем ближайшего исполнителя.',
     });
-    console.log(data);
+
+    const service = serviceTypes.find(s => s.value === data.serviceType);
+
+    // Simulate finding a provider and creating an order after a delay
+    setTimeout(() => {
+      const newOrder = {
+        id: `SAHA-${Math.floor(Math.random() * 900) + 100}`,
+        service: (service?.label as ServiceType) || 'Техпомощь',
+        date: new Date().toISOString().split('T')[0],
+        status: 'В процессе' as const,
+        price: Math.floor(Math.random() * 4000) + 1500,
+        provider:
+          mockProviders[Math.floor(Math.random() * mockProviders.length)],
+        arrivalTime: Math.floor(Math.random() * 10) + 5,
+      };
+
+      setActiveOrder(newOrder);
+      toast({
+        title: 'Исполнитель найден!',
+        description: `${newOrder.provider?.name} скоро будет у вас.`,
+      });
+      router.push('/dashboard');
+    }, 2000);
   }
 
   return (
@@ -143,12 +165,12 @@ export function ServiceRequestForm() {
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Где вы находитесь?</FormLabel>
-                   <FormControl>
-                        <Input
-                          placeholder="Например, г. Якутск, ул. Ленина, д. 1"
-                          {...field}
-                        />
-                      </FormControl>
+                  <FormControl>
+                    <Input
+                      placeholder="Например, г. Якутск, ул. Ленина, д. 1"
+                      {...field}
+                    />
+                  </FormControl>
                   <FormMessage />
                 </FormItem>
               )}

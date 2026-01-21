@@ -1,3 +1,5 @@
+'use client';
+
 import {
   Car,
   MapPin,
@@ -19,11 +21,12 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
-import { mockOrders, mockProviders } from '@/lib/data';
+import { mockProviders } from '@/lib/data';
 import type { Order, ServiceProvider, ServiceType } from '@/lib/types';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 import Image from 'next/image';
 import Link from 'next/link';
+import { useAppContext } from '@/context/AppContext';
 
 function getServiceIcon(serviceType: ServiceType) {
   switch (serviceType) {
@@ -124,7 +127,7 @@ function ProviderCard({ provider }: { provider: ServiceProvider }) {
 }
 
 export default function Dashboard() {
-  const activeOrder = mockOrders.find(o => o.status === 'В процессе');
+  const { activeOrder } = useAppContext();
 
   return (
     <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3 lg:gap-6">
