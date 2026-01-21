@@ -31,9 +31,9 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { WeatherWidget } from '@/components/weather-widget';
 import { useState, useEffect, useMemo } from 'react';
 import dynamic from 'next/dynamic';
-import type { MapMarker } from '@/components/map-leaflet';
+import type { MapMarker } from '@/components/map-2gis';
 
-const MapLeaflet = dynamic(() => import('@/components/map-leaflet'), {
+const Map2GIS = dynamic(() => import('@/components/map-2gis'), {
   ssr: false,
   loading: () => <Skeleton className="h-full w-full" />,
 });
@@ -126,14 +126,14 @@ function ActiveOrderCard({ order }: { order: Order }) {
       m.push({
         id: 'customer',
         coords: customerCoords,
-        popup: <div>Вы здесь</div>,
+        popup: 'Вы здесь',
       });
     }
     if (driverCoords) {
       m.push({
         id: 'driver',
         coords: driverCoords,
-        popup: <div>Водитель</div>,
+        popup: 'Водитель',
       });
     }
     return m;
@@ -161,7 +161,7 @@ function ActiveOrderCard({ order }: { order: Order }) {
       );
     }
 
-    return <MapLeaflet center={customerCoords} zoom={13} markers={markers} />;
+    return <Map2GIS center={customerCoords} zoom={13} markers={markers} />;
   };
 
   return (
@@ -198,7 +198,6 @@ function ActiveOrderCard({ order }: { order: Order }) {
         )}
         <div
           className="relative aspect-[4/3] w-full overflow-hidden rounded-md border"
-          onClick={e => e.stopPropagation()}
         >
           {renderMapContent()}
           {order.arrivalTime && (
