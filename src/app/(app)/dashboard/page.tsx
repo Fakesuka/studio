@@ -26,6 +26,7 @@ import type { Order, ServiceProvider, ServiceType } from '@/lib/types';
 import Link from 'next/link';
 import { useAppContext } from '@/context/AppContext';
 import Map2GIS from '@/components/map-2gis';
+import { Skeleton } from '@/components/ui/skeleton';
 
 function getServiceIcon(serviceType: ServiceType) {
   switch (serviceType) {
@@ -120,8 +121,71 @@ function ProviderCard({ provider }: { provider: ServiceProvider }) {
   );
 }
 
+function DashboardSkeleton() {
+  return (
+    <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3 lg:gap-6">
+      <div className="col-span-1 flex flex-col gap-4 lg:gap-6">
+        <Card className="flex flex-col">
+          <CardHeader>
+            <Skeleton className="h-7 w-36" />
+            <Skeleton className="h-4 w-72" />
+          </CardHeader>
+          <CardContent className="flex flex-1 flex-col">
+            <Skeleton className="flex h-full min-h-[120px] w-full" />
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader>
+            <Skeleton className="h-7 w-48" />
+            <Skeleton className="h-4 w-56" />
+          </CardHeader>
+          <CardContent className="grid gap-6">
+            <div className="flex items-center gap-4">
+              <Skeleton className="h-10 w-10 rounded-full" />
+              <div className="grid flex-1 gap-2">
+                <Skeleton className="h-4 w-24" />
+                <Skeleton className="h-4 w-32" />
+              </div>
+            </div>
+            <div className="flex items-center gap-4">
+              <Skeleton className="h-10 w-10 rounded-full" />
+              <div className="grid flex-1 gap-2">
+                <Skeleton className="h-4 w-20" />
+                <Skeleton className="h-4 w-28" />
+              </div>
+            </div>
+            <div className="flex items-center gap-4">
+              <Skeleton className="h-10 w-10 rounded-full" />
+              <div className="grid flex-1 gap-2">
+                <Skeleton className="h-4 w-28" />
+                <Skeleton className="h-4 w-36" />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+      <Card className="col-span-1 lg:col-span-2">
+        <CardHeader>
+          <Skeleton className="h-8 w-48" />
+          <Skeleton className="h-4 w-64" />
+        </CardHeader>
+        <CardContent>
+          <Skeleton className="relative aspect-[4/3] w-full" />
+        </CardContent>
+        <CardFooter>
+          <Skeleton className="h-10 w-full" />
+        </CardFooter>
+      </Card>
+    </div>
+  );
+}
+
 export default function Dashboard() {
-  const { activeOrder } = useAppContext();
+  const { activeOrder, isContextLoading } = useAppContext();
+
+  if (isContextLoading) {
+    return <DashboardSkeleton />;
+  }
 
   return (
     <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3 lg:gap-6">
@@ -135,9 +199,7 @@ export default function Dashboard() {
           </CardHeader>
           <CardContent className="flex flex-1 flex-col">
             <Link href="/services/new" className="flex flex-1 flex-col">
-              <div
-                className="flex h-full min-h-[120px] w-full flex-col items-center justify-center gap-2 rounded-lg bg-gradient-to-br from-primary to-blue-400 p-6 text-primary-foreground shadow-lg transition-all duration-300 hover:shadow-primary/50 active:scale-[0.98] active:shadow-primary/30"
-              >
+              <div className="flex h-full min-h-[120px] w-full flex-col items-center justify-center gap-2 rounded-lg bg-gradient-to-br from-primary to-blue-400 p-6 text-primary-foreground shadow-lg transition-all duration-300 hover:shadow-primary/50 active:scale-[0.98] active:shadow-primary/30">
                 <Wrench className="h-10 w-10" />
                 <span className="text-lg font-bold">Создать заявку</span>
               </div>
