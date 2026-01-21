@@ -41,6 +41,7 @@ const Map2GIS: React.FC<Map2GISProps> = ({
           zoom: zoom,
           fullscreenControl: false,
           zoomControl: false,
+          dragging: false,
         });
         mapRef.current = map;
       } catch (e) {
