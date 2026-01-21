@@ -1,7 +1,6 @@
 'use client';
 
 import Image from 'next/image';
-import { useState } from 'react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import {
@@ -15,39 +14,31 @@ import {
 import { mockProducts } from '@/lib/data';
 import { useToast } from '@/hooks/use-toast';
 import { ShoppingCart, Minus, Plus } from 'lucide-react';
+import { useAppContext } from '@/context/AppContext';
 
 export default function MarketplacePage() {
   const { toast } = useToast();
-  const [cartQuantities, setCartQuantities] = useState<{
-    [key: string]: number;
-  }>({});
+  const { addToCart, updateCartItemQuantity, getCartItemQuantity } =
+    useAppContext();
 
   const handleAddToCart = (productId: string, productName: string) => {
-    setCartQuantities(prev => ({ ...prev, [productId]: 1 }));
+    addToCart(productId);
     toast({
       title: `${productName} в корзине`,
     });
   };
 
   const handleDecreaseQuantity = (productId: string) => {
-    setCartQuantities(prev => {
-      const newQuantity = (prev[productId] || 0) - 1;
-      if (newQuantity <= 0) {
-        const { [productId]: _, ...rest } = prev;
-        return rest;
-      }
-      return { ...prev, [productId]: newQuantity };
-    });
+    const currentQuantity = getCartItemQuantity(productId);
+    updateCartItemQuantity(productId, currentQuantity - 1);
   };
 
   const handleIncreaseQuantity = (productId: string) => {
-    setCartQuantities(prev => ({
-      ...prev,
-      [productId]: (prev[productId] || 0) + 1,
-    }));
+    const currentQuantity = getCartItemQuantity(productId);
+    updateCartItemQuantity(productId, currentQuantity + 1);
   };
 
-  const quantityInCart = (productId: string) => cartQuantities[productId] || 0;
+  const quantityInCart = (productId: string) => getCartItemQuantity(productId);
 
   return (
     <div>
@@ -65,22 +56,24 @@ export default function MarketplacePage() {
       <div className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-4">
         {mockProducts.map(product => (
           <Card key={product.id} className="flex flex-col">
-            <CardHeader className="p-0">
-              <div className="relative aspect-video w-full overflow-hidden rounded-t-md">
-                <Image
-                  src={product.imageUrl}
-                  alt={product.name}
-                  fill
-                  className="object-cover"
-                  sizes="(max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
-                  data-ai-hint={product.imageHint}
-                />
-              </div>
-            </CardHeader>
-            <CardContent className="flex-grow p-4">
-              <CardTitle className="mb-1 text-lg">{product.name}</CardTitle>
-              <CardDescription>{product.description}</CardDescription>
-            </CardContent>
+            <div className="flex-grow">
+              <CardHeader className="p-0">
+                <div className="relative aspect-video w-full overflow-hidden rounded-t-md">
+                  <Image
+                    src={product.imageUrl}
+                    alt={product.name}
+                    fill
+                    className="object-cover"
+                    sizes="(max-width: 640px) 50vw, (max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
+                    data-ai-hint={product.imageHint}
+                  />
+                </div>
+              </CardHeader>
+              <CardContent className="p-4">
+                <CardTitle className="mb-1 text-lg">{product.name}</CardTitle>
+                <CardDescription>{product.description}</CardDescription>
+              </CardContent>
+            </div>
             <CardFooter className="flex items-center justify-between p-4 pt-0">
               <p className="text-lg font-semibold">
                 {product.price.toLocaleString('ru-RU', {

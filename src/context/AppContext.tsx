@@ -6,32 +6,44 @@ import {
   useState,
   ReactNode,
   useEffect,
+  useCallback,
 } from 'react';
-import type { Order } from '@/lib/types';
+import type { Order, CartItem } from '@/lib/types';
+import { mockProducts } from '@/lib/data';
 
 interface AppContextType {
   activeOrder: Order | null;
   setActiveOrder: (order: Order | null) => void;
-  isContextLoading: boolean; // To let consumers know when data is ready
+  cart: CartItem[];
+  addToCart: (productId: string) => void;
+  updateCartItemQuantity: (productId: string, quantity: number) => void;
+  removeFromCart: (productId: string) => void;
+  getCartItemQuantity: (productId: string) => number;
+  isContextLoading: boolean;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
 
 export function AppProvider({ children }: { children: ReactNode }) {
   const [activeOrder, setActiveOrderState] = useState<Order | null>(null);
+  const [cart, setCart] = useState<CartItem[]>([]);
   const [isContextLoading, setIsContextLoading] = useState(true);
 
-  // On initial client-side render, load the active order from localStorage
+  // On initial client-side render, load data from localStorage
   useEffect(() => {
     try {
-      const item = window.localStorage.getItem('activeOrder');
-      if (item) {
-        setActiveOrderState(JSON.parse(item));
+      const activeOrderItem = window.localStorage.getItem('activeOrder');
+      if (activeOrderItem) {
+        setActiveOrderState(JSON.parse(activeOrderItem));
+      }
+      const cartItems = window.localStorage.getItem('cart');
+      if (cartItems) {
+        setCart(JSON.parse(cartItems));
       }
     } catch (error) {
-      // If parsing fails, just continue with a null order
-      console.error('Failed to load active order from localStorage', error);
+      console.error('Failed to load data from localStorage', error);
       localStorage.removeItem('activeOrder');
+      localStorage.removeItem('cart');
     }
     setIsContextLoading(false); // Loading is complete
   }, []);
@@ -49,9 +61,63 @@ export function AppProvider({ children }: { children: ReactNode }) {
     }
   };
 
+  const saveCart = (newCart: CartItem[]) => {
+    setCart(newCart);
+    try {
+      window.localStorage.setItem('cart', JSON.stringify(newCart));
+    } catch (error) {
+      console.error('Failed to save cart to localStorage', error);
+    }
+  };
+
+  const addToCart = (productId: string) => {
+    const productToAdd = mockProducts.find(p => p.id === productId);
+    if (!productToAdd) return;
+
+    const existingItem = cart.find(item => item.id === productId);
+    if (existingItem) {
+      updateCartItemQuantity(productId, existingItem.quantity + 1);
+    } else {
+      saveCart([...cart, { ...productToAdd, quantity: 1 }]);
+    }
+  };
+
+  const updateCartItemQuantity = (productId: string, quantity: number) => {
+    if (quantity <= 0) {
+      removeFromCart(productId);
+    } else {
+      const newCart = cart.map(item =>
+        item.id === productId ? { ...item, quantity } : item
+      );
+      saveCart(newCart);
+    }
+  };
+
+  const removeFromCart = (productId: string) => {
+    const newCart = cart.filter(item => item.id !== productId);
+    saveCart(newCart);
+  };
+
+  const getCartItemQuantity = useCallback(
+    (productId: string) => {
+      const item = cart.find(item => item.id === productId);
+      return item ? item.quantity : 0;
+    },
+    [cart]
+  );
+
   return (
     <AppContext.Provider
-      value={{ activeOrder, setActiveOrder, isContextLoading }}
+      value={{
+        activeOrder,
+        setActiveOrder,
+        isContextLoading,
+        cart,
+        addToCart,
+        updateCartItemQuantity,
+        removeFromCart,
+        getCartItemQuantity,
+      }}
     >
       {children}
     </AppContext.Provider>

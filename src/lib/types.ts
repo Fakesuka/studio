@@ -7,7 +7,11 @@ export type User = {
 
 export type OrderStatus = 'Ожидает' | 'В процессе' | 'Завершен' | 'Отменен';
 
-export type ServiceType = 'Отогрев авто' | 'Доставка топлива' | 'Техпомощь' | 'Эвакуатор';
+export type ServiceType =
+  | 'Отогрев авто'
+  | 'Доставка топлива'
+  | 'Техпомощь'
+  | 'Эвакуатор';
 
 export type Order = {
   id: string;
@@ -26,6 +30,10 @@ export type Product = {
   price: number;
   imageUrl: string;
   imageHint: string;
+};
+
+export type CartItem = Product & {
+  quantity: number;
 };
 
 export type ServiceProvider = {

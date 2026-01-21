@@ -1,31 +1,37 @@
+'use client';
+
 import Image from 'next/image';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import {
   Card,
   CardContent,
-  CardDescription,
-  CardFooter,
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Separator } from '@/components/ui/separator';
-import { mockProducts } from '@/lib/data';
-import { Minus, Plus, Trash2, ArrowLeft } from 'lucide-react';
+import { Minus, Plus, Trash2, ArrowLeft, Loader2 } from 'lucide-react';
+import { useAppContext } from '@/context/AppContext';
 
 export default function CartPage() {
-  // Mock cart items, taking first 2 from mockProducts
-  const cartItems = mockProducts
-    .slice(0, 2)
-    .map(p => ({ ...p, quantity: p.id === 'prod-1' ? 1 : 2 }));
+  const { cart, updateCartItemQuantity, removeFromCart, isContextLoading } =
+    useAppContext();
 
-  const subtotal = cartItems.reduce(
+  const subtotal = cart.reduce(
     (sum, item) => sum + item.price * item.quantity,
     0
   );
-  const shipping = 500;
+  const shipping = cart.length > 0 ? 500 : 0;
   const total = subtotal + shipping;
+
+  if (isContextLoading) {
+    return (
+      <div className="flex h-full w-full items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    );
+  }
 
   return (
     <div className="mx-auto max-w-4xl">
@@ -43,16 +49,13 @@ export default function CartPage() {
         <div className="col-span-1 md:col-span-2">
           <Card>
             <CardHeader>
-              <CardTitle>Ваши товары ({cartItems.length})</CardTitle>
+              <CardTitle>Ваши товары ({cart.length})</CardTitle>
             </CardHeader>
             <CardContent className="p-0">
               <div className="divide-y divide-border">
-                {cartItems.length > 0 ? (
-                  cartItems.map(item => (
-                    <div
-                      key={item.id}
-                      className="flex items-start gap-4 p-4"
-                    >
+                {cart.length > 0 ? (
+                  cart.map(item => (
+                    <div key={item.id} className="flex items-start gap-4 p-4">
                       <div className="relative h-24 w-24 flex-shrink-0 overflow-hidden rounded-md border">
                         <Image
                           src={item.imageUrl}
@@ -75,6 +78,12 @@ export default function CartPage() {
                             variant="outline"
                             size="icon"
                             className="h-8 w-8"
+                            onClick={() =>
+                              updateCartItemQuantity(
+                                item.id,
+                                item.quantity - 1
+                              )
+                            }
                           >
                             <Minus className="h-4 w-4" />
                           </Button>
@@ -88,6 +97,12 @@ export default function CartPage() {
                             variant="outline"
                             size="icon"
                             className="h-8 w-8"
+                            onClick={() =>
+                              updateCartItemQuantity(
+                                item.id,
+                                item.quantity + 1
+                              )
+                            }
                           >
                             <Plus className="h-4 w-4" />
                           </Button>
@@ -104,6 +119,7 @@ export default function CartPage() {
                           variant="ghost"
                           size="icon"
                           className="h-8 w-8 text-muted-foreground hover:text-destructive"
+                          onClick={() => removeFromCart(item.id)}
                         >
                           <Trash2 className="h-4 w-4" />
                           <span className="sr-only">Удалить</span>
@@ -157,7 +173,7 @@ export default function CartPage() {
               </div>
             </CardContent>
             <CardFooter className="flex-col gap-2">
-              <Button size="lg" className="w-full">
+              <Button size="lg" className="w-full" disabled={cart.length === 0}>
                 Перейти к оформлению
               </Button>
               <Link href="/marketplace" passHref className="w-full">
