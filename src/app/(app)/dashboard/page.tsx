@@ -9,6 +9,8 @@ import {
   Wrench,
   Truck,
   Flame,
+  AlertTriangle,
+  LocateFixed,
 } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
@@ -25,10 +27,16 @@ import { mockProviders } from '@/lib/data';
 import type { Order, ServiceProvider, ServiceType } from '@/lib/types';
 import Link from 'next/link';
 import { useAppContext } from '@/context/AppContext';
-import Map2GIS, { type MapMarker } from '@/components/map-2gis';
 import { Skeleton } from '@/components/ui/skeleton';
 import { WeatherWidget } from '@/components/weather-widget';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
+import dynamic from 'next/dynamic';
+import type { MapMarker } from '@/components/map-leaflet';
+
+const MapLeaflet = dynamic(() => import('@/components/map-leaflet'), {
+  ssr: false,
+  loading: () => <Skeleton className="h-full w-full" />,
+});
 
 function getServiceIcon(serviceType: ServiceType) {
   switch (serviceType) {
@@ -46,14 +54,43 @@ function getServiceIcon(serviceType: ServiceType) {
 }
 
 function ActiveOrderCard({ order }: { order: Order }) {
-  const customerCoords: [number, number] = [62.035, 129.675]; // Based on existing hardcoded value
+  const [customerCoords, setCustomerCoords] = useState<[number, number] | null>(
+    null
+  );
   const [driverCoords, setDriverCoords] = useState<[number, number] | null>(
     null
   );
+  const [locationStatus, setLocationStatus] = useState<
+    'loading' | 'success' | 'error'
+  >('loading');
+  const [locationError, setLocationError] = useState<string | null>(null);
 
-  // Simulate driver location update
   useEffect(() => {
-    // A random starting point for the driver, somewhere around the customer
+    if (!navigator.geolocation) {
+      setLocationStatus('error');
+      setLocationError('Геолокация не поддерживается вашим браузером.');
+      return;
+    }
+
+    navigator.geolocation.getCurrentPosition(
+      position => {
+        setCustomerCoords([position.coords.latitude, position.coords.longitude]);
+        setLocationStatus('success');
+      },
+      error => {
+        setLocationStatus('error');
+        if (error.code === error.PERMISSION_DENIED) {
+          setLocationError('Вы запретили доступ к геолокации.');
+        } else {
+          setLocationError('Не удалось определить ваше местоположение.');
+        }
+      }
+    );
+  }, []);
+
+  useEffect(() => {
+    if (!customerCoords) return;
+
     const initialDriverLat = customerCoords[0] + (Math.random() - 0.5) * 0.1;
     const initialDriverLng = customerCoords[1] + (Math.random() - 0.5) * 0.1;
     setDriverCoords([initialDriverLat, initialDriverLng]);
@@ -65,12 +102,11 @@ function ActiveOrderCard({ order }: { order: Order }) {
       currentStep++;
       if (currentStep > journeySteps) {
         clearInterval(interval);
-        setDriverCoords(customerCoords); // Arrived
+        setDriverCoords(customerCoords);
         return;
       }
 
       setDriverCoords(() => {
-        // Linear interpolation
         const lat =
           initialDriverLat +
           (customerCoords[0] - initialDriverLat) * (currentStep / journeySteps);
@@ -79,30 +115,54 @@ function ActiveOrderCard({ order }: { order: Order }) {
           (customerCoords[1] - initialDriverLng) * (currentStep / journeySteps);
         return [lat, lng];
       });
-    }, 2000); // Update every 2 seconds
+    }, 2000);
 
     return () => clearInterval(interval);
-  }, []);
+  }, [customerCoords]);
 
-  const markers: MapMarker[] = [
-    {
-      id: 'customer',
-      coords: customerCoords,
-      label: 'Вы здесь',
-      iconUrl: `data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjQiIGhlaWdodD0iMjQiIHZpZXdCb3g9IjAgMCAyNCAyNCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cGF0aCBkPSJNMTEuOTg0MSA0LjAxMzk4QzguNTk5MyA0LjAxMzk4IDUuODg5MyA2LjcyMzk4IDUuODg5MyAxMC4xMDk0QzUuODg5MyAxMi4zNTU1IDcuMiA0LjE0MDYgMTEuOTg0MSAxOS45NTA4QzE2Ljc2NzggMTQuMTQwNiAxOC4wNzg4IDEyLjM1NTUgMTguMDc4OCAxMC4xMDk0QzE4LjA3ODggNi43MjM5OCAxNS4zNjkgNC4wMTM5OCAxMS45ODQxIDQuMDEzOThaIiBmaWxsPSIjZGMyNjI2Ii8+PGNpcmNsZSBjeD0iMTIiIGN5PSIxMCIgcj0iMi41IiBmaWxsPSJ3aGl0ZSIvPjwvc3ZnPg==`,
-      iconSize: [32, 32],
-    },
-  ];
+  const markers = useMemo((): MapMarker[] => {
+    const m: MapMarker[] = [];
+    if (customerCoords) {
+      m.push({
+        id: 'customer',
+        coords: customerCoords,
+        popup: <div>Вы здесь</div>,
+      });
+    }
+    if (driverCoords) {
+      m.push({
+        id: 'driver',
+        coords: driverCoords,
+        popup: <div>Водитель</div>,
+      });
+    }
+    return m;
+  }, [customerCoords, driverCoords]);
 
-  if (driverCoords) {
-    markers.push({
-      id: 'driver',
-      coords: driverCoords,
-      label: 'Водитель',
-      iconUrl: `data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjQiIGhlaWdodD0iMjQiIHZpZXdCb3g9IjAgMCAyNCAyNCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cGF0aCBkPSJNMTEuOTg0MSA0LjAxMzk4QzguNTk5MyA0LjAxMzk4IDUuODg5MyA2LjcyMzk4IDUuODg5MyAxMC4xMDk0QzUuODg5MyAxMi4zNTU1IDcuMiA0LjE0MDYgMTEuOTg0MSAxOS45NTA4QzE2Ljc2NzggMTQuMTQwNiAxOC4wNzg4IDEyLjM1NTUgMTguMDc4OCAxMC4xMDk0QzE4LjA3ODggNi43MjM5OCAxNS4zNjkgNC4wMTM5OCAxMS45ODQxIDQuMDEzOThaIiBmaWxsPSIjMjU2M2ViIi8+PGNpcmNsZSBjeD0iMTIiIGN5PSIxMCIgcj0iMi41IiBmaWxsPSJ3aGl0ZSIvPjwvc3ZnPg==`,
-      iconSize: [32, 32],
-    });
-  }
+  const renderMapContent = () => {
+    if (locationStatus === 'loading') {
+      return (
+        <div className="flex h-full flex-col items-center justify-center gap-2 bg-muted">
+          <LocateFixed className="h-8 w-8 animate-pulse text-muted-foreground" />
+          <p className="text-muted-foreground">
+            Определяем ваше местоположение...
+          </p>
+        </div>
+      );
+    }
+
+    if (locationStatus === 'error' || !customerCoords) {
+      return (
+        <div className="flex h-full flex-col items-center justify-center gap-2 bg-muted p-4 text-center">
+          <AlertTriangle className="h-8 w-8 text-destructive" />
+          <p className="font-semibold text-destructive">Ошибка геолокации</p>
+          <p className="text-sm text-muted-foreground">{locationError}</p>
+        </div>
+      );
+    }
+
+    return <MapLeaflet center={customerCoords} zoom={13} markers={markers} />;
+  };
 
   return (
     <Card className="col-span-1 lg:col-span-2">
@@ -136,10 +196,13 @@ function ActiveOrderCard({ order }: { order: Order }) {
             </div>
           </div>
         )}
-        <div className="relative aspect-[4/3] w-full overflow-hidden rounded-md">
-          <Map2GIS center={customerCoords} zoom={11} markers={markers} />
+        <div
+          className="relative aspect-[4/3] w-full overflow-hidden rounded-md border"
+          onClick={e => e.stopPropagation()}
+        >
+          {renderMapContent()}
           {order.arrivalTime && (
-            <div className="absolute bottom-4 right-4 rounded-md bg-background/80 p-2 text-foreground shadow-lg backdrop-blur-sm">
+            <div className="absolute bottom-4 right-4 z-[1000] rounded-md bg-background/80 p-2 text-foreground shadow-lg backdrop-blur-sm">
               <div className="flex items-center gap-2">
                 <Clock className="h-5 w-5 text-primary" />
                 <span className="font-bold">
