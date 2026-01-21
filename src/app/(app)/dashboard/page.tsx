@@ -27,6 +27,7 @@ import Link from 'next/link';
 import { useAppContext } from '@/context/AppContext';
 import Map2GIS from '@/components/map-2gis';
 import { Skeleton } from '@/components/ui/skeleton';
+import { WeatherWidget } from '@/components/weather-widget';
 
 function getServiceIcon(serviceType: ServiceType) {
   switch (serviceType) {
@@ -125,6 +126,16 @@ function DashboardSkeleton() {
   return (
     <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3 lg:gap-6">
       <div className="col-span-1 flex flex-col gap-4 lg:gap-6">
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <Skeleton className="h-5 w-20" />
+            <Skeleton className="h-4 w-4" />
+          </CardHeader>
+          <CardContent>
+            <Skeleton className="h-8 w-24" />
+            <Skeleton className="mt-1 h-4 w-32" />
+          </CardContent>
+        </Card>
         <Card className="flex flex-col">
           <CardHeader>
             <Skeleton className="h-7 w-36" />
@@ -190,6 +201,7 @@ export default function Dashboard() {
   return (
     <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3 lg:gap-6">
       <div className="col-span-1 flex flex-col gap-4 lg:gap-6">
+        <WeatherWidget />
         <Card className="flex flex-col">
           <CardHeader>
             <CardTitle>Нужна помощь?</CardTitle>
