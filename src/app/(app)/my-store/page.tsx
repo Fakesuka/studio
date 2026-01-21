@@ -187,154 +187,157 @@ export default function MyStorePage() {
               Добавить товар
             </Button>
           </DialogTrigger>
-          <DialogContent className="sm:max-w-[425px]">
+          <DialogContent className="flex h-full max-h-[95vh] w-full flex-col sm:max-w-[425px]">
             <DialogHeader>
               <DialogTitle>Новый товар</DialogTitle>
               <DialogDescription>
                 Заполните информацию о товаре, чтобы добавить его в магазин.
               </DialogDescription>
             </DialogHeader>
-            <Form {...productForm}>
-              <form
-                onSubmit={productForm.handleSubmit(onProductSubmit)}
-                className="space-y-4"
-              >
-                <FormField
-                  control={productForm.control}
-                  name="name"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Название товара</FormLabel>
-                      <FormControl>
-                        <Input
-                          placeholder="Например, 'Зимние шины'"
-                          {...field}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={productForm.control}
-                  name="description"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Описание</FormLabel>
-                      <FormControl>
-                        <Textarea
-                          placeholder="Опишите товар..."
-                          {...field}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={productForm.control}
-                  name="price"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Цена (в рублях)</FormLabel>
-                      <FormControl>
-                        <Input
-                          type="number"
-                          placeholder="5000"
-                          {...field}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={productForm.control}
-                  name="image"
-                  render={() => (
-                    <FormItem>
-                      <FormLabel>Фотография</FormLabel>
-                      <FormControl>
-                        <Input
-                          type="file"
-                          accept="image/*"
-                          onChange={handlePhotoChange}
-                        />
-                      </FormControl>
-                      {photoPreview && (
-                        <div className="mt-2">
-                          <Image
-                            src={photoPreview}
-                            alt="Предпросмотр"
-                            width={160}
-                            height={90}
-                            className="max-h-40 w-auto rounded-md"
+            <div className="flex-1 overflow-y-auto py-4">
+              <Form {...productForm}>
+                <form
+                  id="add-product-form"
+                  onSubmit={productForm.handleSubmit(onProductSubmit)}
+                  className="space-y-4 px-1"
+                >
+                  <FormField
+                    control={productForm.control}
+                    name="name"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Название товара</FormLabel>
+                        <FormControl>
+                          <Input
+                            placeholder="Например, 'Зимние шины'"
+                            {...field}
                           />
-                        </div>
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={productForm.control}
+                    name="description"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Описание</FormLabel>
+                        <FormControl>
+                          <Textarea
+                            placeholder="Опишите товар..."
+                            {...field}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={productForm.control}
+                    name="price"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Цена (в рублях)</FormLabel>
+                        <FormControl>
+                          <Input
+                            type="number"
+                            placeholder="5000"
+                            {...field}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={productForm.control}
+                    name="image"
+                    render={() => (
+                      <FormItem>
+                        <FormLabel>Фотография</FormLabel>
+                        <FormControl>
+                          <Input
+                            type="file"
+                            accept="image/*"
+                            onChange={handlePhotoChange}
+                          />
+                        </FormControl>
+                        {photoPreview && (
+                          <div className="mt-2">
+                            <Image
+                              src={photoPreview}
+                              alt="Предпросмотр"
+                              width={160}
+                              height={90}
+                              className="max-h-40 w-auto rounded-md"
+                            />
+                          </div>
+                        )}
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <div className="space-y-2">
+                    <FormLabel>Условия получения</FormLabel>
+                    <FormField
+                      control={productForm.control}
+                      name="delivery"
+                      render={({ field }) => (
+                        <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-3">
+                          <FormControl>
+                            <Checkbox
+                              checked={field.value}
+                              onCheckedChange={field.onChange}
+                            />
+                          </FormControl>
+                          <div className="space-y-1 leading-none">
+                            <FormLabel>Доставка</FormLabel>
+                            <FormDescription>
+                              Вы осуществляете доставку этого товара.
+                            </FormDescription>
+                          </div>
+                        </FormItem>
                       )}
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <div className="space-y-2">
-                  <FormLabel>Условия получения</FormLabel>
-                  <FormField
-                    control={productForm.control}
-                    name="delivery"
-                    render={({ field }) => (
-                      <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-3">
-                        <FormControl>
-                          <Checkbox
-                            checked={field.value}
-                            onCheckedChange={field.onChange}
-                          />
-                        </FormControl>
-                        <div className="space-y-1 leading-none">
-                          <FormLabel>Доставка</FormLabel>
-                          <FormDescription>
-                            Вы осуществляете доставку этого товара.
-                          </FormDescription>
-                        </div>
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={productForm.control}
-                    name="pickup"
-                    render={({ field }) => (
-                      <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-3">
-                        <FormControl>
-                          <Checkbox
-                            checked={field.value}
-                            onCheckedChange={field.onChange}
-                          />
-                        </FormControl>
-                        <div className="space-y-1 leading-none">
-                          <FormLabel>Самовывоз (бесплатно)</FormLabel>
-                          <FormDescription>
-                            Покупатель может забрать товар сам.
-                          </FormDescription>
-                        </div>
-                      </FormItem>
-                    )}
-                  />
-                </div>
-
-                <DialogFooter>
-                  <DialogClose asChild>
-                    <Button type="button" variant="secondary">
-                      Отмена
-                    </Button>
-                  </DialogClose>
-                  <Button
-                    type="submit"
-                    disabled={productForm.formState.isSubmitting}
-                  >
-                    Добавить
-                  </Button>
-                </DialogFooter>
-              </form>
-            </Form>
+                    />
+                    <FormField
+                      control={productForm.control}
+                      name="pickup"
+                      render={({ field }) => (
+                        <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-3">
+                          <FormControl>
+                            <Checkbox
+                              checked={field.value}
+                              onCheckedChange={field.onChange}
+                            />
+                          </FormControl>
+                          <div className="space-y-1 leading-none">
+                            <FormLabel>Самовывоз (бесплатно)</FormLabel>
+                            <FormDescription>
+                              Покупатель может забрать товар сам.
+                            </FormDescription>
+                          </div>
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+                </form>
+              </Form>
+            </div>
+            <DialogFooter>
+              <DialogClose asChild>
+                <Button type="button" variant="secondary">
+                  Отмена
+                </Button>
+              </DialogClose>
+              <Button
+                type="submit"
+                form="add-product-form"
+                disabled={productForm.formState.isSubmitting}
+              >
+                Добавить
+              </Button>
+            </DialogFooter>
           </DialogContent>
         </Dialog>
       </div>
