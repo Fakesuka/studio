@@ -30,6 +30,7 @@ export type Product = {
   price: number;
   imageUrl: string;
   imageHint: string;
+  shopId: string;
 };
 
 export type CartItem = Product & {
@@ -55,4 +56,7 @@ export type Shop = {
   name: string;
   imageUrl: string;
   imageHint: string;
+  bannerUrl: string;
+  bannerHint: string;
+  description: string;
 };

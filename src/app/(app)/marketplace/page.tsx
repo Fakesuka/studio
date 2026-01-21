@@ -77,7 +77,7 @@ export default function MarketplacePage() {
                 className="basis-1/3 pl-4 sm:basis-1/4 md:basis-1/5 lg:basis-1/6"
               >
                 <Link
-                  href="#"
+                  href={`/marketplace/shops/${shop.id}`}
                   className="group flex flex-col items-center gap-2 text-center"
                 >
                   <div className="relative h-24 w-24 overflow-hidden rounded-full border-2 border-border transition-colors group-hover:border-primary">

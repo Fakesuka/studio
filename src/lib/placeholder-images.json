@@ -83,6 +83,36 @@
       "description": "Большой магазин автозапчастей.",
       "imageUrl": "https://images.unsplash.com/photo-1626233225257-89196b01b672?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw1fHxhdXRvJTIwcGFydHMlMjBzdG9yZXxlbnwwfHx8fDE3Njg5NTc0NjB8MA&ixlib=rb-4.1.0&q=80&w=1080",
       "imageHint": "auto parts"
+    },
+    {
+      "id": "shop-1-banner",
+      "description": "Баннер для магазина Авто-Мир",
+      "imageUrl": "https://images.unsplash.com/photo-1599951633945-94ac61034f59?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxjYXIlMjBwYXJ0cyUyMGdhcmFnZXxlbnwwfHx8fDE3NjkxMjY4NTV8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "car parts"
+    },
+    {
+      "id": "shop-2-banner",
+      "description": "Баннер для магазина Все для авто",
+      "imageUrl": "https://images.unsplash.com/photo-1628191137426-c22b44d7b0f3?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw0fHxjYXIlMjBwYXJ0cyUyMHdvcmtzaG9wfGVufDB8fHx8MTc2OTEyNjg1NXww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "car workshop"
+    },
+    {
+      "id": "shop-3-banner",
+      "description": "Баннер для магазина Шинный двор",
+      "imageUrl": "https://images.unsplash.com/photo-1583522265342-6e9cb38d9f48?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHx0aXJlJTIwcmFja3xlbnwwfHx8fDE3NjkxMjY4NTZ8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "tire rack"
+    },
+    {
+      "id": "shop-4-banner",
+      "description": "Баннер для магазина Ремонт-Профи",
+      "imageUrl": "https://images.unsplash.com/photo-1560155200-c52f2596f26b?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxhdXRvJTIwcmVwYWlyJTIwdG9vbHN8ZW58MHx8fHwxNzY5MTI2ODU2fDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "auto tools"
+    },
+    {
+      "id": "shop-5-banner",
+      "description": "Баннер для магазина Запчасти-Экспресс",
+      "imageUrl": "https://images.unsplash.com/photo-1616789916147-3859d57a4128?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxjYXIlMjBlbmdpbmUlMjBwYXJ0c3xlbnwwfHx8fDE3NjkxMjY4NTZ8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "engine parts"
     }
   ]
 }

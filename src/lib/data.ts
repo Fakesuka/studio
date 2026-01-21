@@ -12,12 +12,12 @@ export const mockOrders: Order[] = [
 const findImage = (id: string) => PlaceHolderImages.find(p => p.id === id) || { imageUrl: '', imageHint: '' };
 
 export const mockProducts: Product[] = [
-  { id: 'prod-1', name: 'Автоодеяло', description: 'Утепленное одеяло для двигателя для сохранения тепла.', price: 3500, ...findImage('product-blanket') },
-  { id: 'prod-2', name: 'AGM аккумулятор', description: 'Высокопроизводительный аккумулятор для сильных морозов.', price: 15000, ...findImage('product-battery') },
-  { id: 'prod-3', name: 'Пусковое устройство', description: 'Портативное устройство для запуска автомобиля.', price: 8500, ...findImage('product-jumper') },
-  { id: 'prod-4', name: 'Антигель для дизеля', description: 'Предотвращает застывание дизельного топлива на морозе.', price: 1200, ...findImage('product-antifreeze') },
-  { id: 'prod-5', name: 'Компактная лопата', description: 'Прочная и легкая снеговая лопата.', price: 2000, ...findImage('product-shovel') },
-  { id: 'prod-6', name: 'Цепи противоскольжения', description: 'Цепи на шины для улучшения сцепления на льду.', price: 6000, ...findImage('product-chains') },
+  { id: 'prod-1', name: 'Автоодеяло', description: 'Утепленное одеяло для двигателя для сохранения тепла.', price: 3500, ...findImage('product-blanket'), shopId: 'shop-1' },
+  { id: 'prod-2', name: 'AGM аккумулятор', description: 'Высокопроизводительный аккумулятор для сильных морозов.', price: 15000, ...findImage('product-battery'), shopId: 'shop-2' },
+  { id: 'prod-3', name: 'Пусковое устройство', description: 'Портативное устройство для запуска автомобиля.', price: 8500, ...findImage('product-jumper'), shopId: 'shop-1' },
+  { id: 'prod-4', name: 'Антигель для дизеля', description: 'Предотвращает застывание дизельного топлива на морозе.', price: 1200, ...findImage('product-antifreeze'), shopId: 'shop-3' },
+  { id: 'prod-5', name: 'Компактная лопата', description: 'Прочная и легкая снеговая лопата.', price: 2000, ...findImage('product-shovel'), shopId: 'shop-4' },
+  { id: 'prod-6', name: 'Цепи противоскольжения', description: 'Цепи на шины для улучшения сцепления на льду.', price: 6000, ...findImage('product-chains'), shopId: 'shop-5' },
 ];
 
 export const mockProviders: ServiceProvider[] = [
@@ -27,10 +27,10 @@ export const mockProviders: ServiceProvider[] = [
 ];
 
 export const mockShops: Shop[] = [
-    { id: 'shop-1', name: 'Авто-Мир', ...findImage('shop-1') },
-    { id: 'shop-2', name: 'Все для авто', ...findImage('shop-2') },
-    { id: 'shop-3', name: 'Шинный двор', ...findImage('shop-3') },
-    { id: 'shop-4', name: 'Ремонт-Профи', ...findImage('shop-4') },
-    { id: 'shop-5', name: 'Запчасти-Экспресс', ...findImage('shop-5') },
-    { id: 'shop-6', name: 'Японские запчасти', ...findImage('shop-1') },
+    { id: 'shop-1', name: 'Авто-Мир', imageUrl: findImage('shop-1').imageUrl, imageHint: findImage('shop-1').imageHint, bannerUrl: findImage('shop-1-banner').imageUrl, bannerHint: findImage('shop-1-banner').imageHint, description: 'Все для вашего авто. Качественные запчасти и аксессуары.' },
+    { id: 'shop-2', name: 'Все для авто', imageUrl: findImage('shop-2').imageUrl, imageHint: findImage('shop-2').imageHint, bannerUrl: findImage('shop-2-banner').imageUrl, bannerHint: findImage('shop-2-banner').imageHint, description: 'Широкий ассортимент автотоваров по доступным ценам.' },
+    { id: 'shop-3', name: 'Шинный двор', imageUrl: findImage('shop-3').imageUrl, imageHint: findImage('shop-3').imageHint, bannerUrl: findImage('shop-3-banner').imageUrl, bannerHint: findImage('shop-3-banner').imageHint, description: 'Шины и диски от ведущих производителей.' },
+    { id: 'shop-4', name: 'Ремонт-Профи', imageUrl: findImage('shop-4').imageUrl, imageHint: findImage('shop-4').imageHint, bannerUrl: findImage('shop-4-banner').imageUrl, bannerHint: findImage('shop-4-banner').imageHint, description: 'Инструменты и расходники для профессионального ремонта.' },
+    { id: 'shop-5', name: 'Запчасти-Экспресс', imageUrl: findImage('shop-5').imageUrl, imageHint: findImage('shop-5').imageHint, bannerUrl: findImage('shop-5-banner').imageUrl, bannerHint: findImage('shop-5-banner').imageHint, description: 'Быстрая доставка оригинальных и аналоговых запчастей.' },
+    { id: 'shop-6', name: 'Японские запчасти', imageUrl: findImage('shop-1').imageUrl, imageHint: findImage('shop-1').imageHint, bannerUrl: findImage('shop-1-banner').imageUrl, bannerHint: findImage('shop-1-banner').imageHint, description: 'Все для японских автомобилей: от фильтров до двигателей.' },
 ];
