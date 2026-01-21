@@ -29,14 +29,14 @@ interface AppContextType {
   isContextLoading: boolean;
   isSeller: boolean;
   sellerProfile: SellerProfile | null;
-  registerAsSeller: (profile: SellerProfile) => void;
+  registerAsSeller: (profile: Omit<SellerProfile, 'balance'>) => void;
   products: Product[];
   shops: Shop[];
   addProduct: (productData: Omit<Product, 'id' | 'shopId'>) => void;
   deleteProduct: (productId: string) => void;
   isDriver: boolean;
   driverProfile: DriverProfile | null;
-  registerAsDriver: (profile: DriverProfile) => void;
+  registerAsDriver: (profile: Omit<DriverProfile, 'balance'>) => void;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
@@ -190,9 +190,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
     saveProducts(newProducts);
   };
 
-  const registerAsSeller = (profile: SellerProfile) => {
+  const registerAsSeller = (profile: Omit<SellerProfile, 'balance'>) => {
+    const newSellerProfile = { ...profile, balance: 0 };
     setIsSeller(true);
-    setSellerProfile(profile);
+    setSellerProfile(newSellerProfile);
 
     const newShop: Shop = {
       id: `shop-${Date.now()}`,
@@ -211,18 +212,25 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
     try {
       window.localStorage.setItem('isSeller', JSON.stringify(true));
-      window.localStorage.setItem('sellerProfile', JSON.stringify(profile));
+      window.localStorage.setItem(
+        'sellerProfile',
+        JSON.stringify(newSellerProfile)
+      );
     } catch (error) {
       console.error('Failed to save seller data to localStorage', error);
     }
   };
 
-  const registerAsDriver = (profile: DriverProfile) => {
+  const registerAsDriver = (profile: Omit<DriverProfile, 'balance'>) => {
+    const newDriverProfile = { ...profile, balance: 0 };
     setIsDriver(true);
-    setDriverProfile(profile);
+    setDriverProfile(newDriverProfile);
     try {
       window.localStorage.setItem('isDriver', JSON.stringify(true));
-      window.localStorage.setItem('driverProfile', JSON.stringify(profile));
+      window.localStorage.setItem(
+        'driverProfile',
+        JSON.stringify(newDriverProfile)
+      );
     } catch (error) {
       console.error('Failed to save driver data to localStorage', error);
     }

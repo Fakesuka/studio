@@ -24,6 +24,7 @@ export type DriverProfile = {
   name: string;
   vehicle: string;
   services: ServiceType[];
+  balance?: number;
 };
 
 export type Order = {
@@ -68,6 +69,7 @@ export type SellerProfile = {
   storeDescription: string;
   address?: string;
   workingHours?: string;
+  balance?: number;
 };
 
 export type Shop = {
