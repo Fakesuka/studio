@@ -13,6 +13,19 @@ export type ServiceType =
   | 'Техпомощь'
   | 'Эвакуатор';
 
+export const serviceTypesList: ServiceType[] = [
+  'Отогрев авто',
+  'Доставка топлива',
+  'Техпомощь',
+  'Эвакуатор',
+];
+
+export type DriverProfile = {
+  name: string;
+  vehicle: string;
+  services: ServiceType[];
+};
+
 export type Order = {
   id: string;
   service: ServiceType;

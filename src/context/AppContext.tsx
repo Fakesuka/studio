@@ -8,7 +8,14 @@ import {
   useEffect,
   useCallback,
 } from 'react';
-import type { Order, CartItem, SellerProfile, Product, Shop } from '@/lib/types';
+import type {
+  Order,
+  CartItem,
+  SellerProfile,
+  Product,
+  Shop,
+  DriverProfile,
+} from '@/lib/types';
 import { mockProducts, mockShops } from '@/lib/data';
 
 interface AppContextType {
@@ -27,6 +34,9 @@ interface AppContextType {
   shops: Shop[];
   addProduct: (productData: Omit<Product, 'id' | 'shopId'>) => void;
   deleteProduct: (productId: string) => void;
+  isDriver: boolean;
+  driverProfile: DriverProfile | null;
+  registerAsDriver: (profile: DriverProfile) => void;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
@@ -40,6 +50,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
   );
   const [products, setProducts] = useState<Product[]>([]);
   const [shops, setShops] = useState<Shop[]>([]);
+  const [isDriver, setIsDriver] = useState(false);
+  const [driverProfile, setDriverProfile] = useState<DriverProfile | null>(
+    null
+  );
   const [isContextLoading, setIsContextLoading] = useState(true);
 
   const MOCK_USER_ID = 'self';
@@ -68,9 +82,17 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
       const shopsItem = window.localStorage.getItem('shops');
       setShops(shopsItem ? JSON.parse(shopsItem) : mockShops);
+
+      const isDriverItem = window.localStorage.getItem('isDriver');
+      if (isDriverItem) {
+        setIsDriver(JSON.parse(isDriverItem));
+      }
+      const driverProfileItem = window.localStorage.getItem('driverProfile');
+      if (driverProfileItem) {
+        setDriverProfile(JSON.parse(driverProfileItem));
+      }
     } catch (error) {
       console.error('Failed to load data from localStorage', error);
-      localStorage.clear(); // Clear all keys on error
     }
     setIsContextLoading(false); // Loading is complete
   }, []);
@@ -195,6 +217,17 @@ export function AppProvider({ children }: { children: ReactNode }) {
     }
   };
 
+  const registerAsDriver = (profile: DriverProfile) => {
+    setIsDriver(true);
+    setDriverProfile(profile);
+    try {
+      window.localStorage.setItem('isDriver', JSON.stringify(true));
+      window.localStorage.setItem('driverProfile', JSON.stringify(profile));
+    } catch (error) {
+      console.error('Failed to save driver data to localStorage', error);
+    }
+  };
+
   return (
     <AppContext.Provider
       value={{
@@ -213,6 +246,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
         shops,
         addProduct,
         deleteProduct,
+        isDriver,
+        driverProfile,
+        registerAsDriver,
       }}
     >
       {children}
