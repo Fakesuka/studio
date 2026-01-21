@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef, memo } from 'react';
+import { useEffect, useRef } from 'react';
 import { cn } from '@/lib/utils';
 
 declare const DG: any;
@@ -9,7 +9,7 @@ export interface MapMarker {
   id: string;
   coords: [number, number];
   popup?: string | HTMLElement;
-  icon?: any; // 2GIS icon options
+  icon?: any;
 }
 
 interface Map2GISProps {
@@ -18,15 +18,6 @@ interface Map2GISProps {
   markers?: MapMarker[];
   className?: string;
 }
-
-const areEqual = (prevProps: Map2GISProps, nextProps: Map2GISProps) => {
-  return (
-    prevProps.zoom === nextProps.zoom &&
-    prevProps.center[0] === nextProps.center[0] &&
-    prevProps.center[1] === nextProps.center[1] &&
-    JSON.stringify(prevProps.markers) === JSON.stringify(nextProps.markers)
-  );
-};
 
 const Map2GIS: React.FC<Map2GISProps> = ({
   center,
@@ -38,20 +29,13 @@ const Map2GIS: React.FC<Map2GISProps> = ({
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const markersRef = useRef<Map<string, any>>(new Map());
 
+  // Effect for initializing the map
   useEffect(() => {
-    if (typeof DG === 'undefined') {
-      console.error('2GIS API not loaded');
-      return;
-    }
-
-    let isMounted = true;
     let map: any;
 
-    const intervalId = setInterval(() => {
-      if (typeof DG !== 'undefined' && DG.map) {
-        clearInterval(intervalId);
-        if (!isMounted || !mapContainerRef.current) return;
-
+    const initMap = () => {
+      if (!mapContainerRef.current) return;
+      try {
         map = DG.map(mapContainerRef.current, {
           center: center,
           zoom: zoom,
@@ -59,46 +43,49 @@ const Map2GIS: React.FC<Map2GISProps> = ({
           zoomControl: false,
         });
         mapRef.current = map;
+      } catch (e) {
+        console.error('Error initializing 2GIS map:', e);
+      }
+    };
 
-        // Initial markers
-        markers.forEach(markerInfo => {
-          const marker = DG.marker(markerInfo.coords).addTo(map);
-          if (markerInfo.popup) {
-            marker.bindPopup(markerInfo.popup);
-          }
-          markersRef.current.set(markerInfo.id, marker);
-        });
+    const scriptCheckInterval = setInterval(() => {
+      if (typeof DG !== 'undefined' && DG.map) {
+        clearInterval(scriptCheckInterval);
+        initMap();
       }
     }, 100);
 
     return () => {
-      isMounted = false;
-      clearInterval(intervalId);
-      if (map) {
-        map.remove();
+      clearInterval(scriptCheckInterval);
+      if (mapRef.current) {
+        try {
+          mapRef.current.remove();
+        } catch (e) {
+          console.error('Error removing map:', e);
+        }
+        mapRef.current = null;
       }
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []); // Only on mount
+  }, []); // Run only once on mount
 
+  // Effect for updating markers and view
   useEffect(() => {
     const map = mapRef.current;
     if (!map) return;
 
-    // Update center
-    map.setCenter(center);
-    
-    const newMarkerIds = new Set(markers.map(m => m.id));
+    const currentMarkerIds = Array.from(markersRef.current.keys());
+    const newMarkerIds = markers.map(m => m.id);
 
-    // Remove old markers
-    markersRef.current.forEach((markerInstance, id) => {
-      if (!newMarkerIds.has(id)) {
-        markerInstance.remove();
+    // Remove markers that are no longer in props
+    currentMarkerIds.forEach(id => {
+      if (!newMarkerIds.includes(id)) {
+        markersRef.current.get(id).remove();
         markersRef.current.delete(id);
       }
     });
 
-    // Add or update markers
+    // Add new markers or update existing ones
     markers.forEach(markerInfo => {
       const existingMarker = markersRef.current.get(markerInfo.id);
       if (existingMarker) {
@@ -111,17 +98,23 @@ const Map2GIS: React.FC<Map2GISProps> = ({
         markersRef.current.set(markerInfo.id, newMarker);
       }
     });
-
-    // Fit bounds if more than one marker
+    
+    // Adjust map view
     if (markers.length > 1) {
-      const markerBounds = DG.latLngBounds(markers.map(m => m.coords));
-      map.fitBounds(markerBounds, { padding: [50, 50] });
+        try {
+            const markerBounds = DG.latLngBounds(markers.map(m => m.coords));
+            map.fitBounds(markerBounds, { padding: [50, 50] });
+        } catch(e) {
+            console.error("Could not fit bounds: ", e);
+        }
     } else if (markers.length === 1) {
       map.setView(markers[0].coords, zoom);
+    } else {
+      map.setView(center, zoom);
     }
-  }, [center, zoom, markers]);
+  }, [markers, center, zoom]);
 
   return <div ref={mapContainerRef} className={cn('h-full w-full', className)} />;
 };
 
-export default memo(Map2GIS, areEqual);
+export default Map2GIS;
