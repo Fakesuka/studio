@@ -8,7 +8,7 @@ import {
   useEffect,
   useCallback,
 } from 'react';
-import type { Order, CartItem } from '@/lib/types';
+import type { Order, CartItem, SellerProfile } from '@/lib/types';
 import { mockProducts } from '@/lib/data';
 
 interface AppContextType {
@@ -20,6 +20,9 @@ interface AppContextType {
   removeFromCart: (productId: string) => void;
   getCartItemQuantity: (productId: string) => number;
   isContextLoading: boolean;
+  isSeller: boolean;
+  sellerProfile: SellerProfile | null;
+  registerAsSeller: (profile: SellerProfile) => void;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
@@ -27,6 +30,10 @@ const AppContext = createContext<AppContextType | undefined>(undefined);
 export function AppProvider({ children }: { children: ReactNode }) {
   const [activeOrder, setActiveOrderState] = useState<Order | null>(null);
   const [cart, setCart] = useState<CartItem[]>([]);
+  const [isSeller, setIsSeller] = useState(false);
+  const [sellerProfile, setSellerProfile] = useState<SellerProfile | null>(
+    null
+  );
   const [isContextLoading, setIsContextLoading] = useState(true);
 
   // On initial client-side render, load data from localStorage
@@ -40,10 +47,20 @@ export function AppProvider({ children }: { children: ReactNode }) {
       if (cartItems) {
         setCart(JSON.parse(cartItems));
       }
+      const isSellerItem = window.localStorage.getItem('isSeller');
+      if (isSellerItem) {
+        setIsSeller(JSON.parse(isSellerItem));
+      }
+      const sellerProfileItem = window.localStorage.getItem('sellerProfile');
+      if (sellerProfileItem) {
+        setSellerProfile(JSON.parse(sellerProfileItem));
+      }
     } catch (error) {
       console.error('Failed to load data from localStorage', error);
       localStorage.removeItem('activeOrder');
       localStorage.removeItem('cart');
+      localStorage.removeItem('isSeller');
+      localStorage.removeItem('sellerProfile');
     }
     setIsContextLoading(false); // Loading is complete
   }, []);
@@ -106,6 +123,17 @@ export function AppProvider({ children }: { children: ReactNode }) {
     [cart]
   );
 
+  const registerAsSeller = (profile: SellerProfile) => {
+    setIsSeller(true);
+    setSellerProfile(profile);
+    try {
+      window.localStorage.setItem('isSeller', JSON.stringify(true));
+      window.localStorage.setItem('sellerProfile', JSON.stringify(profile));
+    } catch (error) {
+      console.error('Failed to save seller data to localStorage', error);
+    }
+  };
+
   return (
     <AppContext.Provider
       value={{
@@ -117,6 +145,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
         updateCartItemQuantity,
         removeFromCart,
         getCartItemQuantity,
+        isSeller,
+        sellerProfile,
+        registerAsSeller,
       }}
     >
       {children}

@@ -44,3 +44,8 @@ export type ServiceProvider = {
   distance: number; // in km
   vehicle: string;
 };
+
+export type SellerProfile = {
+  storeName: string;
+  storeDescription: string;
+};
