@@ -27,14 +27,18 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { useAppContext } from '@/context/AppContext';
 import { useToast } from '@/hooks/use-toast';
 import { UserCog } from 'lucide-react';
-import type { ServiceType } from '@/lib/types';
+import type { ServiceType, LegalStatus } from '@/lib/types';
 import { serviceTypesList } from '@/lib/types';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 
 const driverFormSchema = z.object({
   name: z.string().min(3, 'Имя должно быть длиннее 3 символов.'),
   vehicle: z.string().min(5, 'Укажите модель и марку автомобиля.'),
   services: z.array(z.string()).refine(value => value.some(item => item), {
     message: 'Вы должны выбрать хотя бы одну услугу.',
+  }),
+  legalStatus: z.enum(['Самозанятый', 'ИП'], {
+    required_error: 'Пожалуйста, выберите ваш юридический статус.',
   }),
 });
 
@@ -58,6 +62,7 @@ export default function DriverRegisterPage() {
     registerAsDriver({
       ...data,
       services: data.services as ServiceType[],
+      legalStatus: data.legalStatus as LegalStatus,
     });
     toast({
       title: 'Вы стали водителем!',
@@ -109,6 +114,40 @@ export default function DriverRegisterPage() {
                     <FormDescription>
                       Укажите марку, модель и гос. номер.
                     </FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="legalStatus"
+                render={({ field }) => (
+                  <FormItem className="space-y-3">
+                    <FormLabel>Юридический статус</FormLabel>
+                    <FormControl>
+                      <RadioGroup
+                        onValueChange={field.onChange}
+                        defaultValue={field.value}
+                        className="flex flex-col space-y-1"
+                      >
+                        <FormItem className="flex items-center space-x-3 space-y-0">
+                          <FormControl>
+                            <RadioGroupItem value="Самозанятый" />
+                          </FormControl>
+                          <FormLabel className="font-normal">
+                            Самозанятый
+                          </FormLabel>
+                        </FormItem>
+                        <FormItem className="flex items-center space-x-3 space-y-0">
+                          <FormControl>
+                            <RadioGroupItem value="ИП" />
+                          </FormControl>
+                          <FormLabel className="font-normal">
+                            ИП (Индивидуальный предприниматель)
+                          </FormLabel>
+                        </FormItem>
+                      </RadioGroup>
+                    </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}

@@ -16,8 +16,8 @@ import type {
   Shop,
   DriverProfile,
   ServiceType,
-  MarketplaceOrder, // Import new type
-  CustomerInfo, // Import new type
+  MarketplaceOrder,
+  CustomerInfo,
 } from '@/lib/types';
 import { mockProducts, mockShops, mockProviders } from '@/lib/data';
 

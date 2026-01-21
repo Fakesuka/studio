@@ -64,6 +64,9 @@ export default function DriverProfilePage() {
           <p>
             <strong>Автомобиль:</strong> {driverProfile.vehicle}
           </p>
+          <p>
+            <strong>Юридический статус:</strong> {driverProfile.legalStatus}
+          </p>
           <div className="space-y-1">
             <p className="font-medium">
               <strong>Оказываемые услуги:</strong>

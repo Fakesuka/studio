@@ -24,11 +24,14 @@ export const serviceTypesList: ServiceType[] = [
   'Эвакуатор',
 ];
 
+export type LegalStatus = 'Самозанятый' | 'ИП';
+
 export type DriverProfile = {
   id: string;
   name: string;
   vehicle: string;
   services: ServiceType[];
+  legalStatus: LegalStatus;
   balance?: number;
 };
 
