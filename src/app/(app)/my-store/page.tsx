@@ -59,16 +59,34 @@ import {
 import { useAppContext } from '@/context/AppContext';
 import { useToast } from '@/hooks/use-toast';
 
-const productFormSchema = z.object({
-  name: z.string().min(3, 'Название товара должно быть длиннее 3 символов.'),
-  description: z
-    .string()
-    .min(10, 'Описание должно быть длиннее 10 символов.'),
-  price: z.coerce.number().positive('Цена должна быть положительным числом.'),
-  image: z.any().optional(),
-  delivery: z.boolean().default(false),
-  pickup: z.boolean().default(true),
-});
+const productFormSchema = z
+  .object({
+    name: z.string().min(3, 'Название товара должно быть длиннее 3 символов.'),
+    description: z
+      .string()
+      .min(10, 'Описание должно быть длиннее 10 символов.'),
+    price: z.coerce.number().positive('Цена должна быть положительным числом.'),
+    image: z.any().optional(),
+    delivery: z.boolean().default(false),
+    deliveryPrice: z.preprocess(
+      val => (val === '' ? undefined : val),
+      z.coerce
+        .number({ invalid_type_error: 'Введите число.' })
+        .nonnegative('Цена не может быть отрицательной.')
+        .optional()
+    ),
+    pickup: z.boolean().default(true),
+  })
+  .superRefine((data, ctx) => {
+    if (data.delivery && data.deliveryPrice === undefined) {
+      ctx.addIssue({
+        code: 'custom',
+        path: ['deliveryPrice'],
+        message:
+          'Укажите цену доставки, если доставка доступна. Укажите 0 для бесплатной доставки.',
+      });
+    }
+  });
 
 type ProductFormValues = z.infer<typeof productFormSchema>;
 
@@ -99,8 +117,11 @@ export default function MyStorePage() {
       price: 0,
       delivery: false,
       pickup: true,
+      deliveryPrice: undefined,
     },
   });
+
+  const delivery = productForm.watch('delivery');
 
   if (isContextLoading) {
     return (
@@ -127,8 +148,15 @@ export default function MyStorePage() {
   }
 
   const onProductSubmit = (data: ProductFormValues) => {
+    const { image, ...productData } = data;
+    const finalProductData = { ...productData };
+
+    if (!finalProductData.delivery) {
+      delete finalProductData.deliveryPrice;
+    }
+
     addProduct({
-      ...data,
+      ...finalProductData,
       imageUrl:
         photoPreview || `https://picsum.photos/seed/${data.name}/600/400`,
       imageHint: `photo of ${data.name}`,
@@ -300,6 +328,29 @@ export default function MyStorePage() {
                         </FormItem>
                       )}
                     />
+                    {delivery && (
+                      <FormField
+                        control={productForm.control}
+                        name="deliveryPrice"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Цена доставки (в рублях)</FormLabel>
+                            <FormControl>
+                              <Input
+                                type="number"
+                                placeholder="300"
+                                {...field}
+                                value={field.value ?? ''}
+                              />
+                            </FormControl>
+                             <FormDescription>
+                              Укажите 0 для бесплатной доставки.
+                            </FormDescription>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    )}
                     <FormField
                       control={productForm.control}
                       name="pickup"

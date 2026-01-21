@@ -32,6 +32,7 @@ export type Product = {
   imageHint: string;
   shopId: string;
   delivery: boolean;
+  deliveryPrice?: number;
   pickup: boolean;
 };
 

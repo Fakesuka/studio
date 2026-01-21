@@ -12,10 +12,10 @@ export const mockOrders: Order[] = [
 const findImage = (id: string) => PlaceHolderImages.find(p => p.id === id) || { imageUrl: '', imageHint: '' };
 
 export const mockProducts: Product[] = [
-  { id: 'prod-1', name: 'Автоодеяло', description: 'Утепленное одеяло для двигателя для сохранения тепла.', price: 3500, ...findImage('product-blanket'), shopId: 'shop-1', delivery: true, pickup: true },
-  { id: 'prod-2', name: 'AGM аккумулятор', description: 'Высокопроизводительный аккумулятор для сильных морозов.', price: 15000, ...findImage('product-battery'), shopId: 'shop-2', delivery: true, pickup: true },
+  { id: 'prod-1', name: 'Автоодеяло', description: 'Утепленное одеяло для двигателя для сохранения тепла.', price: 3500, ...findImage('product-blanket'), shopId: 'shop-1', delivery: true, deliveryPrice: 300, pickup: true },
+  { id: 'prod-2', name: 'AGM аккумулятор', description: 'Высокопроизводительный аккумулятор для сильных морозов.', price: 15000, ...findImage('product-battery'), shopId: 'shop-2', delivery: true, deliveryPrice: 500, pickup: true },
   { id: 'prod-3', name: 'Пусковое устройство', description: 'Портативное устройство для запуска автомобиля.', price: 8500, ...findImage('product-jumper'), shopId: 'shop-1', delivery: false, pickup: true },
-  { id: 'prod-4', name: 'Антигель для дизеля', description: 'Предотвращает застывание дизельного топлива на морозе.', price: 1200, ...findImage('product-antifreeze'), shopId: 'shop-3', delivery: true, pickup: true },
+  { id: 'prod-4', name: 'Антигель для дизеля', description: 'Предотвращает застывание дизельного топлива на морозе.', price: 1200, ...findImage('product-antifreeze'), shopId: 'shop-3', delivery: true, deliveryPrice: 0, pickup: true },
   { id: 'prod-5', name: 'Компактная лопата', description: 'Прочная и легкая снеговая лопата.', price: 2000, ...findImage('product-shovel'), shopId: 'shop-4', delivery: false, pickup: true },
   { id: 'prod-6', name: 'Цепи противоскольжения', description: 'Цепи на шины для улучшения сцепления на льду.', price: 6000, ...findImage('product-chains'), shopId: 'shop-5', delivery: true, pickup: false },
 ];

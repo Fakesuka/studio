@@ -127,8 +127,21 @@ export default function MarketplacePage() {
                 <CardTitle className="mb-1 text-lg">{product.name}</CardTitle>
                 <CardDescription>{product.description}</CardDescription>
                 <div className="mt-2 flex flex-wrap gap-2">
-                  {product.delivery && <Badge variant="secondary">Доставка</Badge>}
-                  {product.pickup && <Badge variant="secondary">Самовывоз</Badge>}
+                  {product.delivery && (
+                    <Badge variant="secondary">
+                      Доставка
+                      {product.deliveryPrice !== undefined
+                        ? ` (${
+                            product.deliveryPrice > 0
+                              ? `${product.deliveryPrice} ₽`
+                              : 'бесплатно'
+                          })`
+                        : ''}
+                    </Badge>
+                  )}
+                  {product.pickup && (
+                    <Badge variant="secondary">Самовывоз</Badge>
+                  )}
                 </div>
               </CardContent>
             </div>
