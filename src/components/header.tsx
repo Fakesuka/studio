@@ -1,6 +1,5 @@
 'use client';
 
-import { UserNav } from '@/components/user-nav';
 import { ShoppingCart, Car } from 'lucide-react';
 import Link from 'next/link';
 import { Button } from './ui/button';
@@ -22,7 +21,6 @@ export function Header() {
           <span className="sr-only">Корзина</span>
         </Button>
       </Link>
-      <UserNav />
     </header>
   );
 }

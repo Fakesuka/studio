@@ -64,7 +64,7 @@ export default function MarketplacePage() {
       </div>
       <div className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-4">
         {mockProducts.map(product => (
-          <Card key={product.id}>
+          <Card key={product.id} className="flex flex-col">
             <CardHeader className="p-0">
               <div className="relative aspect-video w-full overflow-hidden rounded-t-md">
                 <Image
@@ -77,7 +77,7 @@ export default function MarketplacePage() {
                 />
               </div>
             </CardHeader>
-            <CardContent className="p-4">
+            <CardContent className="flex-grow p-4">
               <CardTitle className="mb-1 text-lg">{product.name}</CardTitle>
               <CardDescription>{product.description}</CardDescription>
             </CardContent>
