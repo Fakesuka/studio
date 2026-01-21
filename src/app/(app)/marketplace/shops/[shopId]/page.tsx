@@ -116,41 +116,39 @@ export default function ShopPage() {
         <div className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-4">
           {shopProducts.map(product => (
             <Card key={product.id} className="flex flex-col">
-              <div className="flex flex-1 flex-col">
-                <CardHeader className="p-0">
-                  <div className="relative aspect-video w-full overflow-hidden rounded-t-md">
-                    <Image
-                      src={product.imageUrl}
-                      alt={product.name}
-                      fill
-                      className="object-cover"
-                      sizes="(max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
-                      data-ai-hint={product.imageHint}
-                    />
-                  </div>
-                </CardHeader>
-                <CardContent className="flex-1 p-4">
-                  <CardTitle className="mb-1 text-lg">{product.name}</CardTitle>
-                  <CardDescription>{product.description}</CardDescription>
-                  <div className="mt-2 flex flex-wrap gap-2">
-                    {product.delivery && (
-                      <Badge variant="secondary">
-                        Доставка
-                        {product.deliveryPrice !== undefined
-                          ? ` (${
-                              product.deliveryPrice > 0
-                                ? `${product.deliveryPrice} ₽`
-                                : 'бесплатно'
-                            })`
-                          : ''}
-                      </Badge>
-                    )}
-                    {product.pickup && (
-                      <Badge variant="secondary">Самовывоз</Badge>
-                    )}
-                  </div>
-                </CardContent>
-              </div>
+              <CardHeader className="p-0">
+                <div className="relative aspect-video w-full overflow-hidden rounded-t-md">
+                  <Image
+                    src={product.imageUrl}
+                    alt={product.name}
+                    fill
+                    className="object-cover"
+                    sizes="(max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
+                    data-ai-hint={product.imageHint}
+                  />
+                </div>
+              </CardHeader>
+              <CardContent className="flex-1 p-4">
+                <CardTitle className="mb-1 text-lg">{product.name}</CardTitle>
+                <CardDescription>{product.description}</CardDescription>
+                <div className="mt-2 flex flex-wrap gap-2">
+                  {product.delivery && (
+                    <Badge variant="secondary">
+                      Доставка
+                      {product.deliveryPrice !== undefined
+                        ? ` (${
+                            product.deliveryPrice > 0
+                              ? `${product.deliveryPrice} ₽`
+                              : 'бесплатно'
+                          })`
+                        : ''}
+                    </Badge>
+                  )}
+                  {product.pickup && (
+                    <Badge variant="secondary">Самовывоз</Badge>
+                  )}
+                </div>
+              </CardContent>
               <CardFooter className="flex items-center justify-between p-4 pt-0">
                 <p className="text-lg font-semibold">
                   {product.price.toLocaleString('ru-RU', {
