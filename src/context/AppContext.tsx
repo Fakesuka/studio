@@ -25,7 +25,7 @@ interface AppContextType {
   registerAsSeller: (profile: SellerProfile) => void;
   products: Product[];
   shops: Shop[];
-  addProduct: (productData: Omit<Product, 'id'>) => void;
+  addProduct: (productData: Omit<Product, 'id' | 'shopId'>) => void;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
@@ -150,9 +150,13 @@ export function AppProvider({ children }: { children: ReactNode }) {
     [cart]
   );
 
-  const addProduct = (productData: Omit<Product, 'id'>) => {
+  const addProduct = (productData: Omit<Product, 'id' | 'shopId'>) => {
+    const userShop = shops.find(shop => shop.userId === MOCK_USER_ID);
+    if (!userShop) return;
+
     const newProduct: Product = {
       id: `prod-${Date.now()}`,
+      shopId: userShop.id,
       ...productData,
     };
     saveProducts([...products, newProduct]);
@@ -166,6 +170,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
       id: `shop-${Date.now()}`,
       name: profile.storeName,
       description: profile.storeDescription,
+      type: profile.type,
+      address: profile.address,
+      workingHours: profile.workingHours,
       userId: MOCK_USER_ID,
       imageUrl: 'https://picsum.photos/seed/newshop/200/200',
       imageHint: 'store front',

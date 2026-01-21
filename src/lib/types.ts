@@ -31,6 +31,8 @@ export type Product = {
   imageUrl: string;
   imageHint: string;
   shopId: string;
+  delivery: boolean;
+  pickup: boolean;
 };
 
 export type CartItem = Product & {
@@ -47,8 +49,11 @@ export type ServiceProvider = {
 };
 
 export type SellerProfile = {
+  type: 'store' | 'person';
   storeName: string;
   storeDescription: string;
+  address?: string;
+  workingHours?: string;
 };
 
 export type Shop = {
@@ -60,4 +65,7 @@ export type Shop = {
   bannerUrl: string;
   bannerHint: string;
   description: string;
+  type: 'store' | 'person';
+  address?: string;
+  workingHours?: string;
 };

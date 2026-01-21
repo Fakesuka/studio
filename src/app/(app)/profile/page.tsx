@@ -18,6 +18,7 @@ import { z } from 'zod';
 import {
   Form,
   FormControl,
+  FormDescription,
   FormField,
   FormItem,
   FormLabel,
@@ -38,15 +39,40 @@ import {
   DialogDescription,
 } from '@/components/ui/dialog';
 import Image from 'next/image';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { Checkbox } from '@/components/ui/checkbox';
 
-const sellerFormSchema = z.object({
-  storeName: z
-    .string()
-    .min(3, 'Название магазина должно быть длиннее 3 символов.'),
-  storeDescription: z
-    .string()
-    .min(10, 'Описание должно быть длиннее 10 символов.'),
-});
+const sellerFormSchema = z
+  .object({
+    type: z.enum(['store', 'person'], {
+      required_error: 'Пожалуйста, выберите тип.',
+    }),
+    storeName: z
+      .string()
+      .min(3, 'Название магазина должно быть длиннее 3 символов.'),
+    storeDescription: z
+      .string()
+      .min(10, 'Описание должно быть длиннее 10 символов.'),
+    address: z.string().optional(),
+    workingHours: z.string().optional(),
+  })
+  .refine(
+    data => {
+      if (data.type === 'store') {
+        return (
+          !!data.address &&
+          data.address.length >= 5 &&
+          !!data.workingHours &&
+          data.workingHours.length >= 3
+        );
+      }
+      return true;
+    },
+    {
+      message: 'Для магазина необходимо указать адрес и время работы.',
+      path: ['address'],
+    }
+  );
 
 type SellerFormValues = z.infer<typeof sellerFormSchema>;
 
@@ -55,6 +81,8 @@ const productFormSchema = z.object({
   description: z.string().min(10, 'Описание должно быть длиннее 10 символов.'),
   price: z.coerce.number().positive('Цена должна быть положительным числом.'),
   image: z.any().optional(),
+  delivery: z.boolean().default(false),
+  pickup: z.boolean().default(true),
 });
 
 type ProductFormValues = z.infer<typeof productFormSchema>;
@@ -75,10 +103,12 @@ export default function ProfilePage() {
   const sellerForm = useForm<SellerFormValues>({
     resolver: zodResolver(sellerFormSchema),
     defaultValues: {
+      type: 'person',
       storeName: '',
       storeDescription: '',
     },
   });
+  const sellerType = sellerForm.watch('type');
 
   const productForm = useForm<ProductFormValues>({
     resolver: zodResolver(productFormSchema),
@@ -86,6 +116,8 @@ export default function ProfilePage() {
       name: '',
       description: '',
       price: 0,
+      delivery: false,
+      pickup: true,
     },
   });
 
@@ -108,7 +140,6 @@ export default function ProfilePage() {
     }
     addProduct({
       ...data,
-      shopId: userShop.id,
       imageUrl:
         photoPreview || `https://picsum.photos/seed/${data.name}/600/400`,
       imageHint: `photo of ${data.name}`,
@@ -172,7 +203,7 @@ export default function ProfilePage() {
             <CardTitle className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <Store className="h-6 w-6" />
-                Ваш магазин: {userShop.name}
+                Ваш магазин
               </div>
               <Dialog
                 open={isAddProductDialogOpen}
@@ -273,6 +304,50 @@ export default function ProfilePage() {
                           </FormItem>
                         )}
                       />
+                      <div className="space-y-2">
+                        <Label>Условия получения</Label>
+                        <FormField
+                          control={productForm.control}
+                          name="delivery"
+                          render={({ field }) => (
+                            <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-3">
+                              <FormControl>
+                                <Checkbox
+                                  checked={field.value}
+                                  onCheckedChange={field.onChange}
+                                />
+                              </FormControl>
+                              <div className="space-y-1 leading-none">
+                                <FormLabel>Доставка</FormLabel>
+                                <FormDescription>
+                                  Вы осуществляете доставку этого товара.
+                                </FormDescription>
+                              </div>
+                            </FormItem>
+                          )}
+                        />
+                        <FormField
+                          control={productForm.control}
+                          name="pickup"
+                          render={({ field }) => (
+                            <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-3">
+                              <FormControl>
+                                <Checkbox
+                                  checked={field.value}
+                                  onCheckedChange={field.onChange}
+                                />
+                              </FormControl>
+                              <div className="space-y-1 leading-none">
+                                <FormLabel>Самовывоз (бесплатно)</FormLabel>
+                                <FormDescription>
+                                  Покупатель может забрать товар сам.
+                                </FormDescription>
+                              </div>
+                            </FormItem>
+                          )}
+                        />
+                      </div>
+
                       <DialogFooter>
                         <DialogClose asChild>
                           <Button type="button" variant="secondary">
@@ -353,10 +428,48 @@ export default function ProfilePage() {
               <CardContent className="space-y-4">
                 <FormField
                   control={sellerForm.control}
+                  name="type"
+                  render={({ field }) => (
+                    <FormItem className="space-y-3">
+                      <FormLabel>Тип продавца</FormLabel>
+                      <FormControl>
+                        <RadioGroup
+                          onValueChange={field.onChange}
+                          defaultValue={field.value}
+                          className="flex flex-col space-y-1"
+                        >
+                          <FormItem className="flex items-center space-x-3 space-y-0">
+                            <FormControl>
+                              <RadioGroupItem value="person" />
+                            </FormControl>
+                            <FormLabel className="font-normal">
+                              Частное лицо
+                            </FormLabel>
+                          </FormItem>
+                          <FormItem className="flex items-center space-x-3 space-y-0">
+                            <FormControl>
+                              <RadioGroupItem value="store" />
+                            </FormControl>
+                            <FormLabel className="font-normal">
+                              Магазин
+                            </FormLabel>
+                          </FormItem>
+                        </RadioGroup>
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={sellerForm.control}
                   name="storeName"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Название магазина</FormLabel>
+                      <FormLabel>
+                        {sellerType === 'store'
+                          ? 'Название магазина'
+                          : 'Ваше имя или название'}
+                      </FormLabel>
                       <FormControl>
                         <Input
                           placeholder="Например, 'Автозапчасти от Ивана'"
@@ -372,7 +485,7 @@ export default function ProfilePage() {
                   name="storeDescription"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Краткое описание магазина</FormLabel>
+                      <FormLabel>Краткое описание</FormLabel>
                       <FormControl>
                         <Textarea
                           placeholder="Опишите, какие товары вы продаете..."
@@ -383,6 +496,43 @@ export default function ProfilePage() {
                     </FormItem>
                   )}
                 />
+
+                {sellerType === 'store' && (
+                  <>
+                    <FormField
+                      control={sellerForm.control}
+                      name="address"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Адрес магазина</FormLabel>
+                          <FormControl>
+                            <Input
+                              placeholder="г. Якутск, ул. Ленина, 1"
+                              {...field}
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={sellerForm.control}
+                      name="workingHours"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Время работы</FormLabel>
+                          <FormControl>
+                            <Input
+                              placeholder="Пн-Пт: 9:00 - 18:00"
+                              {...field}
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </>
+                )}
               </CardContent>
               <CardFooter>
                 <Button
@@ -390,7 +540,7 @@ export default function ProfilePage() {
                   className="w-full"
                   disabled={sellerForm.formState.isSubmitting}
                 >
-                  Зарегистрировать магазин
+                  Зарегистрировать
                 </Button>
               </CardFooter>
             </form>

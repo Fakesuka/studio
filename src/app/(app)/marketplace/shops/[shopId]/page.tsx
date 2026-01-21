@@ -3,7 +3,14 @@
 import { useParams, notFound } from 'next/navigation';
 import Image from 'next/image';
 import Link from 'next/link';
-import { ArrowLeft, ShoppingCart, Minus, Plus } from 'lucide-react';
+import {
+  ArrowLeft,
+  ShoppingCart,
+  Minus,
+  Plus,
+  MapPin,
+  Clock,
+} from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -15,6 +22,7 @@ import {
 } from '@/components/ui/card';
 import { useAppContext } from '@/context/AppContext';
 import { useToast } from '@/hooks/use-toast';
+import { Badge } from '@/components/ui/badge';
 
 export default function ShopPage() {
   const params = useParams();
@@ -78,9 +86,27 @@ export default function ShopPage() {
           priority
         />
         <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-black/0" />
-        <div className="absolute bottom-0 left-0 p-6 text-primary-foreground">
-          <h2 className="text-4xl font-bold">{shop.name}</h2>
-          <p className="mt-1 max-w-2xl text-lg">{shop.description}</p>
+        <div className="absolute bottom-0 left-0 p-6">
+          <h2 className="text-4xl font-bold text-primary-foreground">
+            {shop.name}
+          </h2>
+          <p className="mt-1 max-w-2xl text-lg text-primary-foreground/90">
+            {shop.description}
+          </p>
+          <div className="mt-4 flex flex-wrap items-center gap-4 text-sm text-primary-foreground">
+            {shop.type === 'store' && shop.address && (
+              <div className="flex items-center gap-2">
+                <MapPin className="h-4 w-4" />
+                <span>{shop.address}</span>
+              </div>
+            )}
+            {shop.type === 'store' && shop.workingHours && (
+              <div className="flex items-center gap-2">
+                <Clock className="h-4 w-4" />
+                <span>{shop.workingHours}</span>
+              </div>
+            )}
+          </div>
         </div>
       </div>
 
@@ -106,6 +132,10 @@ export default function ShopPage() {
                 <CardContent className="flex-1 p-4">
                   <CardTitle className="mb-1 text-lg">{product.name}</CardTitle>
                   <CardDescription>{product.description}</CardDescription>
+                   <div className="mt-2 flex flex-wrap gap-2">
+                    {product.delivery && <Badge variant="secondary">Доставка</Badge>}
+                    {product.pickup && <Badge variant="secondary">Самовывоз</Badge>}
+                  </div>
                 </CardContent>
               </div>
               <CardFooter className="flex items-center justify-between p-4 pt-0">
