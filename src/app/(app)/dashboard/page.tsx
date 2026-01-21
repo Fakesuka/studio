@@ -160,7 +160,7 @@ export default function Dashboard() {
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent
-                className="w-80"
+                className="w-[var(--radix-dropdown-menu-trigger-width)]"
                 align="start"
                 sideOffset={10}
               >
@@ -215,7 +215,7 @@ export default function Dashboard() {
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent
-                className="w-80"
+                className="w-[var(--radix-dropdown-menu-trigger-width)]"
                 align="start"
                 sideOffset={10}
               >

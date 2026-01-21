@@ -71,12 +71,12 @@
 @layer utilities {
   @keyframes liquid-in {
     from {
-      transform: scale(0.95);
+      transform: scale(0.9, 0.5);
       opacity: 0;
       border-radius: 2rem;
     }
     to {
-      transform: scale(1);
+      transform: scale(1, 1);
       opacity: 1;
       border-radius: var(--radius);
     }
@@ -84,12 +84,12 @@
 
   @keyframes liquid-out {
     from {
-      transform: scale(1);
+      transform: scale(1, 1);
       opacity: 1;
       border-radius: var(--radius);
     }
     to {
-      transform: scale(0.95);
+      transform: scale(0.9, 0.5);
       opacity: 0;
       border-radius: 2rem;
     }
