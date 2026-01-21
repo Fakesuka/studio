@@ -1,6 +1,5 @@
 import {
   Car,
-  Siren,
   MapPin,
   Star,
   Clock,
@@ -47,9 +46,9 @@ function ActiveOrderCard({ order }: { order: Order }) {
   return (
     <Card className="col-span-1 lg:col-span-2">
       <CardHeader>
-        <CardTitle>Активный заказ: {order.id}</CardTitle>
+        <CardTitle>Активный вызов: {order.id}</CardTitle>
         <CardDescription>
-          {order.service} - Статус: <Badge>{order.status}</Badge>
+          {order.service} - Статус: <Badge variant="default">{order.status}</Badge>
         </CardDescription>
       </CardHeader>
       <CardContent className="grid gap-4">
@@ -69,13 +68,13 @@ function ActiveOrderCard({ order }: { order: Order }) {
                 {order.provider.vehicle}
               </p>
               <div className="flex items-center gap-1">
-                <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
+                <Star className="h-4 w-4 text-primary fill-primary" />
                 <span>{order.provider.rating}</span>
               </div>
             </div>
           </div>
         )}
-        <div className="relative aspect-[4/3] w-full overflow-hidden rounded-lg">
+        <div className="relative aspect-[4/3] w-full overflow-hidden rounded-md">
           {mapPlaceholder && (
             <Image
               src={mapPlaceholder.imageUrl}
@@ -85,16 +84,18 @@ function ActiveOrderCard({ order }: { order: Order }) {
               data-ai-hint={mapPlaceholder.imageHint}
             />
           )}
-           <div className="absolute bottom-4 right-4 rounded-lg bg-primary/90 p-2 text-primary-foreground shadow-lg">
+           {order.arrivalTime && 
+           <div className="absolute bottom-4 right-4 rounded-md bg-background/80 p-2 text-foreground shadow-lg backdrop-blur-sm">
                 <div className="flex items-center gap-2">
-                    <Clock className="h-5 w-5" />
-                    <span className="font-bold">Прибытие: 8 мин</span>
+                    <Clock className="h-5 w-5 text-primary" />
+                    <span className="font-bold">Прибытие: {order.arrivalTime} мин</span>
                 </div>
            </div>
+           }
         </div>
       </CardContent>
       <CardFooter>
-        <Button className="w-full">Посмотреть детали заказа</Button>
+        <Button variant="secondary" className="w-full">Детали вызова</Button>
       </CardFooter>
     </Card>
   );
@@ -115,7 +116,7 @@ function ProviderCard({ provider }: { provider: ServiceProvider }) {
         </div>
       </div>
       <div className="flex items-center gap-1 text-sm font-medium">
-        <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
+        <Star className="h-4 w-4 text-primary fill-primary" />
         {provider.rating}
       </div>
     </div>
@@ -128,35 +129,27 @@ export default function Dashboard() {
   return (
     <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3 lg:gap-6">
       <div className="col-span-1 flex flex-col gap-4 lg:gap-6">
-        <Card>
+         <Card>
           <CardHeader>
-            <CardTitle>Быстрые действия</CardTitle>
+            <CardTitle>Нужна помощь?</CardTitle>
             <CardDescription>
-              Получите помощь на дороге быстро и легко.
+              Быстро вызовите специалиста для решения вашей проблемы.
             </CardDescription>
           </CardHeader>
-          <CardContent className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-            <Link href="/services/new" className="w-full">
-              <Button size="lg" className="w-full h-full flex flex-col py-4 gap-2">
-                <Wrench className="h-8 w-8" />
-                <span className="text-base">Запросить услугу</span>
+          <CardContent>
+             <Link href="/services/new" className="w-full">
+              <Button size="lg" className="w-full h-full flex-col py-6 gap-2">
+                <Wrench className="h-10 w-10" />
+                <span className="text-lg">Создать заявку</span>
               </Button>
             </Link>
-            <Button
-              variant="destructive"
-              size="lg"
-              className="w-full h-full flex flex-col py-4 gap-2"
-            >
-              <Siren className="h-8 w-8" />
-              <span className="text-base">Экстренный вызов</span>
-            </Button>
           </CardContent>
         </Card>
         <Card>
           <CardHeader>
-            <CardTitle>Ближайшие исполнители</CardTitle>
+            <CardTitle>Свободные исполнители</CardTitle>
             <CardDescription>
-              Доступные специалисты в вашем районе.
+              Проверенные специалисты поблизости.
             </CardDescription>
           </CardHeader>
           <CardContent className="grid gap-6">
@@ -175,12 +168,12 @@ export default function Dashboard() {
                 <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-secondary">
                     <Car className="h-8 w-8 text-secondary-foreground" />
                 </div>
-                <CardTitle>Все чисто!</CardTitle>
-                <CardDescription>У вас нет активных заказов. Ваша дорога свободна.</CardDescription>
+                <CardTitle>Нет активных вызовов</CardTitle>
+                <CardDescription>В данный момент у вас нет активных заявок.</CardDescription>
             </CardHeader>
             <CardContent>
                 <Link href="/services/new">
-                    <Button>Создать новый запрос</Button>
+                    <Button>Создать заявку</Button>
                 </Link>
             </CardContent>
         </Card>

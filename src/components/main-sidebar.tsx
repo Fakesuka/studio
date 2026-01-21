@@ -38,8 +38,8 @@ export function MainSidebar() {
     <Sidebar>
       <SidebarHeader>
         <Link href="/dashboard" className="flex items-center gap-2 font-semibold">
-            <Car className="h-6 w-6 text-primary" />
-            <span className="text-lg">SahaHelper</span>
+            <Car className="h-7 w-7 text-primary" />
+            <span className="text-xl font-bold">Vroom</span>
         </Link>
       </SidebarHeader>
       <SidebarContent className="p-2">

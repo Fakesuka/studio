@@ -12,7 +12,7 @@ export const mockOrders: Order[] = [
   { id: 'SAHA-001', service: 'Отогрев авто', date: '2024-01-15', status: 'Завершен', price: 2500 },
   { id: 'SAHA-002', service: 'Доставка топлива', date: '2024-01-20', status: 'Завершен', price: 1800 },
   { id: 'SAHA-003', service: 'Эвакуатор', date: '2024-02-01', status: 'Отменен', price: 8000 },
-  { id: 'SAHA-004', service: 'Техпомощь', date: '2024-02-10', status: 'В процессе', price: 3500, provider: { id: 'prov-1', name: 'Алексей', avatarUrl: 'https://picsum.photos/seed/provider1/100/100', rating: 4.9, distance: 2, vehicle: 'Toyota Hilux' } },
+  { id: 'SAHA-004', service: 'Техпомощь', date: '2024-02-10', status: 'В процессе', price: 3500, provider: { id: 'prov-1', name: 'Алексей', avatarUrl: 'https://picsum.photos/seed/provider1/100/100', rating: 4.9, distance: 2, vehicle: 'Toyota Hilux' }, arrivalTime: 8 },
   { id: 'SAHA-005', service: 'Отогрев авто', date: '2024-02-11', status: 'Ожидает', price: 3000 },
 ];
 

@@ -5,13 +5,13 @@ import {
   Card,
   CardContent,
   CardDescription,
-  CardFooter,
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
+import { Car } from 'lucide-react';
 
 export default function LoginPage() {
   const loginBg = PlaceHolderImages.find(p => p.id === 'login-bg');
@@ -28,11 +28,14 @@ export default function LoginPage() {
           priority
         />
       )}
-      <Card className="w-full max-w-sm">
+      <Card className="w-full max-w-sm bg-card/80 backdrop-blur-sm">
         <CardHeader className="text-center">
-          <CardTitle className="text-2xl font-bold">SahaHelper</CardTitle>
+          <div className="flex justify-center items-center gap-2 mb-2">
+            <Car className="h-8 w-8 text-primary" />
+            <CardTitle className="text-3xl font-bold">Vroom</CardTitle>
+          </div>
           <CardDescription>
-            Ваш надежный помощник на дорогах Якутии
+            Помощь на дорогах Якутии в любое время
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -47,15 +50,10 @@ export default function LoginPage() {
               />
             </div>
             <Link href="/dashboard" className="w-full">
-              <Button className="w-full">Войти / Зарегистрироваться</Button>
+              <Button className="w-full">Получить код</Button>
             </Link>
           </div>
         </CardContent>
-        <CardFooter className="flex flex-col gap-2">
-          <Button variant="link" size="sm" className="w-full">
-            Стать поставщиком услуг
-          </Button>
-        </CardFooter>
       </Card>
     </div>
   );

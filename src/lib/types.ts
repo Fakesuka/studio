@@ -16,6 +16,7 @@ export type Order = {
   status: OrderStatus;
   price: number;
   provider?: ServiceProvider;
+  arrivalTime?: number;
 };
 
 export type Product = {

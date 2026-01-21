@@ -20,15 +20,15 @@ import type { OrderStatus } from '@/lib/types';
 const getStatusVariant = (status: OrderStatus) => {
   switch (status) {
     case 'Завершен':
-      return 'default';
-    case 'В процессе':
       return 'secondary';
+    case 'В процессе':
+      return 'default';
     case 'Отменен':
       return 'destructive';
     case 'Ожидает':
       return 'outline';
     default:
-      return 'default';
+      return 'secondary';
   }
 };
 
