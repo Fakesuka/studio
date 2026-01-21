@@ -26,6 +26,7 @@ interface AppContextType {
   products: Product[];
   shops: Shop[];
   addProduct: (productData: Omit<Product, 'id' | 'shopId'>) => void;
+  deleteProduct: (productId: string) => void;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
@@ -162,6 +163,11 @@ export function AppProvider({ children }: { children: ReactNode }) {
     saveProducts([...products, newProduct]);
   };
 
+  const deleteProduct = (productId: string) => {
+    const newProducts = products.filter(p => p.id !== productId);
+    saveProducts(newProducts);
+  };
+
   const registerAsSeller = (profile: SellerProfile) => {
     setIsSeller(true);
     setSellerProfile(profile);
@@ -206,6 +212,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         products,
         shops,
         addProduct,
+        deleteProduct,
       }}
     >
       {children}
