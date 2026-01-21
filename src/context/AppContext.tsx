@@ -15,12 +15,16 @@ import type {
   Product,
   Shop,
   DriverProfile,
+  ServiceType,
 } from '@/lib/types';
-import { mockProducts, mockShops } from '@/lib/data';
+import { mockProducts, mockShops, mockProviders } from '@/lib/data';
 
 interface AppContextType {
-  activeOrder: Order | null;
-  setActiveOrder: (order: Order | null) => void;
+  orders: Order[];
+  activeClientOrder: Order | null;
+  createServiceRequest: (data: any) => void;
+  acceptOrder: (orderId: string) => void;
+  completeOrder: (orderId: string) => void;
   cart: CartItem[];
   addToCart: (productId: string) => void;
   updateCartItemQuantity: (productId: string, quantity: number) => void;
@@ -29,20 +33,22 @@ interface AppContextType {
   isContextLoading: boolean;
   isSeller: boolean;
   sellerProfile: SellerProfile | null;
-  registerAsSeller: (profile: Omit<SellerProfile, 'balance'>) => void;
+  registerAsSeller: (
+    profile: Omit<SellerProfile, 'id' | 'balance'>
+  ) => void;
   products: Product[];
   shops: Shop[];
   addProduct: (productData: Omit<Product, 'id' | 'shopId'>) => void;
   deleteProduct: (productId: string) => void;
   isDriver: boolean;
   driverProfile: DriverProfile | null;
-  registerAsDriver: (profile: Omit<DriverProfile, 'balance'>) => void;
+  registerAsDriver: (profile: Omit<DriverProfile, 'id' | 'balance'>) => void;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
 
 export function AppProvider({ children }: { children: ReactNode }) {
-  const [activeOrder, setActiveOrderState] = useState<Order | null>(null);
+  const [orders, setOrders] = useState<Order[]>([]);
   const [cart, setCart] = useState<CartItem[]>([]);
   const [isSeller, setIsSeller] = useState(false);
   const [sellerProfile, setSellerProfile] = useState<SellerProfile | null>(
@@ -58,25 +64,20 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   const MOCK_USER_ID = 'self';
 
-  // On initial client-side render, load data from localStorage
   useEffect(() => {
     try {
-      const activeOrderItem = window.localStorage.getItem('activeOrder');
-      if (activeOrderItem) {
-        setActiveOrderState(JSON.parse(activeOrderItem));
-      }
+      const storedOrders = window.localStorage.getItem('orders');
+      if (storedOrders) setOrders(JSON.parse(storedOrders));
+
       const cartItems = window.localStorage.getItem('cart');
-      if (cartItems) {
-        setCart(JSON.parse(cartItems));
-      }
+      if (cartItems) setCart(JSON.parse(cartItems));
+
       const isSellerItem = window.localStorage.getItem('isSeller');
-      if (isSellerItem) {
-        setIsSeller(JSON.parse(isSellerItem));
-      }
+      if (isSellerItem) setIsSeller(JSON.parse(isSellerItem));
+
       const sellerProfileItem = window.localStorage.getItem('sellerProfile');
-      if (sellerProfileItem) {
-        setSellerProfile(JSON.parse(sellerProfileItem));
-      }
+      if (sellerProfileItem) setSellerProfile(JSON.parse(sellerProfileItem));
+
       const productsItem = window.localStorage.getItem('products');
       setProducts(productsItem ? JSON.parse(productsItem) : mockProducts);
 
@@ -84,31 +85,73 @@ export function AppProvider({ children }: { children: ReactNode }) {
       setShops(shopsItem ? JSON.parse(shopsItem) : mockShops);
 
       const isDriverItem = window.localStorage.getItem('isDriver');
-      if (isDriverItem) {
-        setIsDriver(JSON.parse(isDriverItem));
-      }
+      if (isDriverItem) setIsDriver(JSON.parse(isDriverItem));
+
       const driverProfileItem = window.localStorage.getItem('driverProfile');
-      if (driverProfileItem) {
-        setDriverProfile(JSON.parse(driverProfileItem));
-      }
+      if (driverProfileItem) setDriverProfile(JSON.parse(driverProfileItem));
     } catch (error) {
       console.error('Failed to load data from localStorage', error);
     }
-    setIsContextLoading(false); // Loading is complete
+    setIsContextLoading(false);
   }, []);
 
-  const setActiveOrder = (order: Order | null) => {
-    setActiveOrderState(order);
+  const saveOrders = (newOrders: Order[]) => {
+    setOrders(newOrders);
     try {
-      if (order) {
-        window.localStorage.setItem('activeOrder', JSON.stringify(order));
-      } else {
-        window.localStorage.removeItem('activeOrder');
-      }
+      window.localStorage.setItem('orders', JSON.stringify(newOrders));
     } catch (error) {
-      console.error('Failed to save active order to localStorage', error);
+      console.error('Failed to save orders to localStorage', error);
     }
   };
+
+  const createServiceRequest = (data: any) => {
+    const newOrder: Order = {
+      id: `SAHA-${Math.floor(Math.random() * 9000) + 1000}`,
+      userId: MOCK_USER_ID,
+      service: data.serviceType as ServiceType,
+      location: data.location,
+      description: data.description,
+      price: data.suggestedPrice,
+      date: new Date().toISOString(),
+      status: 'Ищет исполнителя',
+      photo: data.photo,
+    };
+    saveOrders([...orders, newOrder]);
+  };
+
+  const acceptOrder = (orderId: string) => {
+    if (!driverProfile) return;
+    const newOrders = orders.map(o =>
+      o.id === orderId
+        ? {
+            ...o,
+            status: 'В процессе' as const,
+            driverId: driverProfile.id,
+            provider: {
+              id: driverProfile.id,
+              name: driverProfile.name,
+              vehicle: driverProfile.vehicle,
+              avatarUrl: 'https://picsum.photos/seed/driver-self/100/100', // Placeholder
+              rating: 5.0, // Placeholder
+              distance: 0, // Placeholder
+            },
+            arrivalTime: Math.floor(Math.random() * 10) + 5,
+          }
+        : o
+    );
+    saveOrders(newOrders);
+  };
+
+  const completeOrder = (orderId: string) => {
+    const newOrders = orders.map(o =>
+      o.id === orderId ? { ...o, status: 'Завершен' as const } : o
+    );
+    saveOrders(newOrders);
+  };
+
+  const activeClientOrder =
+    orders.find(o => o.userId === MOCK_USER_ID && o.status === 'В процессе') ||
+    null;
 
   const saveCart = (newCart: CartItem[]) => {
     setCart(newCart);
@@ -190,8 +233,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
     saveProducts(newProducts);
   };
 
-  const registerAsSeller = (profile: Omit<SellerProfile, 'balance'>) => {
-    const newSellerProfile = { ...profile, balance: 0 };
+  const registerAsSeller = (
+    profile: Omit<SellerProfile, 'id' | 'balance'>
+  ) => {
+    const newSellerProfile = { ...profile, id: MOCK_USER_ID, balance: 0 };
     setIsSeller(true);
     setSellerProfile(newSellerProfile);
 
@@ -221,8 +266,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  const registerAsDriver = (profile: Omit<DriverProfile, 'balance'>) => {
-    const newDriverProfile = { ...profile, balance: 0 };
+  const registerAsDriver = (
+    profile: Omit<DriverProfile, 'id' | 'balance'>
+  ) => {
+    const newDriverProfile = { ...profile, id: 'driver-self', balance: 0 };
     setIsDriver(true);
     setDriverProfile(newDriverProfile);
     try {
@@ -239,8 +286,11 @@ export function AppProvider({ children }: { children: ReactNode }) {
   return (
     <AppContext.Provider
       value={{
-        activeOrder,
-        setActiveOrder,
+        orders,
+        activeClientOrder,
+        createServiceRequest,
+        acceptOrder,
+        completeOrder,
         isContextLoading,
         cart,
         addToCart,

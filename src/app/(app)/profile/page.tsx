@@ -304,7 +304,7 @@ export default function ProfilePage() {
                   className="w-full"
                   disabled={sellerForm.formState.isSubmitting}
                 >
-                  Зарегистрировать
+                  Зарегистрироваться
                 </Button>
               </CardFooter>
             </form>

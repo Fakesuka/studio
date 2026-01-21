@@ -5,7 +5,11 @@ export type User = {
   avatarUrl: string;
 };
 
-export type OrderStatus = 'Ожидает' | 'В процессе' | 'Завершен' | 'Отменен';
+export type OrderStatus =
+  | 'Ищет исполнителя'
+  | 'В процессе'
+  | 'Завершен'
+  | 'Отменен';
 
 export type ServiceType =
   | 'Отогрев авто'
@@ -21,6 +25,7 @@ export const serviceTypesList: ServiceType[] = [
 ];
 
 export type DriverProfile = {
+  id: string;
   name: string;
   vehicle: string;
   services: ServiceType[];
@@ -29,10 +34,15 @@ export type DriverProfile = {
 
 export type Order = {
   id: string;
+  userId: string;
+  driverId?: string;
   service: ServiceType;
+  location: string;
+  description: string;
+  photo?: string;
+  price: number;
   date: string;
   status: OrderStatus;
-  price: number;
   provider?: ServiceProvider;
   arrivalTime?: number;
 };
@@ -64,6 +74,7 @@ export type ServiceProvider = {
 };
 
 export type SellerProfile = {
+  id: string;
   type: 'store' | 'person';
   storeName: string;
   storeDescription: string;

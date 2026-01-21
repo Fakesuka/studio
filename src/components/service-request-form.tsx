@@ -35,8 +35,6 @@ import {
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
 import { useAppContext } from '@/context/AppContext';
-import { mockProviders } from '@/lib/data';
-import type { ServiceType } from '@/lib/types';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 
@@ -53,17 +51,17 @@ const formSchema = z.object({
 type ServiceRequestFormValues = z.infer<typeof formSchema>;
 
 const serviceTypes = [
-  { value: 'отогрев', label: 'Отогрев авто', icon: Flame },
-  { value: 'доставка топлива', label: 'Доставка топлива', icon: Fuel },
-  { value: 'техпомощь', label: 'Техпомощь', icon: Wrench },
-  { value: 'эвакуатор', label: 'Эвакуатор', icon: Truck },
+  { value: 'Отогрев авто', label: 'Отогрев авто', icon: Flame },
+  { value: 'Доставка топлива', label: 'Доставка топлива', icon: Fuel },
+  { value: 'Техпомощь', label: 'Техпомощь', icon: Wrench },
+  { value: 'Эвакуатор', label: 'Эвакуатор', icon: Truck },
 ];
 
 const serviceTypeValues = [
-  'отогрев',
-  'доставка топлива',
-  'техпомощь',
-  'эвакуатор',
+  'Отогрев авто',
+  'Доставка топлива',
+  'Техпомощь',
+  'Эвакуатор',
 ] as const;
 
 // Local type for AI diagnosis simulation
@@ -75,11 +73,17 @@ type DiagnoseProblemOutput = {
 // Keyword-based AI simulation
 const simulateAiDiagnosis = (description: string): DiagnoseProblemOutput => {
   const lowerCaseDescription = description.toLowerCase();
-
-  // Priority 1: Evacuator cases (most critical)
   const evacuatorKeywords = new RegExp(
     [
-      'не заводится', 'заглох и не заводится', 'серьезная поломка', 'стук в двигателе', 'оборвался ремень грм', 'вода в двигателе', 'гидроудар', 'утонул', 'после дтп', 'авария', 'поврежден', 'не на ходу', 'сломался на трассе', 'поломка коробки передач', 'не включаются передачи', 'сломался мост', 'слетела цепь грм', 'заклинил двигатель', 'задымился', 'пошел дым', 'загорелся', 'пожар в машине', 'перевернулся', 'упал в кювет', 'застрял', 'застрял в грязи', 'застрял в снегу', 'увяз', 'вытащить из грязи', 'вытащить из снега', 'утонул в снегу', 'съехал с дороги', 'застрял на бездорожье', 'упал в яму', 'сломалось колесо', 'отвалилось колесо', 'сорвало баллонку', 'сломался амортизатор', 'сломалась пружина', 'поломка подвески', 'сломался рулевой', 'не работает руль', 'отказ тормозов', 'провалились тормоза', 'сломался кардан', 'не едет задний мост', 'перегрелась акпп', 'не работает полный привод', 'сломался дифференциал', 'нужен спецтранспорт', 'эвакуация авто', 'транспортировка автомобиля', 'услуги эвакуатора'
+      'дверь заблокирована',
+      'колесо отвалилось',
+      'авария',
+      'дтп',
+      'не заводится',
+      'сломалась',
+      'увезти',
+      'забрать',
+      'эвакуатор',
     ].join('|'),
     'i'
   );
@@ -87,44 +91,43 @@ const simulateAiDiagnosis = (description: string): DiagnoseProblemOutput => {
     return {
       diagnosis:
         'Обнаружена серьезная неисправность, рекомендуем эвакуатор.',
-      suggestedService: 'эвакуатор',
+      suggestedService: 'Эвакуатор',
     };
   }
-
-  // Priority 2: Heating issues
   const heatingKeywords = new RegExp(
-    [
-      'холод', 'замерзла', 'примерзли замки', 'не открывается дверь', 'примерз стеклоомыватель', 'примерзли дворники', 'примерзли тормозные колодки', 'примерз ручник', 'дверь не открывается зимой', 'замок замерз', 'отогреть дверь', 'отогреть замок', 'примерз капот', 'примерз багажник', 'отогрев автомобиля', 'отогреть авто', 'разморозить замок', 'замерзла ручка двери', 'лед в выхлопной', 'замерз глушитель', 'конденсат в замке', 'замерз трос капота', 'отогрев в мороз', 'примерзли диски', 'примерз колесо к асфальту', 'отогреть колесо', 'срочный отогрев', 'выездной отогрев', 'примерзла сигнализация', 'не работает брелок зимой', 'замерзли форсунки', 'замерз топливный фильтр', 'дизель замерз', 'парафинизация солярки', 'отогрев топливной системы', 'лед в бензобаке', 'отогрев двигателя', 'прогрев мотора', 'антифриз замерз', 'отогрев радиатора', 'печка не греет', 'замерзла печка', 'отогреть салон', 'лед в печке', 'отогрев патрубков', 'замерзли стекла', 'лед на стекле', 'примерзли зеркала', 'замерзла жидкость омывателя'
-    ].join('|'),
+    ['замерзла', 'замерз', 'отогреть', 'отогрев', 'холод', 'мороз'].join(
+      '|'
+    ),
     'i'
   );
   if (heatingKeywords.test(lowerCaseDescription)) {
     return {
       diagnosis:
         'Симптомы указывают на проблему, связанную с низкой температурой.',
-      suggestedService: 'отогрев',
+      suggestedService: 'Отогрев авто',
     };
   }
-
-  // Priority 3: Fuel issues
   const fuelKeywords = new RegExp(
-    [
-      'закончился бензин', 'сел на трассе', 'пустой бак', 'заглох на дороге', 'нет топлива', 'кончилось топливо', 'застрял без бензина', 'бензин на нуле', 'солярка закончилась', 'доставить бензин', 'доставить солярку', 'заправка на месте', 'срочная заправка', 'топливо с доставкой', 'не доехал до заправки', 'забыл заправиться', 'светится лампочка бензобака', 'аварийный запас топлива', 'заказать топливо', 'доставка аи-92', 'доставка аи-95', 'доставка аи-98', 'доставка дизеля', 'доставка дт', 'бензин в канистре', 'срочно нужен бензин', 'помогите с топливом', 'машина встала', 'заглохла на пустой трассе', 'остался без горючки', 'не заводится из-за топлива', 'завоз топлива', 'топливная помощь', 'экстренная заправка', 'выездная заправка', 'помпа для топлива', 'канистра с бензином', 'залили не то топливо', 'нужна промывка бака', 'доставка ночью', 'доставка в поле', 'доставка в лес', 'доставка в промзону', 'доставка в час пик', 'сервис доставки топлива', 'помощь водителю', 'топливный гол', 'кончилась солярка в грузовике'
-    ].join('|'),
+    ['бензин', 'топливо', 'кончилось', 'закончилось', 'пустой бак', 'заглох'].join(
+      '|'
+    ),
     'i'
   );
   if (fuelKeywords.test(lowerCaseDescription)) {
     return {
-      diagnosis:
-        'Похоже, что закончилось топливо.',
-      suggestedService: 'доставка топлива',
+      diagnosis: 'Похоже, что закончилось топливо.',
+      suggestedService: 'Доставка топлива',
     };
   }
-
-  // Priority 4: General technical assistance
   const assistanceKeywords = new RegExp(
     [
-      'сел аккумулятор', 'разрядился аккумулятор', 'не крутит стартер', 'нужен прикурить', 'прикурить авто', 'помочь завестись', 'завести машину', 'срочный прикуривание', 'замена аккумулятора', 'купить аккумулятор', 'прокол колеса', 'спустило колесо', 'порезана шина', 'лопнула шина', 'поменять колесо', 'замена запаски', 'нет домкрата', 'застрял с проколом', 'ремонт колеса', 'вулканизация на месте', 'потеря ключей', 'ключи в машине', 'захлопнулась дверь', 'срочное вскрытие', 'вскрыть авто', 'вскрыть дверь', 'без ключей', 'помощь с замком', 'открыть автомобиль', 'заклинил замок', 'открыть багажник', 'не работает брелок', 'сломанный ключ', 'услуги автослесаря', 'выездной автослесарь', 'мелкий ремонт на месте', 'заменить предохранитель', 'перегорел предохранитель', 'нет света', 'не горят фары', 'заменить лампочку', 'порвался ремень генератора', 'заменить ремень', 'свистит ремень', 'течет охлаждайка', 'долить антифриз', 'течет масло', 'долить масло', 'заменить щетки стеклоочистителя', 'заклинило тормоз', 'закипел антифриз', 'перегрев двигателя', 'долить воду в радиатор', 'сломался трос акселератора', 'заедает педаль газа', 'порвался шланг', 'лопнул патрубок', 'течет радиатор', 'заменить патрубок', 'не работает датчик', 'ошибка двигателя', 'скинуть ошибку', 'горит check engine', 'не работает генератор', 'не заряжает аккумулятор', 'шумит подшипник', 'стук в подвеске', 'замена лампы фары', 'замена лампы стоп-сигнала', 'не работает стеклоочиститель', 'не брызгают омыватели', 'засорился омыватель', 'поменять жидкость омывателя', 'заедает стеклоподъемник', 'не работает стеклоподъемник', 'сломался дворник', 'оторвался дворник', 'не работает прикуриватель', 'не работает магнитола', 'нет зарядки в прикуривателе', 'замена прикуривателя', 'не работает печка', 'холодно в салоне', 'засорился салонный фильтр', 'заменить воздушный фильтр', 'не закрывается лючок бензобака', 'сломался замок капота', 'открыть капот', 'заклинил багажник', 'не работает кнопка багажника', 'заменить свечи', 'машина троит', 'плохой запуск', 'чихнул двигатель', 'заменить дворники'
+      'колесо',
+      'прокол',
+      'поменять',
+      'спустило',
+      'аккумулятор',
+      'прикурить',
+      'сел акб',
     ].join('|'),
     'i'
   );
@@ -132,11 +135,9 @@ const simulateAiDiagnosis = (description: string): DiagnoseProblemOutput => {
     return {
       diagnosis:
         'Обнаружена техническая неисправность, которую можно устранить на месте.',
-      suggestedService: 'техпомощь',
+      suggestedService: 'Техпомощь',
     };
   }
-
-  // Default case if no keywords match
   return {
     diagnosis:
       'Не удалось автоматически определить проблему. Пожалуйста, выберите услугу вручную.',
@@ -148,7 +149,7 @@ export function ServiceRequestForm() {
   const [photoPreview, setPhotoPreview] = useState<string | null>(null);
   const { toast } = useToast();
   const router = useRouter();
-  const { setActiveOrder } = useAppContext();
+  const { createServiceRequest } = useAppContext();
   const searchParams = useSearchParams();
   const serviceParam = searchParams.get('service');
 
@@ -184,14 +185,12 @@ export function ServiceRequestForm() {
       setIsDiagnosing(true);
       setAiDiagnosis(null);
 
-      // Simulate AI call with keywords
       const result = simulateAiDiagnosis(descriptionValue);
 
-      // Use a promise to keep the structure similar and simulate network delay
       new Promise<DiagnoseProblemOutput | null>(resolve => {
         setTimeout(() => {
           resolve(result);
-        }, 500); // 500ms delay for simulation
+        }, 500);
       })
         .then(result => {
           setAiDiagnosis(result);
@@ -204,7 +203,7 @@ export function ServiceRequestForm() {
         .finally(() => {
           setIsDiagnosing(false);
         });
-    }, 1000); // 1-second debounce
+    }, 1000);
 
     return () => {
       clearTimeout(handler);
@@ -232,35 +231,14 @@ export function ServiceRequestForm() {
   };
 
   function onSubmit(data: ServiceRequestFormValues) {
+    createServiceRequest(data);
     toast({
       title: 'Заявка отправлена!',
       description: 'Мы ищем ближайшего исполнителя.',
     });
-
-    const service = serviceTypes.find(s => s.value === data.serviceType);
-
-    // Simulate finding a provider and creating an order after a delay
-    setTimeout(() => {
-      const newOrder = {
-        id: `SAHA-${Math.floor(Math.random() * 900) + 100}`,
-        service: (service?.label as ServiceType) || 'Техпомощь',
-        date: new Date().toISOString().split('T')[0],
-        status: 'В процессе' as const,
-        price: data.suggestedPrice,
-        provider:
-          mockProviders[Math.floor(Math.random() * mockProviders.length)],
-        arrivalTime: Math.floor(Math.random() * 10) + 5,
-      };
-
-      setActiveOrder(newOrder);
-      toast({
-        title: 'Исполнитель найден!',
-        description: `${newOrder.provider?.name} скоро будет у вас.`,
-      });
-      router.push('/dashboard');
-    }, 2000);
+    router.push('/dashboard');
   }
-  
+
   const suggestedServiceLabel = aiDiagnosis?.suggestedService
     ? serviceTypes.find(s => s.value === aiDiagnosis.suggestedService)?.label
     : '';
@@ -345,15 +323,15 @@ export function ServiceRequestForm() {
                 <AlertTitle className="flex items-center gap-2">
                   {isDiagnosing
                     ? 'Анализ проблемы...'
-                    : `Рекомендуемая услуга${suggestedServiceLabel ? `: ${suggestedServiceLabel}` : ''}`
-                  }
+                    : `Рекомендуемая услуга${
+                        suggestedServiceLabel ? `: ${suggestedServiceLabel}` : ''
+                      }`}
                   {isDiagnosing && <Loader2 className="h-4 w-4 animate-spin" />}
                 </AlertTitle>
                 <AlertDescription>
                   {isDiagnosing
                     ? 'Анализируем вашу проблему, чтобы предложить наиболее подходящее решение.'
-                    : aiDiagnosis?.diagnosis
-                  }
+                    : aiDiagnosis?.diagnosis}
                 </AlertDescription>
               </Alert>
             )}
@@ -418,11 +396,7 @@ export function ServiceRequestForm() {
                 <FormItem>
                   <FormLabel>Предлагаемая цена (₽)</FormLabel>
                   <FormControl>
-                    <Input
-                      type="number"
-                      placeholder="2000"
-                      {...field}
-                    />
+                    <Input type="number" placeholder="2000" {...field} />
                   </FormControl>
                   <FormDescription>
                     Укажите цену, которую вы готовы заплатить за услугу.

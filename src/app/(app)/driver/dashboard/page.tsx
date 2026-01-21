@@ -2,17 +2,87 @@
 import { useAppContext } from '@/context/AppContext';
 import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
-import { Loader2, Bell } from 'lucide-react';
+import {
+  Loader2,
+  Bell,
+  MapPin,
+  MessageSquare,
+  DollarSign,
+} from 'lucide-react';
 import {
   Card,
   CardContent,
   CardHeader,
   CardTitle,
   CardDescription,
+  CardFooter,
 } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { useToast } from '@/hooks/use-toast';
+import type { Order } from '@/lib/types';
+import { format } from 'date-fns';
+import { ru } from 'date-fns/locale';
+
+function AvailableOrderCard({ order }: { order: Order }) {
+  const { acceptOrder } = useAppContext();
+  const { toast } = useToast();
+
+  const handleAccept = () => {
+    acceptOrder(order.id);
+    toast({
+      title: 'Заказ принят!',
+      description: `Вы приняли заказ #${order.id}.`,
+    });
+  };
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>{order.service}</CardTitle>
+        <CardDescription>
+          Заказ #{order.id} от{' '}
+          {format(new Date(order.date), 'd MMM, HH:mm', { locale: ru })}
+        </CardDescription>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        <div>
+          <p className="flex items-center gap-2 text-sm">
+            <MapPin className="h-4 w-4 text-muted-foreground" />
+            <strong>Адрес:</strong> {order.location}
+          </p>
+        </div>
+        <div>
+          <p className="flex items-start gap-2 text-sm">
+            <MessageSquare className="mt-1 h-4 w-4 flex-shrink-0 text-muted-foreground" />
+            <span>
+              <strong>Описание:</strong> {order.description}
+            </span>
+          </p>
+        </div>
+        {order.photo && (
+          <div className="relative aspect-video w-full max-w-sm overflow-hidden rounded-md">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src={order.photo} alt="Фото к заказу" className="object-cover" />
+          </div>
+        )}
+      </CardContent>
+      <CardFooter className="flex-col items-stretch gap-2 md:flex-row md:justify-between">
+        <div className="flex items-center justify-center gap-2 rounded-md bg-secondary p-2">
+          <DollarSign className="h-5 w-5 text-primary" />
+          <span className="text-xl font-bold">
+            {order.price.toLocaleString('ru-RU', { currency: 'RUB' })} ₽
+          </span>
+        </div>
+        <Button onClick={handleAccept} size="lg" className="w-full md:w-auto">
+          Принять заказ
+        </Button>
+      </CardFooter>
+    </Card>
+  );
+}
 
 export default function DriverDashboard() {
-  const { isDriver, isContextLoading } = useAppContext();
+  const { isDriver, isContextLoading, orders } = useAppContext();
   const router = useRouter();
 
   useEffect(() => {
@@ -29,6 +99,8 @@ export default function DriverDashboard() {
     );
   }
 
+  const availableOrders = orders.filter(o => o.status === 'Ищет исполнителя');
+
   return (
     <div className="space-y-6">
       <div>
@@ -38,22 +110,29 @@ export default function DriverDashboard() {
         </p>
       </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Bell className="h-5 w-5" />
-            Лента заказов
-          </CardTitle>
-          <CardDescription>
-            Здесь будут отображаться доступные заказы.
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="flex h-64 items-center justify-center rounded-lg border-2 border-dashed">
-            <p className="text-muted-foreground">Нет доступных заказов</p>
-          </div>
-        </CardContent>
-      </Card>
+      {availableOrders.length > 0 ? (
+        <div className="space-y-4">
+          {availableOrders.map(order => (
+            <AvailableOrderCard key={order.id} order={order} />
+          ))}
+        </div>
+      ) : (
+        <Card>
+          <CardContent className="p-6">
+            <div className="flex h-64 flex-col items-center justify-center gap-4 rounded-lg border-2 border-dashed text-center">
+              <Bell className="h-10 w-10 text-muted-foreground" />
+              <div>
+                <p className="font-semibold text-muted-foreground">
+                  Нет доступных заказов
+                </p>
+                <p className="text-sm text-muted-foreground">
+                  Как только появится новый заказ, вы увидите его здесь.
+                </p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 }

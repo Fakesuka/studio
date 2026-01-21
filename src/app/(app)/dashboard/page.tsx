@@ -77,7 +77,7 @@ function ActiveOrderCard({ order }: { order: Order }) {
           </div>
         )}
         <div className="relative aspect-[4/3] w-full overflow-hidden rounded-md">
-          <Map2GIS center={[62.5353, 113.9613]} zoom={13} />
+          <Map2GIS center={[62.035, 129.675]} zoom={13} />
           {order.arrivalTime && (
             <div className="absolute bottom-4 right-4 rounded-md bg-background/80 p-2 text-foreground shadow-lg backdrop-blur-sm">
               <div className="flex items-center gap-2">
@@ -181,7 +181,7 @@ function DashboardSkeleton() {
 }
 
 export default function Dashboard() {
-  const { activeOrder, isContextLoading } = useAppContext();
+  const { activeClientOrder, isContextLoading } = useAppContext();
 
   if (isContextLoading) {
     return <DashboardSkeleton />;
@@ -221,8 +221,8 @@ export default function Dashboard() {
         </Card>
       </div>
 
-      {activeOrder ? (
-        <ActiveOrderCard order={activeOrder} />
+      {activeClientOrder ? (
+        <ActiveOrderCard order={activeClientOrder} />
       ) : (
         <Card className="col-span-1 flex flex-col items-center justify-center text-center lg:col-span-2">
           <CardHeader>
