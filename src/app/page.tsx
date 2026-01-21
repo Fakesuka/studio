@@ -32,13 +32,13 @@ export default function LoginPage() {
         <CardHeader className="text-center">
           <CardTitle className="text-2xl font-bold">SahaHelper</CardTitle>
           <CardDescription>
-            Your reliable assistant on the roads of Yakutia
+            Ваш надежный помощник на дорогах Якутии
           </CardDescription>
         </CardHeader>
         <CardContent>
           <div className="grid gap-4">
             <div className="grid gap-2">
-              <Label htmlFor="phone">Phone Number</Label>
+              <Label htmlFor="phone">Номер телефона</Label>
               <Input
                 id="phone"
                 type="tel"
@@ -47,13 +47,13 @@ export default function LoginPage() {
               />
             </div>
             <Link href="/dashboard" className="w-full">
-              <Button className="w-full">Sign In / Register</Button>
+              <Button className="w-full">Войти / Зарегистрироваться</Button>
             </Link>
           </div>
         </CardContent>
         <CardFooter className="flex flex-col gap-2">
           <Button variant="link" size="sm" className="w-full">
-            Become a Service Provider
+            Стать поставщиком услуг
           </Button>
         </CardFooter>
       </Card>

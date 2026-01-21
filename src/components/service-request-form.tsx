@@ -45,21 +45,21 @@ import { summarizeRoadCondition } from '@/ai/flows/summarize-road-condition';
 import { suggestStartingPrice } from '@/ai/flows/suggest-starting-price';
 
 const formSchema = z.object({
-  serviceType: z.string({ required_error: 'Please select a service type.' }),
-  description: z.string().min(10, 'Please provide more details.'),
-  distance: z.coerce.number().min(1, 'Distance must be at least 1 km.'),
-  timeOfDay: z.string({ required_error: 'Please select time of day.' }),
-  urgency: z.string({ required_error: 'Please select urgency.' }),
+  serviceType: z.string({ required_error: 'Пожалуйста, выберите тип услуги.' }),
+  description: z.string().min(10, 'Пожалуйста, предоставьте больше деталей.'),
+  distance: z.coerce.number().min(1, 'Расстояние должно быть не менее 1 км.'),
+  timeOfDay: z.string({ required_error: 'Пожалуйста, выберите время суток.' }),
+  urgency: z.string({ required_error: 'Пожалуйста, выберите срочность.' }),
   photo: z.any().optional(),
 });
 
 type ServiceRequestFormValues = z.infer<typeof formSchema>;
 
 const serviceTypes = [
-  { value: 'отогрев', label: 'Car Heating', icon: Flame },
-  { value: 'доставка топлива', label: 'Fuel Delivery', icon: Fuel },
-  { value: 'техпомощь', label: 'Tech Help', icon: Wrench },
-  { value: 'эвакуатор', label: 'Towing', icon: Truck },
+  { value: 'отогрев', label: 'Отогрев авто', icon: Flame },
+  { value: 'доставка топлива', label: 'Доставка топлива', icon: Fuel },
+  { value: 'техпомощь', label: 'Техпомощь', icon: Wrench },
+  { value: 'эвакуатор', label: 'Эвакуатор', icon: Truck },
 ];
 
 export function ServiceRequestForm() {
@@ -102,9 +102,9 @@ export function ServiceRequestForm() {
     if (!serviceType || !distance || !timeOfDay || !urgency) {
       toast({
         variant: 'destructive',
-        title: 'Missing Information',
+        title: 'Недостаточно информации',
         description:
-          'Please fill out service type, distance, time, and urgency to suggest a price.',
+          'Пожалуйста, заполните тип услуги, расстояние, время и срочность, чтобы предложить цену.',
       });
       return;
     }
@@ -123,15 +123,15 @@ export function ServiceRequestForm() {
       setSuggestedPrice(result.suggestedPrice);
       setPriceReasoning(result.reasoning);
       toast({
-        title: 'Price Suggested!',
-        description: `We recommend a starting price of ${result.suggestedPrice} RUB.`,
+        title: 'Цена предложена!',
+        description: `Мы рекомендуем стартовую цену ${result.suggestedPrice} RUB.`,
       });
     } catch (error) {
       console.error(error);
       toast({
         variant: 'destructive',
-        title: 'Error',
-        description: 'Could not suggest a price. Please try again.',
+        title: 'Ошибка',
+        description: 'Не удалось предложить цену. Пожалуйста, попробуйте еще раз.',
       });
     } finally {
       setIsPriceLoading(false);
@@ -143,8 +143,8 @@ export function ServiceRequestForm() {
     if (!photoDataUri) {
       toast({
         variant: 'destructive',
-        title: 'No Photo',
-        description: 'Please upload a photo of the road to get a summary.',
+        title: 'Нет фото',
+        description: 'Пожалуйста, загрузите фото дороги, чтобы получить сводку.',
       });
       return;
     }
@@ -156,16 +156,16 @@ export function ServiceRequestForm() {
       const result = await summarizeRoadCondition({ photoDataUri });
       setRoadSummary(result.summary);
       toast({
-        title: 'Summary Generated!',
+        title: 'Сводка сгенерирована!',
         description:
-          'AI has summarized the road conditions from your photo.',
+          'AI-помощник создал сводку о дорожных условиях по вашему фото.',
       });
     } catch (error) {
       console.error(error);
       toast({
         variant: 'destructive',
-        title: 'Error',
-        description: 'Could not generate summary. Please try again.',
+        title: 'Ошибка',
+        description: 'Не удалось сгенерировать сводку. Пожалуйста, попробуйте еще раз.',
       });
     } finally {
       setIsSummaryLoading(false);
@@ -174,7 +174,7 @@ export function ServiceRequestForm() {
 
   async function onSubmit(data: ServiceRequestFormValues) {
     toast({
-      title: 'Request Submitted!',
+      title: 'Запрос отправлен!',
       description: (
         <pre className="mt-2 w-[340px] rounded-md bg-slate-950 p-4">
           <code className="text-white">{JSON.stringify(data, null, 2)}</code>
@@ -186,9 +186,9 @@ export function ServiceRequestForm() {
   return (
     <Card className="w-full">
       <CardHeader>
-        <CardTitle>Create Service Request</CardTitle>
+        <CardTitle>Создать запрос на обслуживание</CardTitle>
         <CardDescription>
-          Fill out the details below to find a provider.
+          Заполните детали ниже, чтобы найти исполнителя.
         </CardDescription>
       </CardHeader>
       <Form {...form}>
@@ -201,14 +201,14 @@ export function ServiceRequestForm() {
                   name="serviceType"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Service Type</FormLabel>
+                      <FormLabel>Тип услуги</FormLabel>
                       <Select
                         onValueChange={field.onChange}
                         defaultValue={field.value}
                       >
                         <FormControl>
                           <SelectTrigger>
-                            <SelectValue placeholder="Select a service" />
+                            <SelectValue placeholder="Выберите услугу" />
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
@@ -232,10 +232,10 @@ export function ServiceRequestForm() {
                   name="description"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Description of Issue</FormLabel>
+                      <FormLabel>Описание проблемы</FormLabel>
                       <FormControl>
                         <Textarea
-                          placeholder="e.g., My car won't start, the battery seems dead. I'm near the Lena Pillars."
+                          placeholder="Например, машина не заводится, кажется, сел аккумулятор. Я нахожусь возле Ленских столбов."
                           {...field}
                         />
                       </FormControl>
@@ -249,7 +249,7 @@ export function ServiceRequestForm() {
                   name="photo"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Photo of Road/Issue</FormLabel>
+                      <FormLabel>Фото дороги/проблемы</FormLabel>
                       <FormControl>
                         <Input
                           type="file"
@@ -274,7 +274,7 @@ export function ServiceRequestForm() {
                 
                 {roadSummary && (
                   <div className="rounded-lg border bg-secondary/50 p-4">
-                      <p className="text-sm font-medium">AI Road Summary:</p>
+                      <p className="text-sm font-medium">AI-сводка о дороге:</p>
                       <p className="text-sm text-muted-foreground">{roadSummary}</p>
                   </div>
                 )}
@@ -291,7 +291,7 @@ export function ServiceRequestForm() {
                   ) : (
                     <Sparkles className="mr-2 h-4 w-4" />
                   )}
-                  Summarize Road Condition
+                  Сводка о состоянии дороги
                 </Button>
               </div>
 
@@ -300,10 +300,10 @@ export function ServiceRequestForm() {
                   <CardHeader>
                     <CardTitle className="flex items-center gap-2">
                       <Sparkles className="h-5 w-5 text-primary" />
-                      AI Dynamic Pricing
+                      AI Динамическое ценообразование
                     </CardTitle>
                     <CardDescription>
-                      Let AI suggest a fair starting price based on conditions.
+                      Позвольте AI предложить справедливую стартовую цену на основе условий.
                     </CardDescription>
                   </CardHeader>
                   <CardContent className="grid gap-4">
@@ -312,7 +312,7 @@ export function ServiceRequestForm() {
                       name="distance"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Distance to You (km)</FormLabel>
+                          <FormLabel>Расстояние до вас (км)</FormLabel>
                           <FormControl>
                             <Input
                               type="number"
@@ -330,23 +330,23 @@ export function ServiceRequestForm() {
                         name="timeOfDay"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>Time of Day</FormLabel>
+                            <FormLabel>Время суток</FormLabel>
                             <Select
                               onValueChange={field.onChange}
                               defaultValue={field.value}
                             >
                               <FormControl>
                                 <SelectTrigger>
-                                  <SelectValue placeholder="Select time" />
+                                  <SelectValue placeholder="Выберите время" />
                                 </SelectTrigger>
                               </FormControl>
                               <SelectContent>
-                                <SelectItem value="morning">Morning</SelectItem>
+                                <SelectItem value="morning">Утро</SelectItem>
                                 <SelectItem value="afternoon">
-                                  Afternoon
+                                  День
                                 </SelectItem>
-                                <SelectItem value="evening">Evening</SelectItem>
-                                <SelectItem value="night">Night</SelectItem>
+                                <SelectItem value="evening">Вечер</SelectItem>
+                                <SelectItem value="night">Ночь</SelectItem>
                               </SelectContent>
                             </Select>
                             <FormMessage />
@@ -358,20 +358,20 @@ export function ServiceRequestForm() {
                         name="urgency"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>Urgency</FormLabel>
+                            <FormLabel>Срочность</FormLabel>
                             <Select
                               onValueChange={field.onChange}
                               defaultValue={field.value}
                             >
                               <FormControl>
                                 <SelectTrigger>
-                                  <SelectValue placeholder="Select urgency" />
+                                  <SelectValue placeholder="Выберите срочность" />
                                 </SelectTrigger>
                               </FormControl>
                               <SelectContent>
-                                <SelectItem value="low">Low</SelectItem>
-                                <SelectItem value="medium">Medium</SelectItem>
-                                <SelectItem value="high">High</SelectItem>
+                                <SelectItem value="low">Низкая</SelectItem>
+                                <SelectItem value="medium">Средняя</SelectItem>
+                                <SelectItem value="high">Высокая</SelectItem>
                               </SelectContent>
                             </Select>
                             <FormMessage />
@@ -384,7 +384,7 @@ export function ServiceRequestForm() {
                     {suggestedPrice && (
                       <div className="w-full text-center rounded-lg border bg-background p-4">
                         <p className="text-sm text-muted-foreground">
-                          Suggested Starting Price
+                          Рекомендуемая стартовая цена
                         </p>
                         <p className="text-3xl font-bold text-primary">
                           {suggestedPrice.toLocaleString('ru-RU')} RUB
@@ -407,7 +407,7 @@ export function ServiceRequestForm() {
                       ) : (
                         <Sparkles className="mr-2 h-4 w-4" />
                       )}
-                      Suggest Price
+                      Предложить цену
                     </Button>
                   </CardFooter>
                 </Card>
@@ -416,7 +416,7 @@ export function ServiceRequestForm() {
           </CardContent>
           <CardFooter>
             <Button type="submit" size="lg" className="w-full">
-              Submit Request
+              Отправить запрос
             </Button>
           </CardFooter>
         </form>

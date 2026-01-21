@@ -2,67 +2,67 @@
   "placeholderImages": [
     {
       "id": "login-bg",
-      "description": "A snowy road in Yakutia during winter.",
+      "description": "Зимняя дорога в Якутии.",
       "imageUrl": "https://images.unsplash.com/photo-1504432148082-46caf595add3?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxMHx8d2ludGVyJTIwcm9hZHxlbnwwfHx8fDE3Njg5NTc0NTl8MA&ixlib=rb-4.1.0&q=80&w=1080",
       "imageHint": "winter road"
     },
     {
       "id": "map-placeholder",
-      "description": "A placeholder map of Yakutsk.",
+      "description": "Карта-заглушка Якутска.",
       "imageUrl": "https://picsum.photos/seed/map/1200/800",
       "imageHint": "yakutsk map"
     },
     {
       "id": "product-blanket",
-      "description": "A warm car blanket.",
+      "description": "Теплое автомобильное одеяло.",
       "imageUrl": "https://images.unsplash.com/photo-1655638608835-b6c072751b92?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw2fHxjYXIlMjBibGFua2V0fGVufDB8fHx8MTc2ODk1NzQ1OXww&ixlib=rb-4.1.0&q=80&w=1080",
       "imageHint": "car blanket"
     },
     {
       "id": "product-battery",
-      "description": "A car battery.",
+      "description": "Автомобильный аккумулятор.",
       "imageUrl": "https://images.unsplash.com/photo-1676337167629-d896b3ed5724?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw2fHxjYXIlMjBiYXR0ZXJ5fGVufDB8fHx8MTc2ODg3MzM2NXww&ixlib=rb-4.1.0&q=80&w=1080",
       "imageHint": "car battery"
     },
     {
       "id": "product-jumper",
-      "description": "A battery jumper pack.",
+      "description": "Пуско-зарядное устройство.",
       "imageUrl": "https://images.unsplash.com/photo-1550496923-a0e3ef948e3a?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxMHx8YmF0dGVyeSUyMGp1bXBlcnxlbnwwfHx8fDE3Njg5NTc0NTl8MA&ixlib=rb-4.1.0&q=80&w=1080",
       "imageHint": "battery jumper"
     },
     {
       "id": "product-antifreeze",
-      "description": "A bottle of antifreeze liquid.",
+      "description": "Бутылка антигеля.",
       "imageUrl": "https://images.unsplash.com/photo-1721060581545-692f3cfa932f?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw3fHxhbnRpZnJlZXplJTIwbGlxdWlkfGVufDB8fHx8MTc2ODk1NzQ1OXww&ixlib=rb-4.1.0&q=80&w=1080",
       "imageHint": "antifreeze liquid"
     },
     {
       "id": "product-shovel",
-      "description": "A compact snow shovel.",
+      "description": "Компактная снеговая лопата.",
       "imageUrl": "https://images.unsplash.com/photo-1551477240-20aa0faebd45?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw0fHxzbm93JTIwc2hvdmVsfGVufDB8fHx8MTc2ODk1NzQ2MHww&ixlib=rb-4.1.0&q=80&w=1080",
       "imageHint": "snow shovel"
     },
     {
       "id": "product-chains",
-      "description": "A set of snow chains for tires.",
+      "description": "Комплект цепей противоскольжения для шин.",
       "imageUrl": "https://images.unsplash.com/photo-1641974785913-63645632afe3?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwzfHxzbm93JTIwY2hhaW5zfGVufDB8fHx8MTc2ODk1NzQ1OXww&ixlib=rb-4.1.0&q=80&w=1080",
       "imageHint": "snow chains"
     },
     {
       "id": "provider-1",
-      "description": "Avatar for a service provider.",
+      "description": "Аватар поставщика услуг.",
       "imageUrl": "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw3fHxwZXJzb24lMjBwb3J0cmFpdHxlbnwwfHx8fDE3Njg4NzU1MzB8MA&ixlib=rb-4.1.0&q=80&w=1080",
       "imageHint": "person portrait"
     },
     {
       "id": "provider-2",
-      "description": "Avatar for another service provider.",
+      "description": "Аватар другого поставщика услуг.",
       "imageUrl": "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwzfHxwZXJzb24lMjBwb3J0cmFpdHxlbnwwfHx8fDE3Njg4NzU1MzB8MA&ixlib=rb-4.1.0&q=80&w=1080",
       "imageHint": "person portrait"
     },
     {
       "id": "provider-3",
-      "description": "Avatar for a third service provider.",
+      "description": "Аватар третьего поставщика услуг.",
       "imageUrl": "https://images.unsplash.com/flagged/photo-1595514191830-3e96a518989b?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxMHx8cGVyc29uJTIwcG9ydHJhaXR8ZW58MHx8fHwxNzY4ODc1NTMwfDA&ixlib=rb-4.1.0&q=80&w=1080",
       "imageHint": "person portrait"
     }

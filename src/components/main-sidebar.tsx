@@ -27,11 +27,11 @@ export function MainSidebar() {
   const pathname = usePathname();
 
   const menuItems = [
-    { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
-    { href: '/services/new', label: 'New Request', icon: Wrench },
-    { href: '/orders', label: 'My Orders', icon: ScrollText },
-    { href: '/marketplace', label: 'Marketplace', icon: Store },
-    { href: '/profile', label: 'Profile', icon: User },
+    { href: '/dashboard', label: 'Панель управления', icon: LayoutDashboard },
+    { href: '/services/new', label: 'Новый запрос', icon: Wrench },
+    { href: '/orders', label: 'Мои заказы', icon: ScrollText },
+    { href: '/marketplace', label: 'Маркетплейс', icon: Store },
+    { href: '/profile', label: 'Профиль', icon: User },
   ];
 
   return (
@@ -63,16 +63,16 @@ export function MainSidebar() {
       <SidebarFooter className="p-2">
         <SidebarMenu>
           <SidebarMenuItem>
-            <SidebarMenuButton tooltip={{ children: 'Settings', side: 'right' }}>
+            <SidebarMenuButton tooltip={{ children: 'Настройки', side: 'right' }}>
               <Settings />
-              <span>Settings</span>
+              <span>Настройки</span>
             </SidebarMenuButton>
           </SidebarMenuItem>
           <SidebarMenuItem>
             <Link href="/">
-                <SidebarMenuButton tooltip={{ children: 'Log Out', side: 'right' }}>
+                <SidebarMenuButton tooltip={{ children: 'Выйти', side: 'right' }}>
                 <LogOut />
-                <span>Log Out</span>
+                <span>Выйти</span>
                 </SidebarMenuButton>
             </Link>
           </SidebarMenuItem>

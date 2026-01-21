@@ -19,13 +19,13 @@ import type { OrderStatus } from '@/lib/types';
 
 const getStatusVariant = (status: OrderStatus) => {
   switch (status) {
-    case 'Completed':
+    case 'Завершен':
       return 'default';
-    case 'In Progress':
+    case 'В процессе':
       return 'secondary';
-    case 'Cancelled':
+    case 'Отменен':
       return 'destructive';
-    case 'Pending':
+    case 'Ожидает':
       return 'outline';
     default:
       return 'default';
@@ -36,9 +36,9 @@ export default function OrdersPage() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>My Orders</CardTitle>
+        <CardTitle>Мои заказы</CardTitle>
         <CardDescription>
-          A list of your recent service requests.
+          Список ваших недавних запросов на обслуживание.
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -46,12 +46,12 @@ export default function OrdersPage() {
           <TableHeader>
             <TableRow>
               <TableHead className="hidden w-[100px] sm:table-cell">
-                Order ID
+                ID Заказа
               </TableHead>
-              <TableHead>Service</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead className="hidden md:table-cell">Date</TableHead>
-              <TableHead className="text-right">Price</TableHead>
+              <TableHead>Услуга</TableHead>
+              <TableHead>Статус</TableHead>
+              <TableHead className="hidden md:table-cell">Дата</TableHead>
+              <TableHead className="text-right">Цена</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>

@@ -14,9 +14,9 @@ export default function MarketplacePage() {
   return (
     <div>
       <div className="mb-6">
-        <h1 className="text-3xl font-bold">Marketplace</h1>
+        <h1 className="text-3xl font-bold">Маркетплейс</h1>
         <p className="text-muted-foreground">
-          Essential goods for the Yakutian winter road.
+          Товары первой необходимости для якутских зимников.
         </p>
       </div>
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
@@ -45,7 +45,7 @@ export default function MarketplacePage() {
                   currency: 'RUB',
                 })}
               </p>
-              <Button>Add to Cart</Button>
+              <Button>В корзину</Button>
             </CardFooter>
           </Card>
         ))}

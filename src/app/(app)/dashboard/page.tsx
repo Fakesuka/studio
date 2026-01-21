@@ -28,13 +28,13 @@ import Link from 'next/link';
 
 function getServiceIcon(serviceType: ServiceType) {
   switch (serviceType) {
-    case 'Car Heating':
+    case 'Отогрев авто':
       return <Flame className="h-4 w-4 text-muted-foreground" />;
-    case 'Fuel Delivery':
+    case 'Доставка топлива':
       return <Fuel className="h-4 w-4 text-muted-foreground" />;
-    case 'Tech Help':
+    case 'Техпомощь':
       return <Wrench className="h-4 w-4 text-muted-foreground" />;
-    case 'Towing':
+    case 'Эвакуатор':
       return <Truck className="h-4 w-4 text-muted-foreground" />;
     default:
       return <Car className="h-4 w-4 text-muted-foreground" />;
@@ -47,9 +47,9 @@ function ActiveOrderCard({ order }: { order: Order }) {
   return (
     <Card className="col-span-1 lg:col-span-2">
       <CardHeader>
-        <CardTitle>Active Order: {order.id}</CardTitle>
+        <CardTitle>Активный заказ: {order.id}</CardTitle>
         <CardDescription>
-          {order.service} - Status: <Badge>{order.status}</Badge>
+          {order.service} - Статус: <Badge>{order.status}</Badge>
         </CardDescription>
       </CardHeader>
       <CardContent className="grid gap-4">
@@ -88,13 +88,13 @@ function ActiveOrderCard({ order }: { order: Order }) {
            <div className="absolute bottom-4 right-4 rounded-lg bg-primary/90 p-2 text-primary-foreground shadow-lg">
                 <div className="flex items-center gap-2">
                     <Clock className="h-5 w-5" />
-                    <span className="font-bold">ETA: 8 mins</span>
+                    <span className="font-bold">Прибытие: 8 мин</span>
                 </div>
            </div>
         </div>
       </CardContent>
       <CardFooter>
-        <Button className="w-full">View Order Details</Button>
+        <Button className="w-full">Посмотреть детали заказа</Button>
       </CardFooter>
     </Card>
   );
@@ -111,7 +111,7 @@ function ProviderCard({ provider }: { provider: ServiceProvider }) {
         <p className="text-sm font-medium leading-none">{provider.name}</p>
         <div className="flex items-center text-sm text-muted-foreground">
           <MapPin className="mr-1 h-3 w-3" />
-          {provider.distance} km away
+          {provider.distance} км от вас
         </div>
       </div>
       <div className="flex items-center gap-1 text-sm font-medium">
@@ -123,23 +123,23 @@ function ProviderCard({ provider }: { provider: ServiceProvider }) {
 }
 
 export default function Dashboard() {
-  const activeOrder = mockOrders.find(o => o.status === 'In Progress');
+  const activeOrder = mockOrders.find(o => o.status === 'В процессе');
 
   return (
     <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3 lg:gap-6">
       <div className="col-span-1 flex flex-col gap-4 lg:gap-6">
         <Card>
           <CardHeader>
-            <CardTitle>Quick Actions</CardTitle>
+            <CardTitle>Быстрые действия</CardTitle>
             <CardDescription>
-              Get help on the road quickly and easily.
+              Получите помощь на дороге быстро и легко.
             </CardDescription>
           </CardHeader>
           <CardContent className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <Link href="/services/new" className="w-full">
               <Button size="lg" className="w-full h-full flex flex-col py-4 gap-2">
                 <Wrench className="h-8 w-8" />
-                <span className="text-base">Request Service</span>
+                <span className="text-base">Запросить услугу</span>
               </Button>
             </Link>
             <Button
@@ -148,15 +148,15 @@ export default function Dashboard() {
               className="w-full h-full flex flex-col py-4 gap-2"
             >
               <Siren className="h-8 w-8" />
-              <span className="text-base">Emergency Call</span>
+              <span className="text-base">Экстренный вызов</span>
             </Button>
           </CardContent>
         </Card>
         <Card>
           <CardHeader>
-            <CardTitle>Nearby Providers</CardTitle>
+            <CardTitle>Ближайшие исполнители</CardTitle>
             <CardDescription>
-              Available specialists in your area.
+              Доступные специалисты в вашем районе.
             </CardDescription>
           </CardHeader>
           <CardContent className="grid gap-6">
@@ -175,12 +175,12 @@ export default function Dashboard() {
                 <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-secondary">
                     <Car className="h-8 w-8 text-secondary-foreground" />
                 </div>
-                <CardTitle>All Clear!</CardTitle>
-                <CardDescription>You have no active orders. Your road is clear.</CardDescription>
+                <CardTitle>Все чисто!</CardTitle>
+                <CardDescription>У вас нет активных заказов. Ваша дорога свободна.</CardDescription>
             </CardHeader>
             <CardContent>
                 <Link href="/services/new">
-                    <Button>Create a New Request</Button>
+                    <Button>Создать новый запрос</Button>
                 </Link>
             </CardContent>
         </Card>

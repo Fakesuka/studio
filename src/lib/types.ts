@@ -5,9 +5,9 @@ export type User = {
   avatarUrl: string;
 };
 
-export type OrderStatus = 'Pending' | 'In Progress' | 'Completed' | 'Cancelled';
+export type OrderStatus = 'Ожидает' | 'В процессе' | 'Завершен' | 'Отменен';
 
-export type ServiceType = 'Car Heating' | 'Fuel Delivery' | 'Tech Help' | 'Towing';
+export type ServiceType = 'Отогрев авто' | 'Доставка топлива' | 'Техпомощь' | 'Эвакуатор';
 
 export type Order = {
   id: string;

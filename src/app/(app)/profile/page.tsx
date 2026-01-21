@@ -14,26 +14,26 @@ export default function ProfilePage() {
   return (
     <Card className="mx-auto max-w-2xl">
       <CardHeader>
-        <CardTitle>Profile</CardTitle>
+        <CardTitle>Профиль</CardTitle>
         <CardDescription>
-          Update your personal information and settings.
+          Обновите вашу личную информацию и настройки.
         </CardDescription>
       </CardHeader>
       <CardContent>
         <form className="grid gap-6">
           <div className="grid gap-2">
-            <Label htmlFor="name">Full Name</Label>
+            <Label htmlFor="name">Полное имя</Label>
             <Input id="name" defaultValue={mockUser.name} />
           </div>
           <div className="grid gap-2">
-            <Label htmlFor="phone">Phone Number</Label>
+            <Label htmlFor="phone">Номер телефона</Label>
             <Input id="phone" type="tel" defaultValue={mockUser.phone} />
           </div>
           <div className="grid gap-2">
             <Label htmlFor="email">Email</Label>
             <Input id="email" type="email" defaultValue={mockUser.email} />
           </div>
-          <Button type="submit">Save Changes</Button>
+          <Button type="submit">Сохранить изменения</Button>
         </form>
       </CardContent>
     </Card>
