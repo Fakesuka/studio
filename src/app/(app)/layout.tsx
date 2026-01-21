@@ -14,13 +14,19 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   const isDriverRoute = pathname.startsWith('/driver');
 
   const clientRoutes = bottomMenuItems.map(i => i.href);
-  const driverRoutes = driverBottomMenuItems.map(i => i.href);
+  // Correctly order the driver routes for swipe logic
+  const driverRoutes = [
+    '/driver/dashboard',
+    '/driver/history',
+    '/marketplace',
+    '/driver/profile',
+  ];
 
   const routes = isDriverRoute ? driverRoutes : clientRoutes;
 
   const handleSwiped = (eventData: { dir: string }) => {
-    // Disable swipe on pages with complex touch interactions like maps or carousels
-    const noSwipePaths = ['/dashboard', '/marketplace'];
+    // Disable swipe on pages with complex touch interactions like carousels
+    const noSwipePaths = ['/marketplace'];
     if (noSwipePaths.some(p => pathname.startsWith(p))) {
       return;
     }
