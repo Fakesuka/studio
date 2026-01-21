@@ -85,6 +85,7 @@ export default function CartPage() {
                                 item.quantity - 1
                               )
                             }
+                            disabled={item.quantity <= 1}
                           >
                             <Minus className="h-4 w-4" />
                           </Button>
