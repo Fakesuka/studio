@@ -51,7 +51,7 @@ export function WeatherWidget() {
           const geoRes = await fetch(
             `https://geocoding-api.open-meteo.com/v1/search?latitude=${latitude}&longitude=${longitude}&count=1&language=ru&format=json`
           );
-          if (!geoRes.ok) throw new Error('Failed to fetch city');
+          if (!geoRes.ok) throw new Error('Не удалось получить название города.');
           const geoData = await geoRes.json();
           const city = geoData?.results?.[0]?.name || 'Неизвестный город';
 
@@ -59,7 +59,8 @@ export function WeatherWidget() {
           const weatherRes = await fetch(
             `https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&current=temperature_2m&timezone=auto`
           );
-          if (!weatherRes.ok) throw new Error('Failed to fetch weather');
+          if (!weatherRes.ok)
+            throw new Error('Не удалось получить данные о температуре.');
           const weatherData = await weatherRes.json();
           const temperature = Math.round(weatherData.current.temperature_2m);
 
@@ -70,10 +71,19 @@ export function WeatherWidget() {
           });
         } catch (error) {
           console.error('Failed to fetch weather data', error);
+          let errorMessage =
+            'Не удалось загрузить погоду. Проверьте интернет-соединение и попробуйте снова.';
+          if (
+            error instanceof Error &&
+            (error.message.includes('город') ||
+              error.message.includes('температур'))
+          ) {
+            errorMessage = error.message;
+          }
           setWeather({
             status: 'error',
             data: null,
-            error: 'Не удалось загрузить данные о погоде.',
+            error: errorMessage,
           });
         }
       },
@@ -96,7 +106,7 @@ export function WeatherWidget() {
     weather.status === 'success' &&
     weather.data &&
     weather.data.temperature <= COLD_WEATHER_THRESHOLD;
-  
+
   const isLoading = weather.status === 'loading';
 
   return (
@@ -117,25 +127,36 @@ export function WeatherWidget() {
             </Button>
           </div>
         )}
-        {(weather.status === 'loading') && (
+        {weather.status === 'loading' && (
           <div className="space-y-2 pt-1">
             <Skeleton className="h-7 w-20" />
             <Skeleton className="h-4 w-24" />
           </div>
         )}
         {weather.status === 'error' && (
-           <div className="flex h-full flex-col items-center justify-center gap-2 pt-2">
+          <div className="flex h-full flex-col items-center justify-center gap-2 pt-2">
             <AlertTriangle className="h-6 w-6 text-destructive" />
-            <p className="text-center text-sm text-destructive">{weather.error}</p>
-            <Button size="sm" variant="outline" onClick={fetchWeather} disabled={isLoading}>
+            <p className="text-center text-sm text-destructive">
+              {weather.error}
+            </p>
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={fetchWeather}
+              disabled={isLoading}
+            >
               Попробовать снова
             </Button>
           </div>
         )}
         {weather.status === 'success' && weather.data && (
           <div className="pt-1">
-            <div className="text-2xl font-bold">{weather.data.temperature}°C</div>
-            <p className="text-xs text-muted-foreground">{weather.data.city}</p>
+            <div className="text-2xl font-bold">
+              {weather.data.temperature}°C
+            </div>
+            <p className="text-xs text-muted-foreground">
+              {weather.data.city}
+            </p>
             {isCold && (
               <Alert variant="destructive" className="mt-4">
                 <AlertTriangle className="h-4 w-4" />
