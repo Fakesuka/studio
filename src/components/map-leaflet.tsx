@@ -1,7 +1,5 @@
 'use client';
 
-import 'leaflet/dist/leaflet.css';
-import 'leaflet-defaulticon-compatibility/dist/leaflet-defaulticon-compatibility.css';
 import 'leaflet-defaulticon-compatibility';
 
 import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
@@ -49,7 +47,17 @@ const MapLeaflet: React.FC<MapLeafletProps> = ({
       zoom={zoom}
       scrollWheelZoom={true}
       className={cn('h-full w-full', className)}
+      // Add a div with stopPropagation to prevent swipe handler from interfering
+      // with map interactions like dragging and zooming.
     >
+      <div
+        className="absolute inset-0 z-[1000]"
+        onClick={e => e.stopPropagation()}
+        onMouseDown={e => e.stopPropagation()}
+        onMouseUp={e => e.stopPropagation()}
+        onTouchStart={e => e.stopPropagation()}
+        onTouchEnd={e => e.stopPropagation()}
+      />
       <TileLayer
         attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
         url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
