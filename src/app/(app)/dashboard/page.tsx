@@ -126,22 +126,21 @@ export default function Dashboard() {
   return (
     <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3 lg:gap-6">
       <div className="col-span-1 flex flex-col gap-4 lg:gap-6">
-        <Card>
+        <Card className="flex flex-col">
           <CardHeader>
             <CardTitle>Нужна помощь?</CardTitle>
             <CardDescription>
               Быстро вызовите специалиста для решения вашей проблемы.
             </CardDescription>
           </CardHeader>
-          <CardContent>
-            <Link href="/services/new" className="w-full">
-              <Button
-                size="lg"
-                className="h-full w-full flex-col gap-2 py-6 transition-transform active:scale-95"
+          <CardContent className="flex flex-1 flex-col">
+            <Link href="/services/new" className="flex flex-1 flex-col">
+              <div
+                className="flex h-full min-h-[120px] w-full flex-col items-center justify-center gap-2 rounded-lg bg-gradient-to-br from-primary to-blue-400 p-6 text-primary-foreground shadow-lg transition-all duration-300 hover:shadow-primary/50 active:scale-[0.98] active:shadow-primary/30"
               >
                 <Wrench className="h-10 w-10" />
-                <span className="text-lg">Создать заявку</span>
-              </Button>
+                <span className="text-lg font-bold">Создать заявку</span>
+              </div>
             </Link>
           </CardContent>
         </Card>
