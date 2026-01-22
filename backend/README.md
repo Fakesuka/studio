@@ -78,6 +78,22 @@ FRONTEND_URL=http://localhost:9002
 - `GET /api/marketplace/orders` - Мои заказы
 - `GET /api/marketplace/seller/orders` - Заказы продавца
 
+### Админ-панель
+- `GET /api/admin/dashboard/stats` - Статистика для дашборда
+- `GET /api/admin/users` - Список всех пользователей
+- `POST /api/admin/users/:id/make-admin` - Назначить администратором
+- `POST /api/admin/users/:id/remove-admin` - Снять права администратора
+- `GET /api/admin/drivers/pending` - Неверифицированные водители
+- `POST /api/admin/drivers/:id/verify` - Верифицировать водителя
+- `POST /api/admin/drivers/:id/unverify` - Снять верификацию
+- `GET /api/admin/sellers/pending` - Неверифицированные продавцы
+- `POST /api/admin/sellers/:id/verify` - Верифицировать продавца
+- `POST /api/admin/sellers/:id/unverify` - Снять верификацию
+- `GET /api/admin/products/pending` - Неодобренные товары
+- `POST /api/admin/products/:id/approve` - Одобрить товар
+- `POST /api/admin/products/:id/unapprove` - Отклонить товар
+- `GET /api/admin/orders` - Все заказы (services + marketplace)
+
 ## WebSocket Events
 
 ### От клиента:

@@ -6,6 +6,7 @@ import dotenv from 'dotenv';
 import usersRoutes from './routes/users.routes';
 import ordersRoutes from './routes/orders.routes';
 import marketplaceRoutes from './routes/marketplace.routes';
+import adminRoutes from './routes/admin.routes';
 import prisma from './utils/prisma';
 
 dotenv.config();
@@ -33,6 +34,7 @@ app.get('/health', (req, res) => {
 app.use('/api/users', usersRoutes);
 app.use('/api/orders', ordersRoutes);
 app.use('/api/marketplace', marketplaceRoutes);
+app.use('/api/admin', adminRoutes);
 
 // WebSocket for real-time driver tracking
 io.on('connection', (socket) => {

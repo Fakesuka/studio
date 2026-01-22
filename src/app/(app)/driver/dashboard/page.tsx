@@ -2,6 +2,7 @@
 import { useAppContext } from '@/context/AppContext';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
+import { sendDriverLocation } from '@/lib/websocket';
 import {
   Snowflake,
   Bell,
@@ -164,8 +165,49 @@ function AvailableOrderCard({ order }: { order: Order }) {
 }
 
 function ActiveDriverOrderCard({ order }: { order: Order }) {
-  const { completeOrder } = useAppContext();
+  const { completeOrder, user } = useAppContext();
   const { toast } = useToast();
+  const [isTrackingLocation, setIsTrackingLocation] = useState(false);
+
+  // Broadcast driver location in real-time
+  useEffect(() => {
+    if (!navigator.geolocation || !user?.id) return;
+
+    setIsTrackingLocation(true);
+    let watchId: number;
+
+    // Send location updates every 5 seconds
+    watchId = navigator.geolocation.watchPosition(
+      (position) => {
+        sendDriverLocation(
+          user.id,
+          position.coords.latitude,
+          position.coords.longitude
+        );
+      },
+      (error) => {
+        console.error('Geolocation error:', error);
+        toast({
+          variant: 'destructive',
+          title: 'Ошибка геолокации',
+          description: 'Не удалось определить ваше местоположение.',
+        });
+        setIsTrackingLocation(false);
+      },
+      {
+        enableHighAccuracy: true,
+        timeout: 5000,
+        maximumAge: 0,
+      }
+    );
+
+    return () => {
+      if (watchId) {
+        navigator.geolocation.clearWatch(watchId);
+      }
+      setIsTrackingLocation(false);
+    };
+  }, [user?.id, toast]);
 
   const handleComplete = () => {
     completeOrder(order.id);
@@ -187,6 +229,14 @@ function ActiveDriverOrderCard({ order }: { order: Order }) {
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
+        {isTrackingLocation && (
+          <div className="flex items-center gap-2 rounded-md bg-green-50 p-3 text-green-700 dark:bg-green-950 dark:text-green-300">
+            <Navigation className="h-4 w-4 animate-pulse" />
+            <span className="text-sm font-medium">
+              Ваше местоположение отслеживается
+            </span>
+          </div>
+        )}
         <div>
           <h3 className="mb-2 font-semibold">Детали заказа</h3>
           <p className="flex items-start gap-2 text-sm">

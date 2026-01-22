@@ -14,6 +14,7 @@ model User {
   phone           String?
   avatarUrl       String?
   balance         Float            @default(0)
+  isAdmin         Boolean          @default(false)
   createdAt       DateTime         @default(now())
   updatedAt       DateTime         @updatedAt
 
@@ -26,6 +27,7 @@ model User {
   driverOrders    Order[]          @relation("DriverOrders")
 
   @@index([telegramId])
+  @@index([isAdmin])
 }
 
 model DriverProfile {
@@ -39,11 +41,14 @@ model DriverProfile {
   legalStatus     String           // "Самозанятый" или "ИП"
   rating          Float            @default(5.0)
   totalOrders     Int              @default(0)
+  verified        Boolean          @default(false)
+  verifiedAt      DateTime?
 
   createdAt       DateTime         @default(now())
   updatedAt       DateTime         @updatedAt
 
   @@index([userId])
+  @@index([verified])
 }
 
 model SellerProfile {
@@ -56,6 +61,8 @@ model SellerProfile {
   storeDescription String
   address         String?
   workingHours    String?
+  verified        Boolean          @default(false)
+  verifiedAt      DateTime?
 
   createdAt       DateTime         @default(now())
   updatedAt       DateTime         @updatedAt
@@ -129,6 +136,8 @@ model Product {
   delivery        Boolean          @default(false)
   deliveryPrice   Float?
   pickup          Boolean          @default(true)
+  approved        Boolean          @default(false)
+  approvedAt      DateTime?
 
   cartItems       CartItem[]
   orderItems      MarketplaceOrderItem[]
@@ -137,6 +146,7 @@ model Product {
   updatedAt       DateTime         @updatedAt
 
   @@index([shopId])
+  @@index([approved])
 }
 
 model CartItem {

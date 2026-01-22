@@ -10,6 +10,8 @@ export interface MapMarker {
   coords: [number, number];
   popup?: string | HTMLElement;
   icon?: any;
+  iconUrl?: string;
+  iconSize?: [number, number];
 }
 
 interface Map2GISProps {
@@ -92,7 +94,19 @@ const Map2GIS: React.FC<Map2GISProps> = ({
       if (existingMarker) {
         existingMarker.setLatLng(markerInfo.coords);
       } else {
-        const newMarker = DG.marker(markerInfo.coords).addTo(map);
+        const markerOptions: any = {};
+
+        // Use custom icon if provided
+        if (markerInfo.iconUrl) {
+          markerOptions.icon = DG.icon({
+            iconUrl: markerInfo.iconUrl,
+            iconSize: markerInfo.iconSize || [32, 32],
+            iconAnchor: [16, 32],
+            popupAnchor: [0, -32],
+          });
+        }
+
+        const newMarker = DG.marker(markerInfo.coords, markerOptions).addTo(map);
         if (markerInfo.popup) {
           newMarker.bindPopup(markerInfo.popup);
         }
