@@ -94,6 +94,19 @@ FRONTEND_URL=http://localhost:9002
 - `POST /api/admin/products/:id/unapprove` - Отклонить товар
 - `GET /api/admin/orders` - Все заказы (services + marketplace)
 
+### Платежи (ЮKassa)
+- `POST /api/payments/create` - Создать платеж для пополнения баланса
+- `GET /api/payments/:paymentId/status` - Проверить статус платежа
+- `GET /api/payments/transactions` - История транзакций
+- `POST /api/payments/withdraw` - Запрос на вывод средств (водители/продавцы)
+- `POST /api/payments/webhook/yookassa` - Webhook для обработки платежей
+
+### Отзывы и рейтинги
+- `POST /api/reviews` - Создать отзыв после заказа
+- `GET /api/reviews/user/:userId` - Получить отзывы о пользователе
+- `GET /api/reviews/my-reviews` - Мои отзывы
+- `GET /api/reviews/can-review/:orderId` - Проверить возможность оставить отзыв
+
 ## WebSocket Events
 
 ### От клиента:
