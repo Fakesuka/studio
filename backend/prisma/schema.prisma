@@ -310,3 +310,63 @@ model Review {
   @@index([toUserId])
   @@index([type])
 }
+
+// Chat messages between customer and driver
+model Message {
+  id              String           @id @default(cuid())
+
+  orderId         String           // Associated order
+  senderId        String           // Who sent the message
+  receiverId      String           // Who receives the message
+  content         String           // Message text
+  read            Boolean          @default(false)
+
+  createdAt       DateTime         @default(now())
+
+  @@index([orderId])
+  @@index([senderId])
+  @@index([receiverId])
+  @@index([createdAt])
+}
+
+// Promocodes and bonuses
+model Promocode {
+  id              String           @id @default(cuid())
+  code            String           @unique
+  type            String           // discount_percent, discount_fixed, bonus_balance
+  value           Float            // Discount percentage or fixed amount
+  maxUses         Int?             // Maximum number of uses
+  usedCount       Int              @default(0)
+  expiresAt       DateTime?
+  active          Boolean          @default(true)
+  createdAt       DateTime         @default(now())
+
+  @@index([code])
+  @@index([active])
+}
+
+// Promocode usage history
+model PromocodeUsage {
+  id              String           @id @default(cuid())
+  userId          String
+  promocodeId     String
+  orderId         String?
+  discountAmount  Float
+  createdAt       DateTime         @default(now())
+
+  @@index([userId])
+  @@index([promocodeId])
+}
+
+// Referral system
+model Referral {
+  id              String           @id @default(cuid())
+  referrerId      String           // Who invited
+  referredId      String           @unique // Who was invited
+  bonusGiven      Boolean          @default(false)
+  bonusAmount     Float            @default(0)
+  createdAt       DateTime         @default(now())
+
+  @@index([referrerId])
+  @@index([referredId])
+}
