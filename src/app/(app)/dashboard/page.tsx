@@ -64,6 +64,18 @@ function ActiveOrderCard({ order }: { order: Order }) {
     'loading' | 'success' | 'error'
   >('loading');
   const [locationError, setLocationError] = useState<string | null>(null);
+  const [timeRemaining, setTimeRemaining] = useState(order.arrivalTime);
+
+  useEffect(() => {
+    if (!timeRemaining || timeRemaining <= 0) return;
+
+    // Countdown every minute
+    const timer = setInterval(() => {
+      setTimeRemaining(prevTime => (prevTime > 0 ? prevTime - 1 : 0));
+    }, 60000);
+
+    return () => clearInterval(timer);
+  }, [timeRemaining]);
 
   useEffect(() => {
     if (!navigator.geolocation) {
@@ -74,7 +86,10 @@ function ActiveOrderCard({ order }: { order: Order }) {
 
     navigator.geolocation.getCurrentPosition(
       position => {
-        setCustomerCoords([position.coords.latitude, position.coords.longitude]);
+        setCustomerCoords([
+          position.coords.latitude,
+          position.coords.longitude,
+        ]);
         setLocationStatus('success');
       },
       error => {
@@ -196,17 +211,22 @@ function ActiveOrderCard({ order }: { order: Order }) {
             </div>
           </div>
         )}
-        <div
-          className="relative aspect-[4/3] w-full overflow-hidden rounded-md border"
-        >
+        <div className="relative aspect-[4/3] w-full overflow-hidden rounded-md border">
           {renderMapContent()}
-          {order.arrivalTime && (
+          {timeRemaining && timeRemaining > 0 ? (
             <div className="absolute bottom-4 right-4 z-[1000] rounded-md bg-background/80 p-2 text-foreground shadow-lg backdrop-blur-sm">
               <div className="flex items-center gap-2">
                 <Clock className="h-5 w-5 text-primary" />
                 <span className="font-bold">
-                  Прибытие: {order.arrivalTime} мин
+                  Прибытие через: ~{timeRemaining} мин
                 </span>
+              </div>
+            </div>
+          ) : (
+            <div className="absolute bottom-4 right-4 z-[1000] rounded-md bg-background/80 p-2 text-foreground shadow-lg backdrop-blur-sm">
+              <div className="flex items-center gap-2">
+                <Clock className="h-5 w-5 text-green-600" />
+                <span className="font-bold">Водитель прибывает</span>
               </div>
             </div>
           )}
