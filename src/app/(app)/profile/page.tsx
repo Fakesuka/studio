@@ -15,6 +15,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
+import { useState } from 'react';
 import {
   Form,
   FormControl,
@@ -25,6 +26,7 @@ import {
 } from '@/components/ui/form';
 import { useAppContext } from '@/context/AppContext';
 import { useToast } from '@/hooks/use-toast';
+import TopUpBalance from '@/components/top-up-balance';
 import {
   Store,
   CheckCircle,
@@ -37,6 +39,13 @@ import Link from 'next/link';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { ThemeSwitcher } from '@/components/theme-switcher';
 import { Checkbox } from '@/components/ui/checkbox';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
 
 const sellerFormSchema = z
   .object({
@@ -79,6 +88,7 @@ export default function ProfilePage() {
   const MOCK_USER_ID = 'self'; // In a real app, this would come from auth.
   const { isSeller, registerAsSeller, shops, sellerProfile } = useAppContext();
   const { toast } = useToast();
+  const [showTopUp, setShowTopUp] = useState(false);
 
   const userShop = shops.find(shop => shop.userId === MOCK_USER_ID);
 
@@ -102,10 +112,15 @@ export default function ProfilePage() {
     });
   };
 
-  const handleWalletAction = () => {
+  const handleTopUpBalance = () => {
+    setShowTopUp(true);
+  };
+
+  const handleTopUpSuccess = () => {
+    setShowTopUp(false);
     toast({
-      title: 'В разработке',
-      description: 'Интеграция с платежной системой скоро появится.',
+      title: 'Платеж создан',
+      description: 'Откройте страницу оплаты для завершения.',
     });
   };
 
@@ -200,14 +215,15 @@ export default function ProfilePage() {
               </p>
             </CardContent>
             <CardFooter className="gap-2">
-              <Button className="flex-1" onClick={handleWalletAction}>
+              <Button className="flex-1" onClick={handleTopUpBalance}>
                 <Plus className="mr-2 h-4 w-4" />
                 Пополнить
               </Button>
               <Button
                 variant="secondary"
                 className="flex-1"
-                onClick={handleWalletAction}
+                disabled
+                title="Скоро появится"
               >
                 <ArrowRight className="mr-2 h-4 w-4" />
                 Вывести
@@ -379,6 +395,19 @@ export default function ProfilePage() {
           </Form>
         </Card>
       )}
+
+      {/* Dialog для пополнения баланса */}
+      <Dialog open={showTopUp} onOpenChange={setShowTopUp}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Пополнение баланса</DialogTitle>
+            <DialogDescription>
+              Выберите сумму и завершите оплату через ЮKassa
+            </DialogDescription>
+          </DialogHeader>
+          <TopUpBalance onSuccess={handleTopUpSuccess} />
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
