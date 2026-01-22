@@ -21,6 +21,17 @@ import { useAppContext } from '@/context/AppContext';
 import type { OrderStatus, MarketplaceOrderStatus } from '@/lib/types';
 import { format } from 'date-fns';
 import { ru } from 'date-fns/locale';
+import { useState } from 'react';
+import { Button } from '@/components/ui/button';
+import { Star } from 'lucide-react';
+import ReviewForm from '@/components/review-form';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
 
 const getServiceStatusVariant = (status: OrderStatus) => {
   switch (status) {
@@ -56,6 +67,7 @@ const getMarketplaceStatusVariant = (status: MarketplaceOrderStatus) => {
 export default function OrdersPage() {
   const { orders, marketplaceOrders, isContextLoading } = useAppContext();
   const MOCK_USER_ID = 'self';
+  const [reviewOrderId, setReviewOrderId] = useState<string | null>(null);
 
   const userOrders = orders
     .filter(o => o.userId === MOCK_USER_ID)
@@ -95,6 +107,7 @@ export default function OrdersPage() {
                       Дата
                     </TableHead>
                     <TableHead className="text-right">Цена</TableHead>
+                    <TableHead className="text-right">Действия</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -121,6 +134,18 @@ export default function OrdersPage() {
                           style: 'currency',
                           currency: 'RUB',
                         })}
+                      </TableCell>
+                      <TableCell className="text-right">
+                        {order.status === 'Завершен' && (
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => setReviewOrderId(order.id)}
+                          >
+                            <Star className="mr-1 h-3 w-3" />
+                            Оценить
+                          </Button>
+                        )}
                       </TableCell>
                     </TableRow>
                   ))}
@@ -196,6 +221,24 @@ export default function OrdersPage() {
           </TabsContent>
         </Tabs>
       </CardContent>
+
+      {/* Dialog для оценки заказа */}
+      <Dialog open={!!reviewOrderId} onOpenChange={(open) => !open && setReviewOrderId(null)}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Оценить заказ</DialogTitle>
+            <DialogDescription>
+              Пожалуйста, оцените качество выполненной работы
+            </DialogDescription>
+          </DialogHeader>
+          {reviewOrderId && (
+            <ReviewForm
+              orderId={reviewOrderId}
+              onSuccess={() => setReviewOrderId(null)}
+            />
+          )}
+        </DialogContent>
+      </Dialog>
     </Card>
   );
 }

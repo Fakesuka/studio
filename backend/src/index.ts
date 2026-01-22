@@ -7,6 +7,11 @@ import usersRoutes from './routes/users.routes';
 import ordersRoutes from './routes/orders.routes';
 import marketplaceRoutes from './routes/marketplace.routes';
 import adminRoutes from './routes/admin.routes';
+import paymentsRoutes from './routes/payments.routes';
+import reviewsRoutes from './routes/reviews.routes';
+import chatRoutes from './routes/chat.routes';
+import analyticsRoutes from './routes/analytics.routes';
+import bonusesRoutes from './routes/bonuses.routes';
 import prisma from './utils/prisma';
 
 dotenv.config();
@@ -35,6 +40,11 @@ app.use('/api/users', usersRoutes);
 app.use('/api/orders', ordersRoutes);
 app.use('/api/marketplace', marketplaceRoutes);
 app.use('/api/admin', adminRoutes);
+app.use('/api/payments', paymentsRoutes);
+app.use('/api/reviews', reviewsRoutes);
+app.use('/api/chat', chatRoutes);
+app.use('/api/analytics', analyticsRoutes);
+app.use('/api/bonuses', bonusesRoutes);
 
 // WebSocket for real-time driver tracking
 io.on('connection', (socket) => {
@@ -83,6 +93,72 @@ io.on('connection', (socket) => {
   socket.on('order:unsubscribe', (orderId: string) => {
     socket.leave(`order:${orderId}`);
     console.log(`Client unsubscribed from order: ${orderId}`);
+  });
+
+  // Chat: Join chat room
+  socket.on('chat:join', (orderId: string) => {
+    socket.join(`chat:${orderId}`);
+    console.log(`Socket ${socket.id} joined chat: ${orderId}`);
+  });
+
+  // Chat: Leave chat room
+  socket.on('chat:leave', (orderId: string) => {
+    socket.leave(`chat:${orderId}`);
+    console.log(`Socket ${socket.id} left chat: ${orderId}`);
+  });
+
+  // Chat: Send message
+  socket.on('chat:send', async (data: { orderId: string; senderId: string; receiverId: string; content: string }) => {
+    try {
+      const { orderId, senderId, receiverId, content } = data;
+
+      // Save message to database
+      const message = await prisma.message.create({
+        data: {
+          orderId,
+          senderId,
+          receiverId,
+          content,
+        },
+      });
+
+      // Broadcast message to chat room
+      io.to(`chat:${orderId}`).emit('chat:message', {
+        id: message.id,
+        orderId,
+        senderId,
+        receiverId,
+        content,
+        createdAt: message.createdAt,
+        read: false,
+      });
+
+      console.log(`Message sent in order ${orderId} from ${senderId}`);
+    } catch (error) {
+      console.error('Error sending chat message:', error);
+      socket.emit('chat:error', { message: 'Failed to send message' });
+    }
+  });
+
+  // Chat: Mark messages as read
+  socket.on('chat:mark-read', async (data: { orderId: string; userId: string }) => {
+    try {
+      const { orderId, userId } = data;
+
+      await prisma.message.updateMany({
+        where: {
+          orderId,
+          receiverId: userId,
+          read: false,
+        },
+        data: { read: true },
+      });
+
+      // Notify other participants
+      io.to(`chat:${orderId}`).emit('chat:messages-read', { orderId, userId });
+    } catch (error) {
+      console.error('Error marking messages as read:', error);
+    }
   });
 
   socket.on('disconnect', () => {

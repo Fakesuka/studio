@@ -94,15 +94,60 @@ FRONTEND_URL=http://localhost:9002
 - `POST /api/admin/products/:id/unapprove` - Отклонить товар
 - `GET /api/admin/orders` - Все заказы (services + marketplace)
 
+### Платежи (ЮKassa)
+- `POST /api/payments/create` - Создать платеж для пополнения баланса
+- `GET /api/payments/:paymentId/status` - Проверить статус платежа
+- `GET /api/payments/transactions` - История транзакций
+- `POST /api/payments/withdraw` - Запрос на вывод средств (водители/продавцы)
+- `POST /api/payments/webhook/yookassa` - Webhook для обработки платежей
+
+### Отзывы и рейтинги
+- `POST /api/reviews` - Создать отзыв после заказа
+- `GET /api/reviews/user/:userId` - Получить отзывы о пользователе
+- `GET /api/reviews/my-reviews` - Мои отзывы
+- `GET /api/reviews/can-review/:orderId` - Проверить возможность оставить отзыв
+
+### Чат
+- `GET /api/chat/conversations` - Список всех чатов пользователя
+- `GET /api/chat/unread-count` - Количество непрочитанных сообщений
+- `GET /api/chat/:orderId/messages` - История сообщений по заказу
+- `POST /api/chat/:orderId/send` - Отправить сообщение
+
+### Аналитика
+- `GET /api/analytics/driver` - Статистика для водителя (period: day/week/month/year)
+- `GET /api/analytics/seller` - Статистика для продавца (продажи, топ товары)
+- `GET /api/analytics/top-drivers` - Рейтинг лучших водителей
+
+### Бонусы и промокоды
+- `POST /api/bonuses/apply-promocode` - Применить промокод
+- `POST /api/bonuses/confirm-promocode-usage` - Подтвердить использование
+- `GET /api/bonuses/referral-link` - Получить реферальную ссылку
+- `POST /api/bonuses/register-referral` - Зарегистрировать реферала
+- `POST /api/bonuses/promocodes` - Создать промокод (admin)
+- `GET /api/bonuses/promocodes` - Список промокодов (admin)
+
 ## WebSocket Events
 
-### От клиента:
+### Отслеживание водителя:
+**От клиента:**
 - `driver:location` - Водитель отправляет координаты
 - `order:subscribe` - Подписка на обновления заказа
 - `order:unsubscribe` - Отписка от обновлений
 
-### От сервера:
+**От сервера:**
 - `driver:location:update` - Обновление координат водителя
+
+### Чат:
+**От клиента:**
+- `chat:join` - Присоединиться к чату заказа
+- `chat:leave` - Покинуть чат
+- `chat:send` - Отправить сообщение
+- `chat:mark-read` - Отметить сообщения как прочитанные
+
+**От сервера:**
+- `chat:message` - Новое сообщение в чате
+- `chat:messages-read` - Сообщения прочитаны
+- `chat:error` - Ошибка отправки сообщения
 
 ## Аутентификация
 

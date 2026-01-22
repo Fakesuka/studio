@@ -25,6 +25,11 @@ model User {
   shops           Shop[]
   marketplaceOrders MarketplaceOrder[]
   driverOrders    Order[]          @relation("DriverOrders")
+  payments        Payment[]
+  transactions    Transaction[]
+  withdrawals     Withdrawal[]
+  reviewsGiven    Review[]         @relation("ReviewsGiven")
+  reviewsReceived Review[]         @relation("ReviewsReceived")
 
   @@index([telegramId])
   @@index([isAdmin])
@@ -217,4 +222,151 @@ model DriverLocation {
   updatedAt       DateTime         @updatedAt
 
   @@index([driverId])
+}
+
+// Payment transactions (YooKassa, Telegram Stars)
+model Payment {
+  id              String           @id @default(cuid())
+  paymentId       String           @unique // External payment ID
+
+  userId          String
+  user            User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  amount          Float
+  status          String           // pending, succeeded, canceled
+  type            String           // topup, service_payment, marketplace_payment
+  provider        String           // yookassa, telegram_stars
+  metadata        Json?
+
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+
+  @@index([userId])
+  @@index([paymentId])
+  @@index([status])
+}
+
+// Transaction history
+model Transaction {
+  id              String           @id @default(cuid())
+
+  userId          String
+  user            User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  type            String           // topup, withdrawal, order_payment, order_earning, commission
+  amount          Float            // Positive for income, negative for expenses
+  description     String
+  paymentId       String?
+  orderId         String?
+
+  createdAt       DateTime         @default(now())
+
+  @@index([userId])
+  @@index([type])
+  @@index([createdAt])
+}
+
+// Withdrawal requests (for drivers and sellers)
+model Withdrawal {
+  id              String           @id @default(cuid())
+
+  userId          String
+  user            User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  amount          Float
+  destination     String           // Card number or YooMoney wallet
+  destinationType String           // bank_card, yoo_money
+  status          String           @default("pending") // pending, processing, completed, rejected
+  rejectionReason String?
+  processedAt     DateTime?
+
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+
+  @@index([userId])
+  @@index([status])
+}
+
+// Reviews and ratings
+model Review {
+  id              String           @id @default(cuid())
+
+  orderId         String           @unique // One review per order
+
+  fromUserId      String           // Who wrote the review
+  fromUser        User             @relation("ReviewsGiven", fields: [fromUserId], references: [id], onDelete: Cascade)
+
+  toUserId        String           // Who received the review (driver or customer)
+  toUser          User             @relation("ReviewsReceived", fields: [toUserId], references: [id], onDelete: Cascade)
+
+  rating          Int              // 1-5 stars
+  comment         String?
+  type            String           // driver_review, customer_review
+
+  createdAt       DateTime         @default(now())
+
+  @@index([orderId])
+  @@index([fromUserId])
+  @@index([toUserId])
+  @@index([type])
+}
+
+// Chat messages between customer and driver
+model Message {
+  id              String           @id @default(cuid())
+
+  orderId         String           // Associated order
+  senderId        String           // Who sent the message
+  receiverId      String           // Who receives the message
+  content         String           // Message text
+  read            Boolean          @default(false)
+
+  createdAt       DateTime         @default(now())
+
+  @@index([orderId])
+  @@index([senderId])
+  @@index([receiverId])
+  @@index([createdAt])
+}
+
+// Promocodes and bonuses
+model Promocode {
+  id              String           @id @default(cuid())
+  code            String           @unique
+  type            String           // discount_percent, discount_fixed, bonus_balance
+  value           Float            // Discount percentage or fixed amount
+  maxUses         Int?             // Maximum number of uses
+  usedCount       Int              @default(0)
+  expiresAt       DateTime?
+  active          Boolean          @default(true)
+  createdAt       DateTime         @default(now())
+
+  @@index([code])
+  @@index([active])
+}
+
+// Promocode usage history
+model PromocodeUsage {
+  id              String           @id @default(cuid())
+  userId          String
+  promocodeId     String
+  orderId         String?
+  discountAmount  Float
+  createdAt       DateTime         @default(now())
+
+  @@index([userId])
+  @@index([promocodeId])
+}
+
+// Referral system
+model Referral {
+  id              String           @id @default(cuid())
+  referrerId      String           // Who invited
+  referredId      String           @unique // Who was invited
+  bonusGiven      Boolean          @default(false)
+  bonusAmount     Float            @default(0)
+  createdAt       DateTime         @default(now())
+
+  @@index([referrerId])
+  @@index([referredId])
 }
