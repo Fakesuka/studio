@@ -185,6 +185,354 @@ backend/
 └── package.json
 ```
 
+## Модели базы данных
+
+### Новые модели (v2.0.0):
+
+**Message** - Сообщения чата между клиентом и водителем:
+```prisma
+model Message {
+  id         String   @id @default(cuid())
+  orderId    String   // ID заказа
+  senderId   String   // Отправитель
+  receiverId String   // Получатель
+  content    String   // Текст сообщения
+  read       Boolean  @default(false)
+  createdAt  DateTime @default(now())
+}
+```
+
+**Promocode** - Промокоды для скидок и бонусов:
+```prisma
+model Promocode {
+  id        String    @id @default(cuid())
+  code      String    @unique
+  type      String    // discount_percent, discount_fixed, bonus_balance
+  value     Float     // Значение (процент или сумма)
+  maxUses   Int?      // Максимум использований
+  usedCount Int       @default(0)
+  expiresAt DateTime? // Срок действия
+  active    Boolean   @default(true)
+  createdAt DateTime  @default(now())
+}
+```
+
+**PromocodeUsage** - История использования промокодов:
+```prisma
+model PromocodeUsage {
+  id             String   @id @default(cuid())
+  userId         String
+  promocodeId    String
+  orderId        String?
+  discountAmount Float
+  createdAt      DateTime @default(now())
+}
+```
+
+**Referral** - Реферальная программа:
+```prisma
+model Referral {
+  id          String   @id @default(cuid())
+  referrerId  String   // Кто пригласил
+  referredId  String   @unique // Кого пригласили
+  bonusGiven  Boolean  @default(false)
+  bonusAmount Float    @default(0)
+  createdAt   DateTime @default(now())
+}
+```
+
+## Детальная документация API
+
+### Чат (Chat API)
+
+#### GET /api/chat/conversations
+Получить список всех чатов пользователя с последним сообщением.
+
+**Ответ:**
+```json
+{
+  "conversations": [
+    {
+      "orderId": "order123",
+      "otherUser": {
+        "id": "user456",
+        "name": "Иван Иванов",
+        "avatar": "https://..."
+      },
+      "lastMessage": {
+        "content": "Спасибо!",
+        "createdAt": "2026-01-22T10:30:00Z",
+        "read": true
+      },
+      "unreadCount": 0
+    }
+  ]
+}
+```
+
+#### GET /api/chat/:orderId/messages
+Получить историю сообщений по заказу. Автоматически помечает сообщения как прочитанные.
+
+**Ответ:**
+```json
+{
+  "messages": [
+    {
+      "id": "msg123",
+      "senderId": "user123",
+      "receiverId": "user456",
+      "content": "Здравствуйте, я уже еду",
+      "read": true,
+      "createdAt": "2026-01-22T10:00:00Z"
+    }
+  ]
+}
+```
+
+#### POST /api/chat/:orderId/send
+Отправить сообщение в чат.
+
+**Запрос:**
+```json
+{
+  "content": "Привет! Когда будете?"
+}
+```
+
+**Ответ:**
+```json
+{
+  "message": {
+    "id": "msg456",
+    "orderId": "order123",
+    "senderId": "user123",
+    "receiverId": "driver789",
+    "content": "Привет! Когда будете?",
+    "read": false,
+    "createdAt": "2026-01-22T10:35:00Z"
+  }
+}
+```
+
+### Аналитика (Analytics API)
+
+#### GET /api/analytics/driver?period=month
+Получить статистику для водителя за период.
+
+**Параметры:**
+- `period`: `day`, `week`, `month`, `year`
+
+**Ответ:**
+```json
+{
+  "summary": {
+    "totalRevenue": 50000,
+    "earnings": 45000,
+    "ordersCount": 25,
+    "avgOrderValue": 2000
+  },
+  "serviceBreakdown": [
+    {
+      "service": "Отогрев авто",
+      "count": 15,
+      "revenue": 30000
+    },
+    {
+      "service": "Доставка топлива",
+      "count": 10,
+      "revenue": 20000
+    }
+  ],
+  "dailyStats": [
+    {
+      "date": "2026-01-15",
+      "revenue": 4000,
+      "ordersCount": 2
+    }
+  ]
+}
+```
+
+#### GET /api/analytics/seller?period=month
+Получить статистику для продавца.
+
+**Ответ:**
+```json
+{
+  "summary": {
+    "totalSales": 100000,
+    "ordersCount": 50,
+    "avgOrderValue": 2000,
+    "productsCount": 25
+  },
+  "topProducts": [
+    {
+      "id": "prod123",
+      "name": "Моторное масло 5W-40",
+      "sales": 30000,
+      "quantity": 15
+    }
+  ]
+}
+```
+
+#### GET /api/analytics/top-drivers
+Публичный рейтинг лучших водителей.
+
+**Ответ:**
+```json
+{
+  "drivers": [
+    {
+      "id": "driver123",
+      "name": "Иван Иванов",
+      "totalOrders": 150,
+      "totalEarnings": 300000,
+      "averageRating": 4.8
+    }
+  ]
+}
+```
+
+### Бонусы (Bonuses API)
+
+#### POST /api/bonuses/apply-promocode
+Применить промокод к заказу.
+
+**Запрос:**
+```json
+{
+  "code": "WINTER2026",
+  "orderAmount": 1000
+}
+```
+
+**Ответ (успешно):**
+```json
+{
+  "valid": true,
+  "promocode": {
+    "code": "WINTER2026",
+    "type": "discount_percent",
+    "value": 15
+  },
+  "discountAmount": 150,
+  "finalAmount": 850
+}
+```
+
+**Ответ (ошибка):**
+```json
+{
+  "valid": false,
+  "error": "Промокод уже использован"
+}
+```
+
+#### POST /api/bonuses/confirm-promocode-usage
+Подтвердить использование промокода после создания заказа.
+
+**Запрос:**
+```json
+{
+  "code": "WINTER2026",
+  "orderId": "order123",
+  "discountAmount": 150
+}
+```
+
+#### GET /api/bonuses/referral-link
+Получить реферальную ссылку пользователя.
+
+**Ответ:**
+```json
+{
+  "referralLink": "https://t.me/YakGoBot?start=ref_user123",
+  "referralCode": "user123"
+}
+```
+
+#### POST /api/bonuses/register-referral
+Зарегистрировать реферала (вызывается при регистрации нового пользователя).
+
+**Запрос:**
+```json
+{
+  "referralCode": "user123"
+}
+```
+
+**Ответ:**
+```json
+{
+  "success": true,
+  "referrerBonus": 100,
+  "referredBonus": 50
+}
+```
+
+#### POST /api/bonuses/promocodes (Admin)
+Создать новый промокод.
+
+**Запрос:**
+```json
+{
+  "code": "NEWYEAR2026",
+  "type": "discount_percent",
+  "value": 20,
+  "maxUses": 100,
+  "expiresAt": "2026-12-31T23:59:59Z"
+}
+```
+
+#### GET /api/bonuses/promocodes (Admin)
+Получить список всех промокодов.
+
+**Ответ:**
+```json
+{
+  "promocodes": [
+    {
+      "id": "promo123",
+      "code": "NEWYEAR2026",
+      "type": "discount_percent",
+      "value": 20,
+      "usedCount": 45,
+      "maxUses": 100,
+      "expiresAt": "2026-12-31T23:59:59Z",
+      "active": true
+    }
+  ]
+}
+```
+
+## Система уведомлений
+
+Backend автоматически отправляет push-уведомления через Telegram Bot API при следующих событиях:
+
+- **Новый заказ** → Водителю (с деталями и кнопкой "Принять")
+- **Заказ принят** → Клиенту (водитель в пути)
+- **Заказ завершен** → Обеим сторонам
+- **Новое сообщение в чате** → Получателю (с текстом сообщения)
+- **Пополнение баланса** → Пользователю (сумма и новый баланс)
+- **Вывод средств обработан** → Водителю/продавцу
+- **Новый отзыв** → Водителю/продавцу
+- **Бонус по реферальной программе** → Обеим сторонам
+- **Применен промокод** → Пользователю
+
+Все уведомления отправляются через утилиту `src/utils/telegram-notifications.ts`.
+
+## Настройка Telegram Bot для уведомлений
+
+1. Создайте бота через [@BotFather](https://t.me/BotFather)
+2. Получите токен и сохраните в `.env`:
+   ```env
+   TELEGRAM_BOT_TOKEN=1234567890:ABCdefGHIjklMNOpqrsTUVwxyz
+   ```
+3. Пользователи должны запустить бота (`/start`)
+4. При запуске бот сохранит `telegramId` в БД
+5. После этого бот сможет отправлять уведомления
+
 ## Подробная документация
 
 См. [INSTALLATION.md](../INSTALLATION.md) в корне проекта.
