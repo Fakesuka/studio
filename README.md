@@ -29,7 +29,7 @@ YakGo — это полнофункциональная платформа дл�
 *   **UI-компоненты:** [Shadcn/UI](https://ui.shadcn.com/)
 *   **Стилизация:** [Tailwind CSS](https://tailwindcss.com/)
 *   **Карты:** [2GIS API](https://docs.2gis.ru/ru/maps/intro)
-*   **AI-функции:** [Genkit (Google AI)](https://firebase.google.com/docs/genkit)
+*   **AI-функции:** [Qwen AI](https://qwenlm.github.io/) (Ollama/DashScope/OpenAI-compatible)
 *   **Telegram:** [Telegram Mini Apps SDK](https://core.telegram.org/bots/webapps)
 
 ### Backend
@@ -137,6 +137,7 @@ npm run bot  # Следуйте инструкциям
 
 - 🔐 **Аутентификация через Telegram** (без SMS и паролей)
 - 🚗 **Создание заказов** на отогрев, доставку топлива, эвакуацию
+- 🤖 **AI диагностика** с Qwen для рекомендации услуг (Ollama/DashScope/OpenAI)
 - 👨‍🔧 **Регистрация водителей** с выбором услуг
 - 📍 **Отслеживание водителя в реальном времени** (WebSocket)
 - 🛒 **Маркетплейс** с товарами для автомобилистов
@@ -196,6 +197,11 @@ npm run bot  # Следуйте инструкциям
 NEXT_PUBLIC_API_URL=http://localhost:3001/api
 NEXT_PUBLIC_WS_URL=http://localhost:3001
 NEXT_PUBLIC_2GIS_API_KEY=your-key
+
+# AI (Qwen) - выберите один вариант
+OLLAMA_ENABLED=true              # Ollama (локально, бесплатно)
+# DASHSCOPE_API_KEY=sk-xxx       # Alibaba Cloud DashScope
+# OPENAI_API_KEY=sk-xxx          # OpenAI или совместимый API
 ```
 
 ### Backend (.env):
@@ -207,7 +213,34 @@ TELEGRAM_BOT_TOKEN=your-token
 FRONTEND_URL=http://localhost:9002
 ```
 
-## 11. Contributing
+## 11. AI Диагностика (Qwen)
+
+Приложение использует AI для анализа проблем и рекомендации услуг.
+
+**Быстрый старт с Ollama (рекомендуется):**
+
+```bash
+# 1. Установите Ollama
+brew install ollama  # macOS
+# или скачайте с https://ollama.com
+
+# 2. Загрузите модель Qwen
+ollama pull qwen2.5:7b
+
+# 3. Добавьте в .env.local
+echo "OLLAMA_ENABLED=true" >> .env.local
+
+# 4. Готово! AI работает
+```
+
+**Другие варианты:**
+- Alibaba Cloud DashScope (облако)
+- OpenAI API или совместимые сервисы
+- Fallback (ключевые слова) - без AI
+
+См. полную инструкцию: **[AI_SETUP.md](./AI_SETUP.md)**
+
+## 12. Contributing
 
 1. Fork проект
 2. Создайте feature branch (`git checkout -b feature/amazing-feature`)
@@ -215,7 +248,7 @@ FRONTEND_URL=http://localhost:9002
 4. Push в branch (`git push origin feature/amazing-feature`)
 5. Откройте Pull Request
 
-## 12. License
+## 13. License
 
 MIT
 

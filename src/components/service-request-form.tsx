@@ -40,7 +40,7 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import {
   diagnoseProblem,
   type DiagnoseProblemOutput,
-} from '@/ai/diagnose-problem';
+} from '@/ai/qwen';
 
 const formSchema = z.object({
   serviceType: z.string({
