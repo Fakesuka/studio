@@ -1,0 +1,220 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id              String           @id @default(cuid())
+  telegramId      String           @unique
+  name            String
+  phone           String?
+  avatarUrl       String?
+  balance         Float            @default(0)
+  isAdmin         Boolean          @default(false)
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+
+  // Relations
+  orders          Order[]          @relation("UserOrders")
+  driverProfile   DriverProfile?
+  sellerProfile   SellerProfile?
+  shops           Shop[]
+  marketplaceOrders MarketplaceOrder[]
+  driverOrders    Order[]          @relation("DriverOrders")
+
+  @@index([telegramId])
+  @@index([isAdmin])
+}
+
+model DriverProfile {
+  id              String           @id @default(cuid())
+  userId          String           @unique
+  user            User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  name            String
+  vehicle         String
+  services        String[]         // Array of service types
+  legalStatus     String           // "Самозанятый" или "ИП"
+  rating          Float            @default(5.0)
+  totalOrders     Int              @default(0)
+  verified        Boolean          @default(false)
+  verifiedAt      DateTime?
+
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+
+  @@index([userId])
+  @@index([verified])
+}
+
+model SellerProfile {
+  id              String           @id @default(cuid())
+  userId          String           @unique
+  user            User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  type            String           // "store" или "person"
+  storeName       String
+  storeDescription String
+  address         String?
+  workingHours    String?
+  verified        Boolean          @default(false)
+  verifiedAt      DateTime?
+
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+
+  @@index([userId])
+}
+
+model Order {
+  id              String           @id @default(cuid())
+  orderId         String           @unique // SAHA-XXXX
+
+  userId          String
+  user            User             @relation("UserOrders", fields: [userId], references: [id], onDelete: Cascade)
+
+  driverId        String?
+  driver          User?            @relation("DriverOrders", fields: [driverId], references: [id])
+
+  service         String           // Service type
+  location        String
+  latitude        Float?
+  longitude       Float?
+  description     String
+  photo           String?
+  price           Float
+  status          String           @default("Ищет исполнителя")
+  arrivalTime     Int?             // in minutes
+
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+
+  @@index([userId])
+  @@index([driverId])
+  @@index([status])
+  @@index([orderId])
+}
+
+model Shop {
+  id              String           @id @default(cuid())
+  name            String
+  description     String
+  type            String           // "store" или "person"
+  address         String?
+  workingHours    String?
+  imageUrl        String
+  imageHint       String
+  bannerUrl       String
+  bannerHint      String
+
+  userId          String?
+  user            User?            @relation(fields: [userId], references: [id])
+
+  products        Product[]
+
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+
+  @@index([userId])
+}
+
+model Product {
+  id              String           @id @default(cuid())
+  name            String
+  description     String
+  price           Float
+  imageUrl        String
+  imageHint       String
+
+  shopId          String
+  shop            Shop             @relation(fields: [shopId], references: [id], onDelete: Cascade)
+
+  delivery        Boolean          @default(false)
+  deliveryPrice   Float?
+  pickup          Boolean          @default(true)
+  approved        Boolean          @default(false)
+  approvedAt      DateTime?
+
+  cartItems       CartItem[]
+  orderItems      MarketplaceOrderItem[]
+
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+
+  @@index([shopId])
+  @@index([approved])
+}
+
+model CartItem {
+  id              String           @id @default(cuid())
+
+  userId          String
+  productId       String
+  product         Product          @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  quantity        Int              @default(1)
+
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+
+  @@unique([userId, productId])
+  @@index([userId])
+}
+
+model MarketplaceOrder {
+  id              String           @id @default(cuid())
+  orderId         String           @unique // MARKET-XXXX
+
+  userId          String
+  user            User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  status          String           @default("Новый")
+  total           Float
+
+  // Customer info
+  customerName    String
+  customerPhone   String
+  customerAddress String
+
+  items           MarketplaceOrderItem[]
+
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+
+  @@index([userId])
+  @@index([status])
+  @@index([orderId])
+}
+
+model MarketplaceOrderItem {
+  id              String           @id @default(cuid())
+
+  orderId         String
+  order           MarketplaceOrder @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  productId       String
+  product         Product          @relation(fields: [productId], references: [id])
+
+  quantity        Int
+  price           Float            // Price at time of order
+
+  createdAt       DateTime         @default(now())
+
+  @@index([orderId])
+  @@index([productId])
+}
+
+// Track driver location in real-time
+model DriverLocation {
+  id              String           @id @default(cuid())
+  driverId        String           @unique
+  latitude        Float
+  longitude       Float
+  updatedAt       DateTime         @updatedAt
+
+  @@index([driverId])
+}

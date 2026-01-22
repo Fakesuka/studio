@@ -32,6 +32,7 @@ import { WeatherWidget } from '@/components/weather-widget';
 import { useState, useEffect, useMemo } from 'react';
 import dynamic from 'next/dynamic';
 import type { MapMarker } from '@/components/map-2gis';
+import { subscribeToOrder } from '@/lib/websocket';
 
 const Map2GIS = dynamic(() => import('@/components/map-2gis'), {
   ssr: false,
@@ -103,54 +104,56 @@ function ActiveOrderCard({ order }: { order: Order }) {
     );
   }, []);
 
+  // Subscribe to real-time driver location updates via WebSocket
   useEffect(() => {
-    if (!customerCoords) return;
+    if (!order.id) return;
 
-    const initialDriverLat = customerCoords[0] + (Math.random() - 0.5) * 0.1;
-    const initialDriverLng = customerCoords[1] + (Math.random() - 0.5) * 0.1;
-    setDriverCoords([initialDriverLat, initialDriverLng]);
-
-    const journeySteps = 50;
-    let currentStep = 0;
-
-    const interval = setInterval(() => {
-      currentStep++;
-      if (currentStep > journeySteps) {
-        clearInterval(interval);
-        setDriverCoords(customerCoords);
-        return;
+    const unsubscribe = subscribeToOrder(order.id, (data) => {
+      if (data.latitude && data.longitude) {
+        setDriverCoords([data.latitude, data.longitude]);
       }
+    });
 
-      setDriverCoords(() => {
-        const lat =
-          initialDriverLat +
-          (customerCoords[0] - initialDriverLat) * (currentStep / journeySteps);
-        const lng =
-          initialDriverLng +
-          (customerCoords[1] - initialDriverLng) * (currentStep / journeySteps);
-        return [lat, lng];
-      });
-    }, 2000);
-
-    return () => clearInterval(interval);
-  }, [customerCoords]);
+    return () => {
+      if (unsubscribe) unsubscribe();
+    };
+  }, [order.id]);
 
   const markers = useMemo((): MapMarker[] => {
     const m: MapMarker[] = [];
+
+    // Customer marker (blue pin)
     if (customerCoords) {
       m.push({
         id: 'customer',
         coords: customerCoords,
-        popup: 'Вы здесь',
+        popup: '<div style="text-align: center;"><strong>📍 Вы здесь</strong><br/><span style="color: #3b82f6;">Точка клиента</span></div>',
+        iconUrl: 'data:image/svg+xml;base64,' + btoa(`
+          <svg xmlns="http://www.w3.org/2000/svg" width="32" height="42" viewBox="0 0 32 42">
+            <path fill="#3b82f6" stroke="#1d4ed8" stroke-width="2" d="M16 1C9.925 1 5 5.925 5 12c0 8.25 11 28 11 28s11-19.75 11-28c0-6.075-4.925-11-11-11z"/>
+            <circle cx="16" cy="12" r="5" fill="white"/>
+          </svg>
+        `),
+        iconSize: [32, 42],
       });
     }
+
+    // Driver marker (green car icon)
     if (driverCoords) {
       m.push({
         id: 'driver',
         coords: driverCoords,
-        popup: 'Водитель',
+        popup: '<div style="text-align: center;"><strong>🚗 Водитель</strong><br/><span style="color: #22c55e;">Едет к вам</span></div>',
+        iconUrl: 'data:image/svg+xml;base64,' + btoa(`
+          <svg xmlns="http://www.w3.org/2000/svg" width="32" height="42" viewBox="0 0 32 42">
+            <path fill="#22c55e" stroke="#16a34a" stroke-width="2" d="M16 1C9.925 1 5 5.925 5 12c0 8.25 11 28 11 28s11-19.75 11-28c0-6.075-4.925-11-11-11z"/>
+            <text x="16" y="16" font-size="12" text-anchor="middle" fill="white">🚗</text>
+          </svg>
+        `),
+        iconSize: [32, 42],
       });
     }
+
     return m;
   }, [customerCoords, driverCoords]);
 
