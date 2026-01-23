@@ -15,7 +15,9 @@ import { Textarea } from '@/components/ui/textarea';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { api } from '@/lib/api';
+import { getTelegramUser } from '@/lib/telegram';
 import {
   Form,
   FormControl,
@@ -89,6 +91,34 @@ export default function ProfilePage() {
   const { isSeller, registerAsSeller, shops, sellerProfile } = useAppContext();
   const { toast } = useToast();
   const [showTopUp, setShowTopUp] = useState(false);
+  const [name, setName] = useState('Загрузка...');
+  const [username, setUsername] = useState('');
+
+  useEffect(() => {
+    const loadUserData = async () => {
+      try {
+        // Try to get data from Telegram WebApp first
+        const telegramUser = getTelegramUser();
+        if (telegramUser) {
+          setName(`${telegramUser.first_name} ${telegramUser.last_name || ''}`.trim());
+          setUsername(telegramUser.username ? `@${telegramUser.username}` : '');
+        }
+
+        // Also fetch from API to ensure consistency
+        const profile = await api.getProfile();
+        if (profile.name) {
+          setName(profile.name);
+        }
+        if (profile.telegramId && !username) {
+          setUsername(`ID: ${profile.telegramId}`);
+        }
+      } catch (error) {
+        console.error('Error loading user data:', error);
+      }
+    };
+
+    loadUserData();
+  }, []);
 
   const userShop = shops.find(shop => shop.userId === MOCK_USER_ID);
 
@@ -123,10 +153,6 @@ export default function ProfilePage() {
       description: 'Откройте страницу оплаты для завершения.',
     });
   };
-
-  // MOCK DATA since TWA SDK is removed
-  const name = 'Иван Петров';
-  const username = '@ivan_petrov';
 
   return (
     <div className="mx-auto max-w-2xl space-y-6">

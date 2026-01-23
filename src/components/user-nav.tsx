@@ -13,12 +13,45 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { User, Settings } from 'lucide-react';
 import Link from 'next/link';
+import { useEffect, useState } from 'react';
+import { api } from '@/lib/api';
+import { getTelegramUser } from '@/lib/telegram';
 
 export function UserNav() {
-  // MOCK DATA since TWA SDK is temporarily removed
-  const name = 'Иван Петров';
-  const email = '@ivan_petrov';
-  const photoUrl = 'https://picsum.photos/seed/user/100/100';
+  const [name, setName] = useState('Загрузка...');
+  const [email, setEmail] = useState('');
+  const [photoUrl, setPhotoUrl] = useState('');
+
+  useEffect(() => {
+    const loadUserData = async () => {
+      try {
+        // Try to get data from Telegram WebApp first
+        const telegramUser = getTelegramUser();
+        if (telegramUser) {
+          setName(`${telegramUser.first_name} ${telegramUser.last_name || ''}`.trim());
+          setEmail(telegramUser.username ? `@${telegramUser.username}` : '');
+          setPhotoUrl(telegramUser.photo_url || '');
+        }
+
+        // Also fetch from API to ensure consistency
+        const profile = await api.getProfile();
+        if (profile.name) {
+          setName(profile.name);
+        }
+        if (profile.avatarUrl) {
+          setPhotoUrl(profile.avatarUrl);
+        }
+        // Set Telegram ID as fallback email if no username
+        if (!email && profile.telegramId) {
+          setEmail(`ID: ${profile.telegramId}`);
+        }
+      } catch (error) {
+        console.error('Error loading user data:', error);
+      }
+    };
+
+    loadUserData();
+  }, []);
 
   const getInitials = (name: string) => {
     if (!name) return '..';
