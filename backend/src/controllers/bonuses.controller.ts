@@ -165,19 +165,25 @@ export async function getReferralLink(req: AuthRequest, res: Response): Promise<
     // Подсчитываем статистику рефералов
     const referrals = await prisma.referral.findMany({
       where: { referrerId: req.user!.id },
-      include: {
-        referred: {
-          select: {
-            id: true,
-            name: true,
-            createdAt: true,
-          },
-        },
-      },
     });
 
     const totalReferrals = referrals.length;
     const totalBonusEarned = referrals.reduce((sum, ref) => sum + ref.bonusAmount, 0);
+
+    // Получаем информацию о рефералах
+    const referredUsers = await prisma.user.findMany({
+      where: {
+        id: { in: referrals.map(r => r.referredId) }
+      },
+      select: {
+        id: true,
+        name: true,
+        createdAt: true,
+      },
+    });
+
+    // Создаем мапу пользователей
+    const userMap = new Map<string, typeof referredUsers[0]>(referredUsers.map(u => [u.id, u]));
 
     res.json({
       referralLink,
@@ -185,11 +191,14 @@ export async function getReferralLink(req: AuthRequest, res: Response): Promise<
         totalReferrals,
         totalBonusEarned,
       },
-      referrals: referrals.map((ref) => ({
-        userName: ref.referred?.name,
-        bonusAmount: ref.bonusAmount,
-        joinedAt: ref.createdAt,
-      })),
+      referrals: referrals.map((ref) => {
+        const user = userMap.get(ref.referredId);
+        return {
+          userName: user?.name || 'Unknown',
+          bonusAmount: ref.bonusAmount,
+          joinedAt: ref.createdAt,
+        };
+      }),
     });
   } catch (error: any) {
     console.error('Get referral link error:', error);
