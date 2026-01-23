@@ -1,11 +1,10 @@
 import type { Metadata } from 'next';
-import { Inter } from 'next/font/google';
 import { Toaster } from '@/components/ui/toaster';
 import { RootProviders } from '@/components/root-providers';
 
 import './globals.css';
 
-const inter = Inter({ subsets: ['latin'], variable: '--font-inter' });
+// Используем системные шрифты вместо Google Fonts (для РФ)
 
 export const metadata: Metadata = {
   title: 'YakGo',
@@ -25,16 +24,6 @@ export default function RootLayout({
   return (
     <html lang="ru" suppressHydrationWarning>
       <head>
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link
-          rel="preconnect"
-          href="https://fonts.gstatic.com"
-          crossOrigin="anonymous"
-        />
-        <link
-          href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
-          rel="stylesheet"
-        />
         <script
           async
           charSet="utf-8"
@@ -42,7 +31,7 @@ export default function RootLayout({
         ></script>
         <script src="https://telegram.org/js/telegram-web-app.js"></script>
       </head>
-      <body className={`${inter.variable} font-body antialiased`}>
+      <body className="font-body antialiased">
         <RootProviders>
           {children}
           <Toaster />
