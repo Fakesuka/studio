@@ -12,7 +12,7 @@ export async function getDriverAnalytics(req: AuthRequest, res: Response): Promi
 
     // Проверяем, что пользователь - водитель
     const driverProfile = await prisma.driverProfile.findUnique({
-      where: { userId: req.user.id },
+      where: { userId: req.user!.id },
     });
 
     if (!driverProfile) {
@@ -42,7 +42,7 @@ export async function getDriverAnalytics(req: AuthRequest, res: Response): Promi
     // Получаем завершенные заказы за период
     const completedOrders = await prisma.order.findMany({
       where: {
-        driverId: req.user.id,
+        driverId: req.user!.id,
         status: 'Завершен',
         createdAt: {
           gte: startDate,
@@ -81,7 +81,7 @@ export async function getDriverAnalytics(req: AuthRequest, res: Response): Promi
     // Получаем рейтинг и отзывы
     const reviews = await prisma.review.findMany({
       where: {
-        toUserId: req.user.id,
+        toUserId: req.user!.id,
         type: 'driver_review',
         createdAt: {
           gte: startDate,
@@ -132,7 +132,7 @@ export async function getSellerAnalytics(req: AuthRequest, res: Response): Promi
 
     // Проверяем, что пользователь - продавец
     const sellerProfile = await prisma.sellerProfile.findUnique({
-      where: { userId: req.user.id },
+      where: { userId: req.user!.id },
     });
 
     if (!sellerProfile) {
@@ -161,7 +161,7 @@ export async function getSellerAnalytics(req: AuthRequest, res: Response): Promi
 
     // Получаем магазины продавца
     const shops = await prisma.shop.findMany({
-      where: { userId: req.user.id },
+      where: { userId: req.user!.id },
       include: {
         products: true,
       },

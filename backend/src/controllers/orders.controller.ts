@@ -133,7 +133,7 @@ export async function acceptOrder(req: AuthRequest, res: Response) {
 
     // Check if order exists and is available
     const order = await prisma.order.findUnique({
-      where: { id },
+      where: { id: id as string },
     });
 
     if (!order) {
@@ -146,7 +146,7 @@ export async function acceptOrder(req: AuthRequest, res: Response) {
 
     // Update order
     const updatedOrder = await prisma.order.update({
-      where: { id },
+      where: { id: id as string },
       data: {
         status: 'В процессе',
         driverId: req.user!.id,
@@ -176,7 +176,7 @@ export async function completeOrder(req: AuthRequest, res: Response) {
 
     // Check if order exists and belongs to driver
     const order = await prisma.order.findUnique({
-      where: { id },
+      where: { id: id as string },
     });
 
     if (!order) {
@@ -198,7 +198,7 @@ export async function completeOrder(req: AuthRequest, res: Response) {
     // Update order and driver balance in transaction
     const result = await prisma.$transaction(async (tx) => {
       const updatedOrder = await tx.order.update({
-        where: { id },
+        where: { id: id as string },
         data: { status: 'Завершен' },
       });
 
@@ -236,7 +236,7 @@ export async function cancelOrder(req: AuthRequest, res: Response) {
     const { id } = req.params;
 
     const order = await prisma.order.findUnique({
-      where: { id },
+      where: { id: id as string },
     });
 
     if (!order) {
@@ -249,7 +249,7 @@ export async function cancelOrder(req: AuthRequest, res: Response) {
     }
 
     const updatedOrder = await prisma.order.update({
-      where: { id },
+      where: { id: id as string },
       data: { status: 'Отменен' },
     });
 
