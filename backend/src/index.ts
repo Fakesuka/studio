@@ -13,6 +13,7 @@ import chatRoutes from './routes/chat.routes';
 import analyticsRoutes from './routes/analytics.routes';
 import bonusesRoutes from './routes/bonuses.routes';
 import prisma from './utils/prisma';
+import { startBot, stopBot } from './bot';
 
 dotenv.config();
 
@@ -173,11 +174,30 @@ httpServer.listen(PORT, () => {
   console.log(`🚀 Server is running on port ${PORT}`);
   console.log(`📍 Health check: http://localhost:${PORT}/health`);
   console.log(`🔌 WebSocket server is running`);
+
+  // Start Telegram bot
+  try {
+    startBot();
+  } catch (error) {
+    console.error('⚠️ Failed to start Telegram bot:', error);
+    console.log('💡 The API will continue running without the bot');
+  }
 });
 
 // Graceful shutdown
 process.on('SIGINT', async () => {
   console.log('\n👋 Shutting down gracefully...');
+  stopBot();
+  await prisma.$disconnect();
+  httpServer.close(() => {
+    console.log('✅ Server closed');
+    process.exit(0);
+  });
+});
+
+process.on('SIGTERM', async () => {
+  console.log('\n👋 Shutting down gracefully...');
+  stopBot();
   await prisma.$disconnect();
   httpServer.close(() => {
     console.log('✅ Server closed');
