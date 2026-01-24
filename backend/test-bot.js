@@ -1,5 +1,6 @@
 // Простой тест Telegram бота
 require('dotenv').config();
+const axios = require('axios');
 
 const BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN;
 
@@ -14,9 +15,9 @@ console.log('🤖 Проверяю токен бота...');
 console.log('Токен:', BOT_TOKEN.substring(0, 20) + '...');
 
 // Проверяем токен через API Telegram
-fetch(`https://api.telegram.org/bot${BOT_TOKEN}/getMe`)
-  .then(res => res.json())
-  .then(data => {
+axios.get(`https://api.telegram.org/bot${BOT_TOKEN}/getMe`)
+  .then(response => {
+    const data = response.data;
     if (data.ok) {
       console.log('\n✅ Токен ПРАВИЛЬНЫЙ!');
       console.log('📋 Информация о боте:');
