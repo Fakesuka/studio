@@ -46,7 +46,7 @@ export function startBot() {
       bot!.sendMessage(chatId, welcomeMessage, {
         parse_mode: 'Markdown',
         reply_markup: {
-          keyboard: [
+          inline_keyboard: [
             [
               {
                 text: '🚀 Открыть YakGo',
@@ -54,7 +54,6 @@ export function startBot() {
               },
             ],
           ],
-          resize_keyboard: true,
         },
       });
     });
