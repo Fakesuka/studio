@@ -19,34 +19,30 @@ import { getTelegramUser } from '@/lib/telegram';
 
 export function UserNav() {
   const [name, setName] = useState('Загрузка...');
-  const [email, setEmail] = useState('');
+  const [username, setUsername] = useState('');
   const [photoUrl, setPhotoUrl] = useState('');
 
   useEffect(() => {
-    const loadUserData = async () => {
+    const loadUserData = () => {
       try {
-        // Try to get data from Telegram WebApp first
+        // Get data from Telegram WebApp
         const telegramUser = getTelegramUser();
-        if (telegramUser) {
-          setName(`${telegramUser.first_name} ${telegramUser.last_name || ''}`.trim());
-          setEmail(telegramUser.username ? `@${telegramUser.username}` : '');
-          setPhotoUrl(telegramUser.photo_url || '');
-        }
 
-        // Also fetch from API to ensure consistency
-        const profile = await api.getProfile();
-        if (profile.name) {
-          setName(profile.name);
-        }
-        if (profile.avatarUrl) {
-          setPhotoUrl(profile.avatarUrl);
-        }
-        // Set Telegram ID as fallback email if no username
-        if (!email && profile.telegramId) {
-          setEmail(`ID: ${profile.telegramId}`);
+        if (telegramUser) {
+          // Use Telegram data directly
+          const fullName = `${telegramUser.first_name} ${telegramUser.last_name || ''}`.trim();
+          setName(fullName);
+          setUsername(telegramUser.username ? `@${telegramUser.username}` : `ID: ${telegramUser.id}`);
+          if (telegramUser.photo_url) {
+            setPhotoUrl(telegramUser.photo_url);
+          }
+        } else {
+          // Fallback (shouldn't happen with TelegramGuard)
+          setName('Пользователь');
         }
       } catch (error) {
         console.error('Error loading user data:', error);
+        setName('Пользователь');
       }
     };
 
@@ -76,7 +72,7 @@ export function UserNav() {
           <div className="flex flex-col space-y-1">
             <p className="text-sm font-medium leading-none">{name}</p>
             <p className="text-xs leading-none text-muted-foreground">
-              {email}
+              {username}
             </p>
           </div>
         </DropdownMenuLabel>

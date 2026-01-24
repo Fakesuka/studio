@@ -95,25 +95,21 @@ export default function ProfilePage() {
   const [username, setUsername] = useState('');
 
   useEffect(() => {
-    const loadUserData = async () => {
+    const loadUserData = () => {
       try {
-        // Try to get data from Telegram WebApp first
+        // Get data from Telegram WebApp
         const telegramUser = getTelegramUser();
         if (telegramUser) {
-          setName(`${telegramUser.first_name} ${telegramUser.last_name || ''}`.trim());
-          setUsername(telegramUser.username ? `@${telegramUser.username}` : '');
-        }
-
-        // Also fetch from API to ensure consistency
-        const profile = await api.getProfile();
-        if (profile.name) {
-          setName(profile.name);
-        }
-        if (profile.telegramId && !username) {
-          setUsername(`ID: ${profile.telegramId}`);
+          const fullName = `${telegramUser.first_name} ${telegramUser.last_name || ''}`.trim();
+          setName(fullName);
+          setUsername(telegramUser.username ? `@${telegramUser.username}` : `ID: ${telegramUser.id}`);
+        } else {
+          // Fallback
+          setName('Пользователь');
         }
       } catch (error) {
         console.error('Error loading user data:', error);
+        setName('Пользователь');
       }
     };
 
