@@ -10,7 +10,7 @@ export function TelegramGuard({ children }: { children: React.ReactNode }) {
   const [isTelegram, setIsTelegram] = useState(false);
 
   useEffect(() => {
-    // Small delay to ensure Telegram SDK is loaded
+    // Delay to ensure Telegram SDK is loaded
     const timer = setTimeout(() => {
       const isTg = isTelegramWebApp();
       setIsTelegram(isTg);
@@ -21,8 +21,9 @@ export function TelegramGuard({ children }: { children: React.ReactNode }) {
         isTelegramWebApp: isTg,
         telegramAvailable: typeof window !== 'undefined' && !!window.Telegram,
         webAppAvailable: typeof window !== 'undefined' && !!window.Telegram?.WebApp,
+        initData: typeof window !== 'undefined' && window.Telegram?.WebApp?.initData,
       });
-    }, 100);
+    }, 300);
 
     return () => clearTimeout(timer);
   }, []);
