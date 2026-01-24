@@ -13,7 +13,7 @@ export async function getMessages(req: AuthRequest, res: Response): Promise<void
 
     // Проверяем, что пользователь участвует в заказе
     const order = await prisma.order.findUnique({
-      where: { id: orderId },
+      where: { id: orderId as string },
     });
 
     if (!order) {
@@ -21,13 +21,13 @@ export async function getMessages(req: AuthRequest, res: Response): Promise<void
       return;
     }
 
-    if (order.userId !== req.user.id && order.driverId !== req.user.id) {
+    if (order.userId !== req.user!.id && order.driverId !== req.user!.id) {
       res.status(403).json({ error: 'Access denied' });
       return;
     }
 
     const messages = await prisma.message.findMany({
-      where: { orderId },
+      where: { orderId: orderId as string },
       orderBy: { createdAt: 'asc' },
       take: parseInt(limit as string),
       skip: parseInt(offset as string),
@@ -36,8 +36,8 @@ export async function getMessages(req: AuthRequest, res: Response): Promise<void
     // Отмечаем сообщения как прочитанные
     await prisma.message.updateMany({
       where: {
-        orderId,
-        receiverId: req.user.id,
+        orderId: orderId as string,
+        receiverId: req.user!.id,
         read: false,
       },
       data: { read: true },
@@ -71,7 +71,7 @@ export async function sendMessage(req: AuthRequest, res: Response): Promise<void
 
     // Проверяем заказ
     const order = await prisma.order.findUnique({
-      where: { id: orderId },
+      where: { id: orderId as string },
     });
 
     if (!order) {
@@ -79,13 +79,13 @@ export async function sendMessage(req: AuthRequest, res: Response): Promise<void
       return;
     }
 
-    if (order.userId !== req.user.id && order.driverId !== req.user.id) {
+    if (order.userId !== req.user!.id && order.driverId !== req.user!.id) {
       res.status(403).json({ error: 'Access denied' });
       return;
     }
 
     // Определяем получателя
-    const receiverId = order.userId === req.user.id ? order.driverId : order.userId;
+    const receiverId = order.userId === req.user!.id ? order.driverId : order.userId;
 
     if (!receiverId) {
       res.status(400).json({ error: 'No receiver for this message' });
@@ -95,8 +95,8 @@ export async function sendMessage(req: AuthRequest, res: Response): Promise<void
     // Создаем сообщение
     const message = await prisma.message.create({
       data: {
-        orderId,
-        senderId: req.user.id,
+        orderId: orderId as string,
+        senderId: req.user!.id,
         receiverId,
         content: content.trim(),
       },
@@ -117,7 +117,7 @@ export async function getUnreadCount(req: AuthRequest, res: Response): Promise<v
   try {
     const count = await prisma.message.count({
       where: {
-        receiverId: req.user.id,
+        receiverId: req.user!.id,
         read: false,
       },
     });
@@ -139,8 +139,8 @@ export async function getConversations(req: AuthRequest, res: Response): Promise
     const orders = await prisma.order.findMany({
       where: {
         OR: [
-          { userId: req.user.id },
-          { driverId: req.user.id },
+          { userId: req.user!.id },
+          { driverId: req.user!.id },
         ],
         status: {
           in: ['В процессе', 'Завершен'],
@@ -176,13 +176,13 @@ export async function getConversations(req: AuthRequest, res: Response): Promise
         const unreadCount = await prisma.message.count({
           where: {
             orderId: order.id,
-            receiverId: req.user.id,
+            receiverId: req.user!.id,
             read: false,
           },
         });
 
         // Определяем собеседника
-        const otherUser = order.userId === req.user.id ? order.driver : order.user;
+        const otherUser = order.userId === req.user!.id ? order.driver : order.user;
 
         return {
           orderId: order.id,

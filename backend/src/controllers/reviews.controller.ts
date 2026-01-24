@@ -36,8 +36,8 @@ export async function createReview(req: AuthRequest, res: Response): Promise<voi
     }
 
     // Проверяем, что пользователь участвовал в заказе
-    const isCustomer = order.userId === req.user.id;
-    const isDriver = order.driverId === req.user.id;
+    const isCustomer = order.userId === req.user!.id;
+    const isDriver = order.driverId === req.user!.id;
 
     if (!isCustomer && !isDriver) {
       res.status(403).json({ error: 'You can only review orders you participated in' });
@@ -67,7 +67,7 @@ export async function createReview(req: AuthRequest, res: Response): Promise<voi
     const review = await prisma.review.create({
       data: {
         orderId,
-        fromUserId: req.user.id,
+        fromUserId: req.user!.id,
         toUserId,
         rating,
         comment: comment || null,
@@ -172,7 +172,7 @@ export async function getUserReviews(req: AuthRequest, res: Response): Promise<v
 export async function getMyReviews(req: AuthRequest, res: Response): Promise<void> {
   try {
     const reviews = await prisma.review.findMany({
-      where: { fromUserId: req.user.id },
+      where: { fromUserId: req.user!.id },
       include: {
         toUser: {
           select: {
@@ -201,7 +201,7 @@ export async function canReviewOrder(req: AuthRequest, res: Response): Promise<v
     const { orderId } = req.params;
 
     const order = await prisma.order.findUnique({
-      where: { id: orderId },
+      where: { id: orderId as string },
     });
 
     if (!order) {
@@ -209,11 +209,11 @@ export async function canReviewOrder(req: AuthRequest, res: Response): Promise<v
       return;
     }
 
-    const isParticipant = order.userId === req.user.id || order.driverId === req.user.id;
+    const isParticipant = order.userId === req.user!.id || order.driverId === req.user!.id;
     const isCompleted = order.status === 'Завершен';
 
     const existingReview = await prisma.review.findUnique({
-      where: { orderId },
+      where: { orderId: orderId as string },
     });
 
     res.json({

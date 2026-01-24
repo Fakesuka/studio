@@ -1,68 +1,142 @@
+import TelegramBot from 'node-telegram-bot-api';
 import dotenv from 'dotenv';
 
 dotenv.config();
-
-/**
- * Simple Telegram Bot for YakGo Mini App
- * 
- * To run this bot:
- * 1. Create a bot using @BotFather on Telegram
- * 2. Get your bot token
- * 3. Set TELEGRAM_BOT_TOKEN in .env
- * 4. Run: npx tsx src/bot.ts
- * 
- * To configure Mini App:
- * 1. Talk to @BotFather
- * 2. Send /mybots
- * 3. Select your bot
- * 4. Go to "Bot Settings" > "Menu Button"
- * 5. Send the URL where your frontend is hosted
- */
 
 const BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN;
 const MINI_APP_URL = process.env.FRONTEND_URL || 'http://localhost:9002';
 
 if (!BOT_TOKEN) {
-  console.error('❌ TELEGRAM_BOT_TOKEN is not set in .env file');
+  console.error('❌ TELEGRAM_BOT_TOKEN is not set in environment variables');
   process.exit(1);
 }
 
-const maskedToken = BOT_TOKEN.substring(0, 10) + '...';
+let bot: TelegramBot | null = null;
 
-console.log(`
-╔══════════════════════════════════════════════════════╗
-║          YakGo Telegram Bot Setup Guide             ║
-╚══════════════════════════════════════════════════════╝
+export function startBot() {
+  try {
+    // Create bot instance
+    bot = new TelegramBot(BOT_TOKEN!, { polling: true });
 
-✅ Bot Token: ${maskedToken}
+    console.log('🤖 YakGo Telegram Bot started successfully!');
+    console.log(`🔗 Mini App URL: ${MINI_APP_URL}`);
 
-📝 To configure your Telegram Mini App:
+    // Handle /start command
+    bot.onText(/\/start/, (msg) => {
+      const chatId = msg.chat.id;
+      const firstName = msg.from?.first_name || 'друг';
 
-1. Open Telegram and find @BotFather
-2. Send the command: /mybots
-3. Select your bot from the list
-4. Choose "Bot Settings" > "Menu Button"  
-5. Click "Edit Menu Button URL"
-6. Send this URL: ${MINI_APP_URL}
-7. Send button text: "Открыть YakGo"
+      const welcomeMessage = `
+Привет, ${firstName}! 👋
 
-🚀 Once configured, users can:
-   - Open your bot in Telegram
-   - Click the menu button at the bottom
-   - Start using YakGo Mini App!
+Добро пожаловать в *YakGo* - ваш помощник для поездок и покупок в Якутске! 🚗🛍️
 
-💡 For production:
-   - Deploy frontend to a public HTTPS URL
-   - Update FRONTEND_URL in backend/.env
-   - Update Mini App URL in @BotFather
+🚕 *Заказывайте поездки*
+Быстро найдите водителя для любой задачи
 
-🔗 Mini App URL: ${MINI_APP_URL}
-🤖 Bot Token: Set in .env
+🛒 *Делайте покупки*
+Магазины и товары от местных продавцов
 
-Press Ctrl+C to exit.
-`);
+💰 *Зарабатывайте*
+Станьте водителем или откройте свой магазин
 
-// Keep the process running
-setInterval(() => {
-  // This keeps the script alive
-}, 1000 * 60 * 60); // Check every hour
+Нажмите на кнопку ниже, чтобы начать! 👇
+      `.trim();
+
+      bot!.sendMessage(chatId, welcomeMessage, {
+        parse_mode: 'Markdown',
+        reply_markup: {
+          inline_keyboard: [
+            [
+              {
+                text: '🚀 Открыть YakGo',
+                web_app: { url: MINI_APP_URL },
+              },
+            ],
+          ],
+        },
+      });
+    });
+
+    // Handle /help command
+    bot.onText(/\/help/, (msg) => {
+      const chatId = msg.chat.id;
+
+      const helpMessage = `
+*Как пользоваться YakGo:*
+
+🚕 *Для пассажиров:*
+• Откройте приложение
+• Выберите тип услуги
+• Укажите место и описание
+• Дождитесь водителя
+
+🚗 *Для водителей:*
+• Зарегистрируйтесь как водитель
+• Просматривайте доступные заказы
+• Принимайте заказы и зарабатывайте
+
+🛍️ *Для покупателей:*
+• Просматривайте товары в маркетплейсе
+• Добавляйте в корзину
+• Оформляйте заказ
+
+🏪 *Для продавцов:*
+• Зарегистрируйтесь как продавец
+• Добавляйте свои товары
+• Получайте заказы
+
+Нужна помощь? Напишите нам!
+      `.trim();
+
+      bot!.sendMessage(chatId, helpMessage, {
+        parse_mode: 'Markdown',
+      });
+    });
+
+    // Handle any text message (for debugging)
+    bot.on('message', (msg) => {
+      // Skip if it's a command
+      if (msg.text?.startsWith('/')) {
+        return;
+      }
+
+      console.log(`📨 Message from ${msg.from?.first_name}: ${msg.text}`);
+    });
+
+    // Handle errors
+    bot.on('polling_error', (error) => {
+      console.error('❌ Polling error:', error.message);
+    });
+
+    return bot;
+  } catch (error) {
+    console.error('❌ Failed to start bot:', error);
+    throw error;
+  }
+}
+
+export function stopBot() {
+  if (bot) {
+    bot.stopPolling();
+    console.log('🛑 Bot stopped');
+  }
+}
+
+// If this file is run directly
+if (require.main === module) {
+  startBot();
+
+  // Handle graceful shutdown
+  process.on('SIGINT', () => {
+    console.log('\n👋 Shutting down bot...');
+    stopBot();
+    process.exit(0);
+  });
+
+  process.on('SIGTERM', () => {
+    console.log('\n👋 Shutting down bot...');
+    stopBot();
+    process.exit(0);
+  });
+}

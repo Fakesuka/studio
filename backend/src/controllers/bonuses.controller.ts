@@ -44,7 +44,7 @@ export async function applyPromocode(req: AuthRequest, res: Response): Promise<v
     // Проверяем, использовал ли пользователь этот промокод
     const alreadyUsed = await prisma.promocodeUsage.findFirst({
       where: {
-        userId: req.user.id,
+        userId: req.user!.id,
         promocodeId: promocode.id,
       },
     });
@@ -64,7 +64,7 @@ export async function applyPromocode(req: AuthRequest, res: Response): Promise<v
     } else if (promocode.type === 'bonus_balance') {
       // Зачисляем бонус на баланс
       await prisma.user.update({
-        where: { id: req.user.id },
+        where: { id: req.user!.id },
         data: {
           balance: {
             increment: promocode.value,
@@ -74,7 +74,7 @@ export async function applyPromocode(req: AuthRequest, res: Response): Promise<v
 
       await prisma.transaction.create({
         data: {
-          userId: req.user.id,
+          userId: req.user!.id,
           type: 'promocode_bonus',
           amount: promocode.value,
           description: `Бонус по промокоду ${code}`,
@@ -120,7 +120,7 @@ export async function confirmPromocodeUsage(req: AuthRequest, res: Response): Pr
     // Создаем запись использования
     await prisma.promocodeUsage.create({
       data: {
-        userId: req.user.id,
+        userId: req.user!.id,
         promocodeId: promocode.id,
         orderId,
         discountAmount,
@@ -139,7 +139,7 @@ export async function confirmPromocodeUsage(req: AuthRequest, res: Response): Pr
 
     // Отправляем уведомление
     const user = await prisma.user.findUnique({
-      where: { id: req.user.id },
+      where: { id: req.user!.id },
     });
 
     if (user && discountAmount > 0) {
@@ -160,24 +160,30 @@ export async function confirmPromocodeUsage(req: AuthRequest, res: Response): Pr
 export async function getReferralLink(req: AuthRequest, res: Response): Promise<void> {
   try {
     const botUsername = process.env.TELEGRAM_BOT_USERNAME || 'YakGoBot';
-    const referralLink = `https://t.me/${botUsername}?start=ref_${req.user.id}`;
+    const referralLink = `https://t.me/${botUsername}?start=ref_${req.user!.id}`;
 
     // Подсчитываем статистику рефералов
     const referrals = await prisma.referral.findMany({
-      where: { referrerId: req.user.id },
-      include: {
-        referred: {
-          select: {
-            id: true,
-            name: true,
-            createdAt: true,
-          },
-        },
-      },
+      where: { referrerId: req.user!.id },
     });
 
     const totalReferrals = referrals.length;
     const totalBonusEarned = referrals.reduce((sum, ref) => sum + ref.bonusAmount, 0);
+
+    // Получаем информацию о рефералах
+    const referredUsers = await prisma.user.findMany({
+      where: {
+        id: { in: referrals.map(r => r.referredId) }
+      },
+      select: {
+        id: true,
+        name: true,
+        createdAt: true,
+      },
+    });
+
+    // Создаем мапу пользователей
+    const userMap = new Map<string, typeof referredUsers[0]>(referredUsers.map(u => [u.id, u]));
 
     res.json({
       referralLink,
@@ -185,11 +191,14 @@ export async function getReferralLink(req: AuthRequest, res: Response): Promise<
         totalReferrals,
         totalBonusEarned,
       },
-      referrals: referrals.map((ref) => ({
-        userName: ref.referred?.name,
-        bonusAmount: ref.bonusAmount,
-        joinedAt: ref.createdAt,
-      })),
+      referrals: referrals.map((ref) => {
+        const user = userMap.get(ref.referredId);
+        return {
+          userName: user?.name || 'Unknown',
+          bonusAmount: ref.bonusAmount,
+          joinedAt: ref.createdAt,
+        };
+      }),
     });
   } catch (error: any) {
     console.error('Get referral link error:', error);
@@ -222,7 +231,7 @@ export async function registerReferral(req: AuthRequest, res: Response): Promise
 
     // Проверяем, что пользователь еще не зарегистрирован как реферал
     const existingReferral = await prisma.referral.findUnique({
-      where: { referredId: req.user.id },
+      where: { referredId: req.user!.id },
     });
 
     if (existingReferral) {
@@ -236,7 +245,7 @@ export async function registerReferral(req: AuthRequest, res: Response): Promise
     await prisma.referral.create({
       data: {
         referrerId,
-        referredId: req.user.id,
+        referredId: req.user!.id,
         bonusGiven: true,
         bonusAmount,
       },
@@ -265,7 +274,7 @@ export async function registerReferral(req: AuthRequest, res: Response): Promise
     const newUserBonus = 50; // 50 рублей приветственный бонус
 
     await prisma.user.update({
-      where: { id: req.user.id },
+      where: { id: req.user!.id },
       data: {
         balance: {
           increment: newUserBonus,
@@ -275,7 +284,7 @@ export async function registerReferral(req: AuthRequest, res: Response): Promise
 
     await prisma.transaction.create({
       data: {
-        userId: req.user.id,
+        userId: req.user!.id,
         type: 'welcome_bonus',
         amount: newUserBonus,
         description: `Приветственный бонус`,
@@ -284,7 +293,7 @@ export async function registerReferral(req: AuthRequest, res: Response): Promise
 
     // Отправляем уведомления
     const newUser = await prisma.user.findUnique({
-      where: { id: req.user.id },
+      where: { id: req.user!.id },
     });
 
     if (newUser) {

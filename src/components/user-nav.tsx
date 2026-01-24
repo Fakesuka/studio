@@ -13,12 +13,41 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { User, Settings } from 'lucide-react';
 import Link from 'next/link';
+import { useEffect, useState } from 'react';
+import { api } from '@/lib/api';
+import { getTelegramUser } from '@/lib/telegram';
 
 export function UserNav() {
-  // MOCK DATA since TWA SDK is temporarily removed
-  const name = 'Иван Петров';
-  const email = '@ivan_petrov';
-  const photoUrl = 'https://picsum.photos/seed/user/100/100';
+  const [name, setName] = useState('Загрузка...');
+  const [username, setUsername] = useState('');
+  const [photoUrl, setPhotoUrl] = useState('');
+
+  useEffect(() => {
+    const loadUserData = () => {
+      try {
+        // Get data from Telegram WebApp
+        const telegramUser = getTelegramUser();
+
+        if (telegramUser) {
+          // Use Telegram data directly
+          const fullName = `${telegramUser.first_name} ${telegramUser.last_name || ''}`.trim();
+          setName(fullName);
+          setUsername(telegramUser.username ? `@${telegramUser.username}` : `ID: ${telegramUser.id}`);
+          if (telegramUser.photo_url) {
+            setPhotoUrl(telegramUser.photo_url);
+          }
+        } else {
+          // Fallback (shouldn't happen with TelegramGuard)
+          setName('Пользователь');
+        }
+      } catch (error) {
+        console.error('Error loading user data:', error);
+        setName('Пользователь');
+      }
+    };
+
+    loadUserData();
+  }, []);
 
   const getInitials = (name: string) => {
     if (!name) return '..';
@@ -43,7 +72,7 @@ export function UserNav() {
           <div className="flex flex-col space-y-1">
             <p className="text-sm font-medium leading-none">{name}</p>
             <p className="text-xs leading-none text-muted-foreground">
-              {email}
+              {username}
             </p>
           </div>
         </DropdownMenuLabel>

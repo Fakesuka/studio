@@ -27,7 +27,7 @@ export async function getShopById(req: AuthRequest, res: Response) {
     const { id } = req.params;
 
     const shop = await prisma.shop.findUnique({
-      where: { id },
+      where: { id: id as string },
       include: {
         products: true,
       },
@@ -72,7 +72,7 @@ export async function getProductById(req: AuthRequest, res: Response) {
     const { id } = req.params;
 
     const product = await prisma.product.findUnique({
-      where: { id },
+      where: { id: id as string },
       include: {
         shop: true,
       },
@@ -145,7 +145,7 @@ export async function updateProduct(req: AuthRequest, res: Response) {
 
     // Check if product exists and belongs to user's shop
     const product = await prisma.product.findUnique({
-      where: { id },
+      where: { id: id as string },
       include: { shop: true },
     });
 
@@ -158,7 +158,7 @@ export async function updateProduct(req: AuthRequest, res: Response) {
     }
 
     const updatedProduct = await prisma.product.update({
-      where: { id },
+      where: { id: id as string },
       data: {
         ...(name && { name }),
         ...(description && { description }),
@@ -185,7 +185,7 @@ export async function deleteProduct(req: AuthRequest, res: Response) {
 
     // Check if product exists and belongs to user's shop
     const product = await prisma.product.findUnique({
-      where: { id },
+      where: { id: id as string },
       include: { shop: true },
     });
 
@@ -198,7 +198,7 @@ export async function deleteProduct(req: AuthRequest, res: Response) {
     }
 
     await prisma.product.delete({
-      where: { id },
+      where: { id: id as string },
     });
 
     return res.json({ message: 'Product deleted successfully' });
@@ -298,7 +298,7 @@ export async function updateCartItem(req: AuthRequest, res: Response) {
         where: {
           userId_productId: {
             userId: req.user!.id,
-            productId,
+            productId: productId as string,
           },
         },
       });
@@ -309,7 +309,7 @@ export async function updateCartItem(req: AuthRequest, res: Response) {
       where: {
         userId_productId: {
           userId: req.user!.id,
-          productId,
+          productId: productId as string,
         },
       },
       data: { quantity },
@@ -332,7 +332,7 @@ export async function removeFromCart(req: AuthRequest, res: Response) {
       where: {
         userId_productId: {
           userId: req.user!.id,
-          productId,
+          productId: productId as string,
         },
       },
     });
@@ -361,14 +361,14 @@ export async function placeOrder(req: AuthRequest, res: Response) {
       where: { id: { in: productIds } },
     });
 
-    const productMap = new Map(products.map(p => [p.id, p]));
+    const productMap = new Map<string, typeof products[0]>(products.map(p => [p.id, p]));
 
     for (const item of items) {
       const product = productMap.get(item.productId);
       if (!product) {
         return res.status(404).json({ error: `Product ${item.productId} not found` });
       }
-      total += product.price * item.quantity;
+      total += product!.price * item.quantity;
     }
 
     const orderId = generateOrderId('MARKET');

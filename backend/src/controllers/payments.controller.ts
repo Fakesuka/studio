@@ -22,7 +22,7 @@ export async function createTopUpPayment(req: AuthRequest, res: Response): Promi
     }
 
     const user = await prisma.user.findUnique({
-      where: { id: req.user.id },
+      where: { id: req.user!.id },
     });
 
     if (!user) {
@@ -140,7 +140,7 @@ export async function checkPaymentStatus(req: AuthRequest, res: Response): Promi
     const { paymentId } = req.params;
 
     const payment = await prisma.payment.findUnique({
-      where: { paymentId },
+      where: { paymentId: paymentId as string },
     });
 
     if (!payment) {
@@ -148,18 +148,18 @@ export async function checkPaymentStatus(req: AuthRequest, res: Response): Promi
       return;
     }
 
-    if (payment.userId !== req.user.id) {
+    if (payment.userId !== req.user!.id) {
       res.status(403).json({ error: 'Access denied' });
       return;
     }
 
     // Получаем актуальный статус от YooKassa
-    const yooKassaPayment = await getPaymentStatus(paymentId);
+    const yooKassaPayment = await getPaymentStatus(paymentId as string);
 
     // Обновляем статус в БД
     if (payment.status !== yooKassaPayment.status) {
       await prisma.payment.update({
-        where: { paymentId },
+        where: { paymentId: paymentId as string },
         data: { status: yooKassaPayment.status },
       });
     }
@@ -189,7 +189,7 @@ export async function requestWithdrawal(req: AuthRequest, res: Response): Promis
     }
 
     const user = await prisma.user.findUnique({
-      where: { id: req.user.id },
+      where: { id: req.user!.id },
     });
 
     if (!user) {
@@ -264,7 +264,7 @@ export async function requestWithdrawal(req: AuthRequest, res: Response): Promis
 export async function getTransactions(req: AuthRequest, res: Response): Promise<void> {
   try {
     const transactions = await prisma.transaction.findMany({
-      where: { userId: req.user.id },
+      where: { userId: req.user!.id },
       orderBy: { createdAt: 'desc' },
       take: 50,
     });

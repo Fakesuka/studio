@@ -15,7 +15,9 @@ import { Textarea } from '@/components/ui/textarea';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { api } from '@/lib/api';
+import { getTelegramUser } from '@/lib/telegram';
 import {
   Form,
   FormControl,
@@ -89,6 +91,30 @@ export default function ProfilePage() {
   const { isSeller, registerAsSeller, shops, sellerProfile } = useAppContext();
   const { toast } = useToast();
   const [showTopUp, setShowTopUp] = useState(false);
+  const [name, setName] = useState('Загрузка...');
+  const [username, setUsername] = useState('');
+
+  useEffect(() => {
+    const loadUserData = () => {
+      try {
+        // Get data from Telegram WebApp
+        const telegramUser = getTelegramUser();
+        if (telegramUser) {
+          const fullName = `${telegramUser.first_name} ${telegramUser.last_name || ''}`.trim();
+          setName(fullName);
+          setUsername(telegramUser.username ? `@${telegramUser.username}` : `ID: ${telegramUser.id}`);
+        } else {
+          // Fallback
+          setName('Пользователь');
+        }
+      } catch (error) {
+        console.error('Error loading user data:', error);
+        setName('Пользователь');
+      }
+    };
+
+    loadUserData();
+  }, []);
 
   const userShop = shops.find(shop => shop.userId === MOCK_USER_ID);
 
@@ -123,10 +149,6 @@ export default function ProfilePage() {
       description: 'Откройте страницу оплаты для завершения.',
     });
   };
-
-  // MOCK DATA since TWA SDK is removed
-  const name = 'Иван Петров';
-  const username = '@ivan_petrov';
 
   return (
     <div className="mx-auto max-w-2xl space-y-6">

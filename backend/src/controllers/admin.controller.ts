@@ -107,7 +107,7 @@ export async function verifyDriver(req: AuthRequest, res: Response) {
     const { id } = req.params;
 
     const driver = await prisma.driverProfile.update({
-      where: { id },
+      where: { id: id as string },
       data: {
         verified: true,
         verifiedAt: new Date(),
@@ -130,7 +130,7 @@ export async function unverifyDriver(req: AuthRequest, res: Response) {
     const { id } = req.params;
 
     const driver = await prisma.driverProfile.update({
-      where: { id },
+      where: { id: id as string },
       data: {
         verified: false,
         verifiedAt: null,
@@ -176,7 +176,7 @@ export async function verifySeller(req: AuthRequest, res: Response) {
     const { id } = req.params;
 
     const seller = await prisma.sellerProfile.update({
-      where: { id },
+      where: { id: id as string },
       data: {
         verified: true,
         verifiedAt: new Date(),
@@ -199,7 +199,7 @@ export async function unverifySeller(req: AuthRequest, res: Response) {
     const { id } = req.params;
 
     const seller = await prisma.sellerProfile.update({
-      where: { id },
+      where: { id: id as string },
       data: {
         verified: false,
         verifiedAt: null,
@@ -246,7 +246,7 @@ export async function approveProduct(req: AuthRequest, res: Response) {
     const { id } = req.params;
 
     const product = await prisma.product.update({
-      where: { id },
+      where: { id: id as string },
       data: {
         approved: true,
         approvedAt: new Date(),
@@ -269,7 +269,7 @@ export async function unapproveProduct(req: AuthRequest, res: Response) {
     const { id } = req.params;
 
     const product = await prisma.product.update({
-      where: { id },
+      where: { id: id as string },
       data: {
         approved: false,
         approvedAt: null,
@@ -289,7 +289,7 @@ export async function deleteProduct(req: AuthRequest, res: Response) {
     const { id } = req.params;
 
     await prisma.product.delete({
-      where: { id },
+      where: { id: id as string },
     });
 
     return res.json({ message: 'Product deleted successfully' });
@@ -343,7 +343,7 @@ export async function makeAdmin(req: AuthRequest, res: Response) {
     const { userId } = req.params;
 
     const user = await prisma.user.update({
-      where: { id: userId },
+      where: { id: userId as string },
       data: { isAdmin: true },
     });
 
@@ -360,7 +360,7 @@ export async function removeAdmin(req: AuthRequest, res: Response) {
     const { userId } = req.params;
 
     const user = await prisma.user.update({
-      where: { id: userId },
+      where: { id: userId as string },
       data: { isAdmin: false },
     });
 
