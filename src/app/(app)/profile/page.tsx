@@ -297,8 +297,8 @@ export default function ProfilePage() {
 
   const handleSaveProfile = async () => {
     try {
-      // Note: city field temporarily disabled until database migration runs
-      const profileData = { name, phone };
+      const selectedCity = city === 'Другой' ? customCity : city;
+      const profileData = { name, phone, city: selectedCity };
       console.log('Saving profile data:', profileData);
 
       await api.updateProfile(profileData);
