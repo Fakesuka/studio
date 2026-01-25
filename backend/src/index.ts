@@ -12,6 +12,7 @@ import reviewsRoutes from './routes/reviews.routes';
 import chatRoutes from './routes/chat.routes';
 import analyticsRoutes from './routes/analytics.routes';
 import bonusesRoutes from './routes/bonuses.routes';
+import healthRoutes from './routes/health.routes';
 import prisma from './utils/prisma';
 import { startBot, stopBot } from './bot';
 
@@ -32,11 +33,16 @@ app.use(cors({
 }));
 app.use(express.json());
 
-// Routes
-app.get('/health', (req, res) => {
-  res.json({ status: 'ok', message: 'YakGo API is running' });
-});
+// Log all requests in development
+if (process.env.NODE_ENV !== 'production') {
+  app.use((req, res, next) => {
+    console.log(`[${new Date().toISOString()}] ${req.method} ${req.path}`);
+    next();
+  });
+}
 
+// Routes
+app.use('/', healthRoutes);
 app.use('/api/users', usersRoutes);
 app.use('/api/orders', ordersRoutes);
 app.use('/api/marketplace', marketplaceRoutes);
