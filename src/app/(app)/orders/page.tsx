@@ -23,8 +23,9 @@ import { format } from 'date-fns';
 import { ru } from 'date-fns/locale';
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Star } from 'lucide-react';
+import { Star, MessageSquare } from 'lucide-react';
 import ReviewForm from '@/components/review-form';
+import { Chat } from '@/components/chat';
 import {
   Dialog,
   DialogContent,
@@ -68,6 +69,7 @@ export default function OrdersPage() {
   const { orders, marketplaceOrders, isContextLoading } = useAppContext();
   const MOCK_USER_ID = 'self';
   const [reviewOrderId, setReviewOrderId] = useState<string | null>(null);
+  const [chatOrder, setChatOrder] = useState<{ id: string; driverId: string; driverName: string } | null>(null);
 
   const userOrders = orders
     .filter(o => o.userId === MOCK_USER_ID)
@@ -136,16 +138,32 @@ export default function OrdersPage() {
                         })}
                       </TableCell>
                       <TableCell className="text-right">
-                        {order.status === 'Завершен' && (
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={() => setReviewOrderId(order.id)}
-                          >
-                            <Star className="mr-1 h-3 w-3" />
-                            Оценить
-                          </Button>
-                        )}
+                        <div className="flex justify-end gap-2">
+                          {(order.status === 'В процессе' || order.status === 'Завершен') && order.provider && (
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => setChatOrder({
+                                id: order.id,
+                                driverId: order.provider?.id || '',
+                                driverName: order.provider?.name || 'Водитель'
+                              })}
+                            >
+                              <MessageSquare className="mr-1 h-3 w-3" />
+                              Чат
+                            </Button>
+                          )}
+                          {order.status === 'Завершен' && (
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => setReviewOrderId(order.id)}
+                            >
+                              <Star className="mr-1 h-3 w-3" />
+                              Оценить
+                            </Button>
+                          )}
+                        </div>
                       </TableCell>
                     </TableRow>
                   ))}
@@ -235,6 +253,19 @@ export default function OrdersPage() {
             <ReviewForm
               orderId={reviewOrderId}
               onSuccess={() => setReviewOrderId(null)}
+            />
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Dialog для чата */}
+      <Dialog open={!!chatOrder} onOpenChange={(open) => !open && setChatOrder(null)}>
+        <DialogContent className="max-w-2xl">
+          {chatOrder && (
+            <Chat
+              orderId={chatOrder.id}
+              receiverId={chatOrder.driverId}
+              receiverName={chatOrder.driverName}
             />
           )}
         </DialogContent>

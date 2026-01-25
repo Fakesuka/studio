@@ -3,6 +3,7 @@ import { useAppContext } from '@/context/AppContext';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { sendDriverLocation } from '@/lib/websocket';
+import { getTelegramUser } from '@/lib/telegram';
 import {
   Snowflake,
   Bell,
@@ -165,9 +166,10 @@ function AvailableOrderCard({ order }: { order: Order }) {
 }
 
 function ActiveDriverOrderCard({ order }: { order: Order }) {
-  const { completeOrder, user } = useAppContext();
+  const { completeOrder } = useAppContext();
   const { toast } = useToast();
   const [isTrackingLocation, setIsTrackingLocation] = useState(false);
+  const user = getTelegramUser();
 
   // Broadcast driver location in real-time
   useEffect(() => {

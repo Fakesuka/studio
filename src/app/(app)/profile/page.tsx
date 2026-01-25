@@ -21,6 +21,7 @@ import { getTelegramUser } from '@/lib/telegram';
 import {
   Form,
   FormControl,
+  FormDescription,
   FormField,
   FormItem,
   FormLabel,
@@ -66,8 +67,8 @@ const sellerFormSchema = z
       .min(10, 'Описание должно быть длиннее 10 символов.'),
     address: z.string().optional(),
     workingHours: z.string().optional(),
-    agreement: z.literal(true, {
-      errorMap: () => ({ message: 'Вы должны принять правила для продавцов.' }),
+    agreement: z.boolean().refine(val => val === true, {
+      message: 'Вы должны принять правила для продавцов.',
     }),
   })
   .refine(
@@ -99,8 +100,8 @@ const driverFormSchema = z.object({
   legalStatus: z.enum(['Самозанятый', 'ИП'], {
     required_error: 'Пожалуйста, выберите ваш юридический статус.',
   }),
-  agreement: z.literal(true, {
-    errorMap: () => ({ message: 'Вы должны принять условия использования.' }),
+  agreement: z.boolean().refine(val => val === true, {
+    message: 'Вы должны принять условия использования.',
   }),
 });
 

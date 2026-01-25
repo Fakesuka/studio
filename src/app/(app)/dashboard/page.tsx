@@ -72,7 +72,7 @@ function ActiveOrderCard({ order }: { order: Order }) {
 
     // Countdown every minute
     const timer = setInterval(() => {
-      setTimeRemaining(prevTime => (prevTime > 0 ? prevTime - 1 : 0));
+      setTimeRemaining(prevTime => (prevTime && prevTime > 0 ? prevTime - 1 : 0));
     }, 60000);
 
     return () => clearInterval(timer);

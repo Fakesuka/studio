@@ -12,7 +12,7 @@ export type DiagnoseProblemInput = z.infer<typeof DiagnoseProblemInputSchema>;
 const DiagnoseProblemOutputSchema = z.object({
   diagnosis: z.string().describe("Краткая диагностика проблемы"),
   suggestedService: z
-    .enum(serviceTypesList)
+    .enum(['Отогрев авто', 'Доставка топлива', 'Техпомощь', 'Эвакуатор'] as const)
     .nullable()
     .describe('Рекомендуемая услуга'),
 });
