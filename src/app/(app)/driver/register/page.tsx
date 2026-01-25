@@ -49,7 +49,7 @@ const driverFormSchema = z.object({
 type DriverFormValues = z.infer<typeof driverFormSchema>;
 
 export default function DriverRegisterPage() {
-  const { registerAsDriver } = useAppContext();
+  const { registerAsDriver, refreshData } = useAppContext();
   const { toast } = useToast();
   const router = useRouter();
 
@@ -63,18 +63,31 @@ export default function DriverRegisterPage() {
     },
   });
 
-  function onSubmit(data: DriverFormValues) {
-    const { agreement, ...driverData } = data;
-    registerAsDriver({
-      ...driverData,
-      services: driverData.services as ServiceType[],
-      legalStatus: driverData.legalStatus as LegalStatus,
-    });
-    toast({
-      title: 'Вы стали водителем!',
-      description: 'Теперь вы можете принимать заказы.',
-    });
-    router.push('/driver/dashboard');
+  async function onSubmit(data: DriverFormValues) {
+    try {
+      const { agreement, ...driverData } = data;
+      await registerAsDriver({
+        ...driverData,
+        services: driverData.services as ServiceType[],
+        legalStatus: driverData.legalStatus as LegalStatus,
+      });
+
+      // Reload user data to update isDriver flag
+      await refreshData();
+
+      toast({
+        title: 'Вы стали водителем!',
+        description: 'Теперь вы можете принимать заказы.',
+      });
+
+      router.push('/driver/dashboard');
+    } catch (error) {
+      toast({
+        title: 'Ошибка',
+        description: 'Не удалось зарегистрироваться. Попробуйте еще раз.',
+        variant: 'destructive',
+      });
+    }
   }
 
   return (
@@ -228,9 +241,10 @@ export default function DriverRegisterPage() {
                       <FormLabel>
                         Я принимаю{' '}
                         <Link
-                          href="/terms"
+                          href="/terms/drivers"
                           className="text-primary underline"
-                          onClick={e => e.preventDefault()}
+                          target="_blank"
+                          rel="noopener noreferrer"
                         >
                           условия использования
                         </Link>

@@ -8,11 +8,12 @@ import {
 } from '@/components/ui/card';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { AlertTriangle, Snowflake, LocateFixed } from 'lucide-react';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
 
 const COLD_WEATHER_THRESHOLD = -25;
+const WEATHER_PERMISSION_KEY = 'yakgo_weather_permission';
 
 type WeatherState = {
   status: 'loading' | 'success' | 'error' | 'idle';
@@ -29,6 +30,14 @@ export function WeatherWidget() {
     data: null,
     error: null,
   });
+
+  // Auto-fetch weather if permission was granted before
+  useEffect(() => {
+    const hasPermission = localStorage.getItem(WEATHER_PERMISSION_KEY) === 'true';
+    if (hasPermission) {
+      fetchWeather();
+    }
+  }, []);
 
   const fetchWeather = () => {
     setWeather({ status: 'loading', data: null, error: null });
@@ -92,6 +101,9 @@ export function WeatherWidget() {
             data: { city, temperature },
             error: null,
           });
+
+          // Save permission to localStorage for auto-fetch next time
+          localStorage.setItem(WEATHER_PERMISSION_KEY, 'true');
         } catch (error) {
           console.error('Failed to fetch weather data', error);
           const errorMessage =
