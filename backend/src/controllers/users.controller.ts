@@ -21,6 +21,7 @@ export async function getProfile(req: AuthRequest, res: Response) {
       id: user.id,
       name: user.name,
       phone: user.phone,
+      city: user.city,
       avatarUrl: user.avatarUrl,
       balance: user.balance,
       isDriver: !!user.driverProfile,
@@ -37,15 +38,16 @@ export async function getProfile(req: AuthRequest, res: Response) {
 // Update user profile
 export async function updateProfile(req: AuthRequest, res: Response) {
   try {
-    const { name, phone } = req.body;
+    const { name, phone, city } = req.body;
 
-    console.log('Update profile request:', { name, phone, userId: req.user!.id });
+    console.log('Update profile request:', { name, phone, city, userId: req.user!.id });
 
     const user = await prisma.user.update({
       where: { id: req.user!.id },
       data: {
         ...(name && { name }),
         ...(phone && { phone }),
+        ...(city && { city }),
       },
     });
 
