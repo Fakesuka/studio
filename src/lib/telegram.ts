@@ -59,6 +59,7 @@ declare global {
         showConfirm(message: string, callback?: (confirmed: boolean) => void): void;
         showScanQrPopup(params: any, callback?: (text: string) => boolean): void;
         closeScanQrPopup(): void;
+        requestContact(callback?: (contactShared: boolean) => void): void;
       };
     };
   }

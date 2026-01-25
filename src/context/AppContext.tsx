@@ -86,7 +86,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       setIsContextLoading(true);
 
       // Load user profile
-      const profile = await api.getProfile();
+      const profile = await api.getProfile() as any;
       setIsDriver(profile.isDriver);
       setIsSeller(profile.isSeller);
       setDriverProfile(profile.driverProfile);

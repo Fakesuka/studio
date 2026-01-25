@@ -28,6 +28,8 @@ import { useAppContext } from '@/context/AppContext';
 import { useToast } from '@/hooks/use-toast';
 import { ArrowLeft, ShoppingCart } from 'lucide-react';
 import Image from 'next/image';
+import { useState, useEffect } from 'react';
+import { api } from '@/lib/api';
 
 const checkoutFormSchema = z.object({
   name: z.string().min(2, 'Имя обязательно.'),
@@ -41,6 +43,16 @@ export default function CheckoutPage() {
   const { cart, placeMarketplaceOrder, isContextLoading } = useAppContext();
   const { toast } = useToast();
   const router = useRouter();
+  const [userCity, setUserCity] = useState('Якутск');
+
+  useEffect(() => {
+    // Load user's city from profile
+    api.getProfile().then((profile: any) => {
+      if (profile.city) {
+        setUserCity(profile.city);
+      }
+    }).catch(console.error);
+  }, []);
 
   const subtotal = cart.reduce(
     (sum, item) => sum + item.price * item.quantity,
@@ -154,7 +166,7 @@ export default function CheckoutPage() {
                         <FormLabel>Адрес доставки</FormLabel>
                         <FormControl>
                           <Input
-                            placeholder="г. Якутск, ул. Ленина, д. 1, кв. 1"
+                            placeholder={`г. ${userCity}, ул. Ленина, д. 1, кв. 1`}
                             {...field}
                           />
                         </FormControl>

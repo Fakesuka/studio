@@ -32,6 +32,8 @@ import { useToast } from '@/hooks/use-toast';
 import TopUpBalance from '@/components/top-up-balance';
 import type { ServiceType, LegalStatus } from '@/lib/types';
 import { serviceTypesList } from '@/lib/types';
+import { YAKUTIA_CITIES, type YakutiaCity } from '@/lib/cities';
+import { getTelegramWebApp } from '@/lib/telegram';
 import {
   Store,
   CheckCircle,
@@ -46,6 +48,13 @@ import Link from 'next/link';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { ThemeSwitcher } from '@/components/theme-switcher';
 import { Checkbox } from '@/components/ui/checkbox';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import {
   Dialog,
   DialogContent,
@@ -124,6 +133,8 @@ export default function ProfilePage() {
   const [name, setName] = useState('Загрузка...');
   const [username, setUsername] = useState('');
   const [phone, setPhone] = useState('');
+  const [city, setCity] = useState<YakutiaCity>('Якутск');
+  const [customCity, setCustomCity] = useState('');
 
   useEffect(() => {
     const loadUserData = () => {
@@ -232,9 +243,41 @@ export default function ProfilePage() {
     });
   };
 
+  const requestPhoneNumber = () => {
+    const webApp = getTelegramWebApp();
+    if (webApp && webApp.requestContact) {
+      toast({
+        title: 'Запрос номера',
+        description: 'Telegram попросит вас поделиться номером телефона',
+      });
+
+      // Note: requestContact is available in Telegram Bot API 6.9+
+      // The phone will be available in telegramUser.phone_number after sharing
+      webApp.requestContact((shared) => {
+        if (shared) {
+          const telegramUser = getTelegramUser();
+          if (telegramUser?.phone_number) {
+            setPhone(telegramUser.phone_number);
+            toast({
+              title: 'Спасибо!',
+              description: 'Номер телефона получен',
+            });
+          }
+        }
+      });
+    } else {
+      toast({
+        title: 'Недоступно',
+        description: 'Эта функция доступна только в Telegram',
+        variant: 'destructive',
+      });
+    }
+  };
+
   const handleSaveProfile = async () => {
     try {
-      await api.updateProfile({ name, phone });
+      const selectedCity = city === 'Другой' ? customCity : city;
+      await api.updateProfile({ name, phone, city: selectedCity });
       await refreshData();
       toast({
         title: 'Профиль обновлен',
@@ -280,13 +323,49 @@ export default function ProfilePage() {
             </div>
             <div className="grid gap-2">
               <Label htmlFor="phone">Номер телефона</Label>
-              <Input
-                id="phone"
-                type="tel"
-                value={phone}
-                onChange={(e) => setPhone(e.target.value)}
-                placeholder="+7 (XXX) XXX-XX-XX"
-              />
+              <div className="flex gap-2">
+                <Input
+                  id="phone"
+                  type="tel"
+                  value={phone}
+                  onChange={(e) => setPhone(e.target.value)}
+                  placeholder="+7 (XXX) XXX-XX-XX"
+                  className="flex-1"
+                />
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={requestPhoneNumber}
+                >
+                  Запросить из Telegram
+                </Button>
+              </div>
+              <p className="text-xs text-muted-foreground">
+                Нажмите кнопку, чтобы безопасно получить номер из Telegram
+              </p>
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="city">Ваш город</Label>
+              <Select value={city} onValueChange={(value) => setCity(value as YakutiaCity)}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Выберите город" />
+                </SelectTrigger>
+                <SelectContent>
+                  {YAKUTIA_CITIES.map((cityName) => (
+                    <SelectItem key={cityName} value={cityName}>
+                      {cityName}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              {city === 'Другой' && (
+                <Input
+                  value={customCity}
+                  onChange={(e) => setCustomCity(e.target.value)}
+                  placeholder="Введите название вашего города"
+                  className="mt-2"
+                />
+              )}
             </div>
           </div>
         </CardContent>
@@ -468,7 +547,7 @@ export default function ProfilePage() {
                           <FormLabel>Адрес магазина</FormLabel>
                           <FormControl>
                             <Input
-                              placeholder="г. Якутск, ул. Ленина, 1"
+                              placeholder={`г. ${city === 'Другой' ? customCity || 'Ваш город' : city}, ул. Ленина, 1`}
                               {...field}
                             />
                           </FormControl>
