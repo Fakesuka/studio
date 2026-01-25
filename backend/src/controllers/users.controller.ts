@@ -21,6 +21,7 @@ export async function getProfile(req: AuthRequest, res: Response) {
       id: user.id,
       name: user.name,
       phone: user.phone,
+      city: user.city,
       avatarUrl: user.avatarUrl,
       balance: user.balance,
       isDriver: !!user.driverProfile,
@@ -37,13 +38,14 @@ export async function getProfile(req: AuthRequest, res: Response) {
 // Update user profile
 export async function updateProfile(req: AuthRequest, res: Response) {
   try {
-    const { name, phone } = req.body;
+    const { name, phone, city } = req.body;
 
     const user = await prisma.user.update({
       where: { id: req.user!.id },
       data: {
         ...(name && { name }),
         ...(phone && { phone }),
+        ...(city !== undefined && { city }),
       },
     });
 
@@ -59,7 +61,10 @@ export async function registerAsDriver(req: AuthRequest, res: Response) {
   try {
     const { name, vehicle, services, legalStatus } = req.body;
 
+    console.log('Register as driver request:', { name, vehicle, services, legalStatus, userId: req.user!.id });
+
     if (!name || !vehicle || !services || !legalStatus) {
+      console.error('Missing required fields:', { name, vehicle, services, legalStatus });
       return res.status(400).json({ error: 'Missing required fields' });
     }
 
@@ -82,10 +87,11 @@ export async function registerAsDriver(req: AuthRequest, res: Response) {
       },
     });
 
+    console.log('Driver profile created successfully:', driverProfile.id);
     return res.status(201).json(driverProfile);
   } catch (error) {
     console.error('Error registering as driver:', error);
-    return res.status(500).json({ error: 'Failed to register as driver' });
+    return res.status(500).json({ error: 'Failed to register as driver', details: error instanceof Error ? error.message : 'Unknown error' });
   }
 }
 
@@ -94,7 +100,10 @@ export async function registerAsSeller(req: AuthRequest, res: Response) {
   try {
     const { type, storeName, storeDescription, address, workingHours } = req.body;
 
+    console.log('Register as seller request:', { type, storeName, storeDescription, address, workingHours, userId: req.user!.id });
+
     if (!type || !storeName || !storeDescription) {
+      console.error('Missing required fields:', { type, storeName, storeDescription });
       return res.status(400).json({ error: 'Missing required fields' });
     }
 
@@ -108,7 +117,7 @@ export async function registerAsSeller(req: AuthRequest, res: Response) {
     }
 
     // Create seller profile and shop in transaction
-    const result = await prisma.$transaction(async (tx) => {
+    const result = await prisma.$transaction(async (tx: any) => {
       const sellerProfile = await tx.sellerProfile.create({
         data: {
           userId: req.user!.id,
@@ -138,10 +147,11 @@ export async function registerAsSeller(req: AuthRequest, res: Response) {
       return { sellerProfile, shop };
     });
 
+    console.log('Seller profile and shop created successfully:', result.sellerProfile.id);
     return res.status(201).json(result);
   } catch (error) {
     console.error('Error registering as seller:', error);
-    return res.status(500).json({ error: 'Failed to register as seller' });
+    return res.status(500).json({ error: 'Failed to register as seller', details: error instanceof Error ? error.message : 'Unknown error' });
   }
 }
 

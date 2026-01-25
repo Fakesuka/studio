@@ -12,6 +12,7 @@ model User {
   telegramId      String           @unique
   name            String
   phone           String?
+  city            String?
   avatarUrl       String?
   balance         Float            @default(0)
   isAdmin         Boolean          @default(false)
