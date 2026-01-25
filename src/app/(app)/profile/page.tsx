@@ -137,25 +137,35 @@ export default function ProfilePage() {
   const [customCity, setCustomCity] = useState('');
 
   useEffect(() => {
-    const loadUserData = () => {
+    const loadUserData = async () => {
       try {
+        // Load profile from API first
+        const profile = await api.getProfile() as any;
+        if (profile.name) setName(profile.name);
+        if (profile.phone) setPhone(profile.phone);
+        if (profile.city) setCity(profile.city as YakutiaCity);
+
         // Get data from Telegram WebApp
+        const telegramUser = getTelegramUser();
+        if (telegramUser) {
+          const fullName = `${telegramUser.first_name} ${telegramUser.last_name || ''}`.trim();
+          if (!profile.name) setName(fullName);
+          setUsername(telegramUser.username ? `@${telegramUser.username}` : `ID: ${telegramUser.id}`);
+          // Get phone number from Telegram if available
+          if (telegramUser.phone_number && !profile.phone) {
+            setPhone(telegramUser.phone_number);
+          }
+        }
+      } catch (error) {
+        console.error('Error loading user data:', error);
         const telegramUser = getTelegramUser();
         if (telegramUser) {
           const fullName = `${telegramUser.first_name} ${telegramUser.last_name || ''}`.trim();
           setName(fullName);
           setUsername(telegramUser.username ? `@${telegramUser.username}` : `ID: ${telegramUser.id}`);
-          // Get phone number from Telegram if available
-          if (telegramUser.phone_number) {
-            setPhone(telegramUser.phone_number);
-          }
         } else {
-          // Fallback
           setName('Пользователь');
         }
-      } catch (error) {
-        console.error('Error loading user data:', error);
-        setName('Пользователь');
       }
     };
 
@@ -187,7 +197,10 @@ export default function ProfilePage() {
 
   const onSellerSubmit = async (data: SellerFormValues) => {
     try {
+      console.log('Seller registration form data:', data);
       const { agreement, ...sellerData } = data;
+      console.log('Sending seller registration payload:', sellerData);
+
       await registerAsSeller(sellerData);
 
       // Reload user data to update isSeller flag
@@ -198,9 +211,10 @@ export default function ProfilePage() {
         description: 'Вы успешно зарегистрированы как продавец.',
       });
     } catch (error) {
+      console.error('Seller registration error:', error);
       toast({
         title: 'Ошибка',
-        description: 'Не удалось зарегистрироваться. Попробуйте еще раз.',
+        description: error instanceof Error ? error.message : 'Не удалось зарегистрироваться. Попробуйте еще раз.',
         variant: 'destructive',
       });
     }
@@ -208,12 +222,16 @@ export default function ProfilePage() {
 
   const onDriverSubmit = async (data: DriverFormValues) => {
     try {
+      console.log('Driver registration form data:', data);
       const { agreement, ...driverData } = data;
-      await registerAsDriver({
+      const payload = {
         ...driverData,
         services: driverData.services as ServiceType[],
         legalStatus: driverData.legalStatus as LegalStatus,
-      });
+      };
+      console.log('Sending driver registration payload:', payload);
+
+      await registerAsDriver(payload);
 
       // Reload user data to update isDriver flag
       await refreshData();
@@ -223,9 +241,10 @@ export default function ProfilePage() {
         description: 'Теперь вы можете принимать заказы.',
       });
     } catch (error) {
+      console.error('Driver registration error:', error);
       toast({
         title: 'Ошибка',
-        description: 'Не удалось зарегистрироваться. Попробуйте еще раз.',
+        description: error instanceof Error ? error.message : 'Не удалось зарегистрироваться. Попробуйте еще раз.',
         variant: 'destructive',
       });
     }
@@ -244,32 +263,18 @@ export default function ProfilePage() {
   };
 
   const requestPhoneNumber = () => {
-    const webApp = getTelegramWebApp();
-    if (webApp && webApp.requestContact) {
+    // Try to get phone from Telegram user data
+    const telegramUser = getTelegramUser();
+    if (telegramUser?.phone_number) {
+      setPhone(telegramUser.phone_number);
       toast({
-        title: 'Запрос номера',
-        description: 'Telegram попросит вас поделиться номером телефона',
-      });
-
-      // Note: requestContact is available in Telegram Bot API 6.9+
-      // The phone will be available in telegramUser.phone_number after sharing
-      webApp.requestContact((shared) => {
-        if (shared) {
-          const telegramUser = getTelegramUser();
-          if (telegramUser?.phone_number) {
-            setPhone(telegramUser.phone_number);
-            toast({
-              title: 'Спасибо!',
-              description: 'Номер телефона получен',
-            });
-          }
-        }
+        title: 'Номер получен',
+        description: 'Номер телефона из вашего профиля Telegram',
       });
     } else {
       toast({
-        title: 'Недоступно',
-        description: 'Эта функция доступна только в Telegram',
-        variant: 'destructive',
+        title: 'Номер не найден',
+        description: 'Пожалуйста, введите номер вручную',
       });
     }
   };
@@ -277,16 +282,21 @@ export default function ProfilePage() {
   const handleSaveProfile = async () => {
     try {
       const selectedCity = city === 'Другой' ? customCity : city;
-      await api.updateProfile({ name, phone, city: selectedCity });
+      const profileData = { name, phone, city: selectedCity };
+      console.log('Saving profile data:', profileData);
+
+      await api.updateProfile(profileData);
       await refreshData();
+
       toast({
         title: 'Профиль обновлен',
         description: 'Ваши данные успешно сохранены.',
       });
     } catch (error) {
+      console.error('Profile save error:', error);
       toast({
         title: 'Ошибка',
-        description: 'Не удалось сохранить профиль.',
+        description: error instanceof Error ? error.message : 'Не удалось сохранить профиль.',
         variant: 'destructive',
       });
     }
