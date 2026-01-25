@@ -41,6 +41,7 @@ import {
   diagnoseProblem,
   type DiagnoseProblemOutput,
 } from '@/ai/qwen';
+import { api } from '@/lib/api';
 
 const formSchema = z.object({
   serviceType: z.string({
@@ -65,6 +66,7 @@ const serviceTypes = [
 
 export function ServiceRequestForm() {
   const [photoPreview, setPhotoPreview] = useState<string | null>(null);
+  const [userCity, setUserCity] = useState('Якутск');
   const { toast } = useToast();
   const router = useRouter();
   const { createServiceRequest } = useAppContext();
@@ -76,6 +78,15 @@ export function ServiceRequestForm() {
     null
   );
   const [isDiagnosing, setIsDiagnosing] = useState(false);
+
+  useEffect(() => {
+    // Load user's city from profile
+    api.getProfile().then((profile: any) => {
+      if (profile.city) {
+        setUserCity(profile.city);
+      }
+    }).catch(console.error);
+  }, []);
 
   const form = useForm<ServiceRequestFormValues>({
     resolver: zodResolver(formSchema),
@@ -303,7 +314,7 @@ export function ServiceRequestForm() {
                   <FormLabel>Где вы находитесь?</FormLabel>
                   <FormControl>
                     <Input
-                      placeholder="Например, г. Якутск, ул. Ленина, д. 1"
+                      placeholder={`Например, г. ${userCity}, ул. Ленина, д. 1`}
                       {...field}
                     />
                   </FormControl>
