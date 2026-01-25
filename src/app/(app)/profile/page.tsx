@@ -263,26 +263,42 @@ export default function ProfilePage() {
   };
 
   const requestPhoneNumber = () => {
-    // Try to get phone from Telegram user data
-    const telegramUser = getTelegramUser();
-    if (telegramUser?.phone_number) {
-      setPhone(telegramUser.phone_number);
+    const webApp = getTelegramWebApp();
+
+    if (!webApp) {
       toast({
-        title: 'Номер получен',
-        description: 'Номер телефона из вашего профиля Telegram',
+        title: 'Недоступно',
+        description: 'Функция доступна только в Telegram',
+        variant: 'destructive',
       });
-    } else {
-      toast({
-        title: 'Номер не найден',
-        description: 'Пожалуйста, введите номер вручную',
-      });
+      return;
     }
+
+    // Request phone number from Telegram
+    webApp.requestContact((contactShared) => {
+      if (contactShared) {
+        // Phone will be in initDataUnsafe after contact is shared
+        const user = webApp.initDataUnsafe?.user;
+        if (user?.phone_number) {
+          setPhone(user.phone_number);
+          toast({
+            title: 'Номер получен',
+            description: 'Номер телефона из вашего профиля Telegram',
+          });
+        }
+      } else {
+        toast({
+          title: 'Отменено',
+          description: 'Вы отменили запрос номера. Введите номер вручную',
+        });
+      }
+    });
   };
 
   const handleSaveProfile = async () => {
     try {
-      const selectedCity = city === 'Другой' ? customCity : city;
-      const profileData = { name, phone, city: selectedCity };
+      // Note: city field temporarily disabled until database migration runs
+      const profileData = { name, phone };
       console.log('Saving profile data:', profileData);
 
       await api.updateProfile(profileData);
