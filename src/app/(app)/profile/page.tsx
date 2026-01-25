@@ -139,31 +139,56 @@ export default function ProfilePage() {
   useEffect(() => {
     const loadUserData = async () => {
       try {
+        console.log('[Profile] Loading user data from API');
         // Load profile from API first
         const profile = await api.getProfile() as any;
-        if (profile.name) setName(profile.name);
-        if (profile.phone) setPhone(profile.phone);
-        if (profile.city) setCity(profile.city as YakutiaCity);
+        console.log('[Profile] Profile loaded from API:', profile);
+
+        if (profile.name) {
+          console.log('[Profile] Setting name from API:', profile.name);
+          setName(profile.name);
+        }
+        if (profile.phone) {
+          console.log('[Profile] Setting phone from API:', profile.phone);
+          setPhone(profile.phone);
+        }
+        if (profile.city) {
+          console.log('[Profile] Setting city from API:', profile.city);
+          setCity(profile.city as YakutiaCity);
+        }
 
         // Get data from Telegram WebApp
+        console.log('[Profile] Getting Telegram user data');
         const telegramUser = getTelegramUser();
+        console.log('[Profile] Telegram user:', JSON.stringify(telegramUser, null, 2));
+
         if (telegramUser) {
           const fullName = `${telegramUser.first_name} ${telegramUser.last_name || ''}`.trim();
-          if (!profile.name) setName(fullName);
-          setUsername(telegramUser.username ? `@${telegramUser.username}` : `ID: ${telegramUser.id}`);
+          if (!profile.name) {
+            console.log('[Profile] Using Telegram name:', fullName);
+            setName(fullName);
+          }
+          const usernameStr = telegramUser.username ? `@${telegramUser.username}` : `ID: ${telegramUser.id}`;
+          console.log('[Profile] Setting username:', usernameStr);
+          setUsername(usernameStr);
+
           // Get phone number from Telegram if available
           if (telegramUser.phone_number && !profile.phone) {
+            console.log('[Profile] Using Telegram phone:', telegramUser.phone_number);
             setPhone(telegramUser.phone_number);
           }
         }
+        console.log('[Profile] User data loaded successfully');
       } catch (error) {
-        console.error('Error loading user data:', error);
+        console.error('[Profile] Error loading user data:', error);
         const telegramUser = getTelegramUser();
         if (telegramUser) {
           const fullName = `${telegramUser.first_name} ${telegramUser.last_name || ''}`.trim();
+          console.log('[Profile] Fallback to Telegram data:', fullName);
           setName(fullName);
           setUsername(telegramUser.username ? `@${telegramUser.username}` : `ID: ${telegramUser.id}`);
         } else {
+          console.log('[Profile] No Telegram data, using default');
           setName('Пользователь');
         }
       }
@@ -263,9 +288,11 @@ export default function ProfilePage() {
   };
 
   const requestPhoneNumber = () => {
+    console.log('[Profile] Requesting phone number from Telegram');
     const webApp = getTelegramWebApp();
 
     if (!webApp) {
+      console.error('[Profile] WebApp not available');
       toast({
         title: 'Недоступно',
         description: 'Функция доступна только в Telegram',
@@ -274,22 +301,47 @@ export default function ProfilePage() {
       return;
     }
 
-    // Request phone number from Telegram
+    console.log('[Profile] WebApp available, checking user data');
+    const user = webApp.initDataUnsafe?.user;
+    console.log('[Profile] User object:', JSON.stringify(user, null, 2));
+
+    // Try to get phone directly from user data
+    if (user?.phone_number) {
+      console.log('[Profile] Phone found in user data:', user.phone_number);
+      setPhone(user.phone_number);
+      toast({
+        title: 'Номер получен',
+        description: 'Номер телефона из вашего профиля Telegram',
+      });
+      return;
+    }
+
+    console.log('[Profile] Phone not in user data, requesting via requestContact');
+    // If not available, request it
     webApp.requestContact((contactShared) => {
+      console.log('[Profile] Contact shared:', contactShared);
       if (contactShared) {
-        // Phone will be in initDataUnsafe after contact is shared
-        const user = webApp.initDataUnsafe?.user;
-        if (user?.phone_number) {
-          setPhone(user.phone_number);
+        // Check again after share
+        const updatedUser = webApp.initDataUnsafe?.user;
+        console.log('[Profile] Updated user data:', JSON.stringify(updatedUser, null, 2));
+
+        if (updatedUser?.phone_number) {
+          console.log('[Profile] Phone now available:', updatedUser.phone_number);
+          setPhone(updatedUser.phone_number);
           toast({
             title: 'Номер получен',
             description: 'Номер телефона из вашего профиля Telegram',
           });
+        } else {
+          console.warn('[Profile] Phone still not available after share');
+          webApp.showAlert('Чтобы получить номер телефона, пожалуйста, добавьте его в настройки Telegram');
         }
       } else {
+        console.log('[Profile] User cancelled contact sharing');
         toast({
           title: 'Отменено',
-          description: 'Вы отменили запрос номера. Введите номер вручную',
+          description: 'Запрос номера отменен',
+          variant: 'destructive',
         });
       }
     });
@@ -354,9 +406,10 @@ export default function ProfilePage() {
                   id="phone"
                   type="tel"
                   value={phone}
-                  onChange={(e) => setPhone(e.target.value)}
-                  placeholder="+7 (XXX) XXX-XX-XX"
-                  className="flex-1"
+                  readOnly
+                  disabled
+                  placeholder="Нажмите кнопку для получения номера"
+                  className="flex-1 bg-muted"
                 />
                 <Button
                   type="button"
@@ -367,7 +420,7 @@ export default function ProfilePage() {
                 </Button>
               </div>
               <p className="text-xs text-muted-foreground">
-                Нажмите кнопку, чтобы безопасно получить номер из Telegram
+                Номер телефона можно получить только из Telegram для безопасности
               </p>
             </div>
             <div className="grid gap-2">
