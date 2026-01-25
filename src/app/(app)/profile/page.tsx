@@ -29,6 +29,8 @@ import {
 import { useAppContext } from '@/context/AppContext';
 import { useToast } from '@/hooks/use-toast';
 import TopUpBalance from '@/components/top-up-balance';
+import type { ServiceType, LegalStatus } from '@/lib/types';
+import { serviceTypesList } from '@/lib/types';
 import {
   Store,
   CheckCircle,
@@ -36,6 +38,8 @@ import {
   Wallet,
   Plus,
   Paintbrush,
+  UserCog,
+  Car,
 } from 'lucide-react';
 import Link from 'next/link';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
@@ -86,9 +90,34 @@ const sellerFormSchema = z
 
 type SellerFormValues = z.infer<typeof sellerFormSchema>;
 
+const driverFormSchema = z.object({
+  name: z.string().min(3, 'Имя должно быть длиннее 3 символов.'),
+  vehicle: z.string().min(5, 'Укажите модель и марку автомобиля.'),
+  services: z.array(z.string()).refine(value => value.some(item => item), {
+    message: 'Вы должны выбрать хотя бы одну услугу.',
+  }),
+  legalStatus: z.enum(['Самозанятый', 'ИП'], {
+    required_error: 'Пожалуйста, выберите ваш юридический статус.',
+  }),
+  agreement: z.literal(true, {
+    errorMap: () => ({ message: 'Вы должны принять условия использования.' }),
+  }),
+});
+
+type DriverFormValues = z.infer<typeof driverFormSchema>;
+
 export default function ProfilePage() {
   const MOCK_USER_ID = 'self'; // In a real app, this would come from auth.
-  const { isSeller, registerAsSeller, shops, sellerProfile, refreshData } = useAppContext();
+  const {
+    isSeller,
+    registerAsSeller,
+    shops,
+    sellerProfile,
+    isDriver,
+    driverProfile,
+    registerAsDriver,
+    refreshData
+  } = useAppContext();
   const { toast } = useToast();
   const [showTopUp, setShowTopUp] = useState(false);
   const [name, setName] = useState('Загрузка...');
@@ -134,6 +163,16 @@ export default function ProfilePage() {
   });
   const sellerType = sellerForm.watch('type');
 
+  const driverForm = useForm<DriverFormValues>({
+    resolver: zodResolver(driverFormSchema),
+    defaultValues: {
+      name: '',
+      vehicle: '',
+      services: [],
+      agreement: false,
+    },
+  });
+
   const onSellerSubmit = async (data: SellerFormValues) => {
     try {
       const { agreement, ...sellerData } = data;
@@ -145,6 +184,31 @@ export default function ProfilePage() {
       toast({
         title: 'Поздравляем!',
         description: 'Вы успешно зарегистрированы как продавец.',
+      });
+    } catch (error) {
+      toast({
+        title: 'Ошибка',
+        description: 'Не удалось зарегистрироваться. Попробуйте еще раз.',
+        variant: 'destructive',
+      });
+    }
+  };
+
+  const onDriverSubmit = async (data: DriverFormValues) => {
+    try {
+      const { agreement, ...driverData } = data;
+      await registerAsDriver({
+        ...driverData,
+        services: driverData.services as ServiceType[],
+        legalStatus: driverData.legalStatus as LegalStatus,
+      });
+
+      // Reload user data to update isDriver flag
+      await refreshData();
+
+      toast({
+        title: 'Вы стали водителем!',
+        description: 'Теперь вы можете принимать заказы.',
       });
     } catch (error) {
       toast({
@@ -466,6 +530,210 @@ export default function ProfilePage() {
                   disabled={sellerForm.formState.isSubmitting}
                 >
                   Зарегистрироваться
+                </Button>
+              </CardFooter>
+            </form>
+          </Form>
+        </Card>
+      )}
+
+      {/* Driver Registration Section */}
+      {isDriver ? (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Car className="h-6 w-6" />
+              Профиль водителя
+            </CardTitle>
+            <CardDescription>Вы зарегистрированы как водитель</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="flex items-center gap-2 rounded-md border border-green-500 bg-green-50 dark:bg-green-900/20 p-4 text-green-700 dark:text-green-400">
+              <CheckCircle className="h-5 w-5" />
+              <p className="text-sm font-medium">Статус водителя: Активен</p>
+            </div>
+            <p className="text-sm text-muted-foreground">
+              Управляйте своими заказами и настройками на панели водителя.
+            </p>
+          </CardContent>
+          <CardFooter>
+            <Link href="/driver/dashboard" className="w-full">
+              <Button className="w-full">
+                Перейти к заказам
+                <ArrowRight className="ml-2 h-4 w-4" />
+              </Button>
+            </Link>
+          </CardFooter>
+        </Card>
+      ) : (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <UserCog className="h-6 w-6" />
+              Стать водителем
+            </CardTitle>
+            <CardDescription>
+              Заполните форму, чтобы начать принимать заказы.
+            </CardDescription>
+          </CardHeader>
+          <Form {...driverForm}>
+            <form onSubmit={driverForm.handleSubmit(onDriverSubmit)}>
+              <CardContent className="space-y-6">
+                <FormField
+                  control={driverForm.control}
+                  name="name"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Ваше имя</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Иван Петров" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={driverForm.control}
+                  name="vehicle"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Ваш автомобиль</FormLabel>
+                      <FormControl>
+                        <Input
+                          placeholder="Например, Toyota Camry"
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={driverForm.control}
+                  name="legalStatus"
+                  render={({ field }) => (
+                    <FormItem className="space-y-3">
+                      <FormLabel>Юридический статус</FormLabel>
+                      <FormControl>
+                        <RadioGroup
+                          onValueChange={field.onChange}
+                          defaultValue={field.value}
+                          className="flex flex-col space-y-1"
+                        >
+                          <FormItem className="flex items-center space-x-3 space-y-0">
+                            <FormControl>
+                              <RadioGroupItem value="Самозанятый" />
+                            </FormControl>
+                            <FormLabel className="font-normal">
+                              Самозанятый
+                            </FormLabel>
+                          </FormItem>
+                          <FormItem className="flex items-center space-x-3 space-y-0">
+                            <FormControl>
+                              <RadioGroupItem value="ИП" />
+                            </FormControl>
+                            <FormLabel className="font-normal">
+                              ИП (Индивидуальный предприниматель)
+                            </FormLabel>
+                          </FormItem>
+                        </RadioGroup>
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={driverForm.control}
+                  name="services"
+                  render={() => (
+                    <FormItem>
+                      <div className="mb-4">
+                        <FormLabel className="text-base">
+                          Какие услуги вы оказываете?
+                        </FormLabel>
+                        <FormDescription>
+                          Выберите одну или несколько категорий.
+                        </FormDescription>
+                      </div>
+                      {serviceTypesList.map(item => (
+                        <FormField
+                          key={item}
+                          control={driverForm.control}
+                          name="services"
+                          render={({ field }) => {
+                            return (
+                              <FormItem
+                                key={item}
+                                className="flex flex-row items-start space-x-3 space-y-0"
+                              >
+                                <FormControl>
+                                  <Checkbox
+                                    checked={field.value?.includes(item)}
+                                    onCheckedChange={checked => {
+                                      return checked
+                                        ? field.onChange([
+                                            ...field.value,
+                                            item,
+                                          ])
+                                        : field.onChange(
+                                            field.value?.filter(
+                                              value => value !== item
+                                            )
+                                          );
+                                    }}
+                                  />
+                                </FormControl>
+                                <FormLabel className="font-normal">
+                                  {item}
+                                </FormLabel>
+                              </FormItem>
+                            );
+                          }}
+                        />
+                      ))}
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={driverForm.control}
+                  name="agreement"
+                  render={({ field }) => (
+                    <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
+                      <FormControl>
+                        <Checkbox
+                          checked={field.value}
+                          onCheckedChange={field.onChange}
+                        />
+                      </FormControl>
+                      <div className="space-y-1 leading-none">
+                        <FormLabel>
+                          Я принимаю{' '}
+                          <Link
+                            href="/terms/drivers"
+                            className="text-primary underline"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                          >
+                            условия использования
+                          </Link>
+                          .
+                        </FormLabel>
+                        <FormMessage />
+                      </div>
+                    </FormItem>
+                  )}
+                />
+              </CardContent>
+              <CardFooter>
+                <Button
+                  type="submit"
+                  className="w-full"
+                  disabled={driverForm.formState.isSubmitting}
+                >
+                  Стать водителем
                 </Button>
               </CardFooter>
             </form>
