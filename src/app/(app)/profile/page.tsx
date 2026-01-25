@@ -88,11 +88,12 @@ type SellerFormValues = z.infer<typeof sellerFormSchema>;
 
 export default function ProfilePage() {
   const MOCK_USER_ID = 'self'; // In a real app, this would come from auth.
-  const { isSeller, registerAsSeller, shops, sellerProfile } = useAppContext();
+  const { isSeller, registerAsSeller, shops, sellerProfile, refreshData } = useAppContext();
   const { toast } = useToast();
   const [showTopUp, setShowTopUp] = useState(false);
   const [name, setName] = useState('Загрузка...');
   const [username, setUsername] = useState('');
+  const [phone, setPhone] = useState('');
 
   useEffect(() => {
     const loadUserData = () => {
@@ -103,6 +104,10 @@ export default function ProfilePage() {
           const fullName = `${telegramUser.first_name} ${telegramUser.last_name || ''}`.trim();
           setName(fullName);
           setUsername(telegramUser.username ? `@${telegramUser.username}` : `ID: ${telegramUser.id}`);
+          // Get phone number from Telegram if available
+          if (telegramUser.phone_number) {
+            setPhone(telegramUser.phone_number);
+          }
         } else {
           // Fallback
           setName('Пользователь');
@@ -129,13 +134,25 @@ export default function ProfilePage() {
   });
   const sellerType = sellerForm.watch('type');
 
-  const onSellerSubmit = (data: SellerFormValues) => {
-    const { agreement, ...sellerData } = data;
-    registerAsSeller(sellerData);
-    toast({
-      title: 'Поздравляем!',
-      description: 'Вы успешно зарегистрированы как продавец.',
-    });
+  const onSellerSubmit = async (data: SellerFormValues) => {
+    try {
+      const { agreement, ...sellerData } = data;
+      await registerAsSeller(sellerData);
+
+      // Reload user data to update isSeller flag
+      await refreshData();
+
+      toast({
+        title: 'Поздравляем!',
+        description: 'Вы успешно зарегистрированы как продавец.',
+      });
+    } catch (error) {
+      toast({
+        title: 'Ошибка',
+        description: 'Не удалось зарегистрироваться. Попробуйте еще раз.',
+        variant: 'destructive',
+      });
+    }
   };
 
   const handleTopUpBalance = () => {
@@ -148,6 +165,23 @@ export default function ProfilePage() {
       title: 'Платеж создан',
       description: 'Откройте страницу оплаты для завершения.',
     });
+  };
+
+  const handleSaveProfile = async () => {
+    try {
+      await api.updateProfile({ name, phone });
+      await refreshData();
+      toast({
+        title: 'Профиль обновлен',
+        description: 'Ваши данные успешно сохранены.',
+      });
+    } catch (error) {
+      toast({
+        title: 'Ошибка',
+        description: 'Не удалось сохранить профиль.',
+        variant: 'destructive',
+      });
+    }
   };
 
   return (
@@ -163,16 +197,36 @@ export default function ProfilePage() {
           <div className="grid gap-6">
             <div className="grid gap-2">
               <Label htmlFor="name">Полное имя</Label>
-              <Input id="name" defaultValue={name} />
+              <Input
+                id="name"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                placeholder="Введите ваше имя"
+              />
             </div>
             <div className="grid gap-2">
-              <Label htmlFor="username">Имя пользователя</Label>
-              <Input id="username" defaultValue={username} />
+              <Label htmlFor="username">Telegram username</Label>
+              <Input
+                id="username"
+                value={username}
+                disabled
+                className="bg-muted"
+              />
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="phone">Номер телефона</Label>
+              <Input
+                id="phone"
+                type="tel"
+                value={phone}
+                onChange={(e) => setPhone(e.target.value)}
+                placeholder="+7 (XXX) XXX-XX-XX"
+              />
             </div>
           </div>
         </CardContent>
         <CardFooter>
-          <Button>Сохранить изменения</Button>
+          <Button onClick={handleSaveProfile}>Сохранить изменения</Button>
         </CardFooter>
       </Card>
 
@@ -390,9 +444,10 @@ export default function ProfilePage() {
                         <FormLabel>
                           Я принимаю{' '}
                           <Link
-                            href="/seller-rules"
+                            href="/terms/sellers"
                             className="text-primary underline"
-                            onClick={e => e.preventDefault()}
+                            target="_blank"
+                            rel="noopener noreferrer"
                           >
                             правила для продавцов
                           </Link>
