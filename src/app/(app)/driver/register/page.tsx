@@ -41,8 +41,8 @@ const driverFormSchema = z.object({
   legalStatus: z.enum(['Самозанятый', 'ИП'], {
     required_error: 'Пожалуйста, выберите ваш юридический статус.',
   }),
-  agreement: z.literal(true, {
-    errorMap: () => ({ message: 'Вы должны принять условия использования.' }),
+  agreement: z.boolean().refine(val => val === true, {
+    message: 'Вы должны принять условия использования.',
   }),
 });
 
