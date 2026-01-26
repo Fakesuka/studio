@@ -34,6 +34,7 @@ const mockDriverProfile: DriverProfile = {
 const mockOrders: Order[] = [
   {
     id: 'order-1',
+    orderId: 'SAHA-0001',
     userId: 'user-1',
     service: 'Отогрев авто',
     location: 'ул. Ленина, 15',
@@ -44,6 +45,7 @@ const mockOrders: Order[] = [
   },
   {
     id: 'order-2',
+    orderId: 'SAHA-0002',
     userId: 'user-2',
     service: 'Доставка топлива',
     location: 'пр. Мира, 42',
@@ -98,6 +100,27 @@ interface AppContextType {
 const AppContext = createContext<AppContextType | undefined>(undefined);
 
 export function AppProvider({ children }: { children: ReactNode }) {
+  // Check dev mode inside component to avoid SSR hydration mismatch
+  const [isDevModeEnabled, setIsDevModeEnabled] = useState(false);
+
+  // Initialize dev mode flag on client side only
+  useEffect(() => {
+    const devMode = typeof window !== 'undefined' &&
+      (window.location.hostname === 'localhost' ||
+       window.location.hostname === '127.0.0.1');
+    setIsDevModeEnabled(devMode);
+
+    // If in dev mode, set mock data
+    if (devMode) {
+      setIsDriver(true);
+      setDriverProfile(mockDriverProfile);
+      setOrders(mockOrders);
+      setBalance(5000);
+      setIsContextLoading(false);
+    }
+  }, []);
+
+  // Start with loading state, data will be set after mount
   const [orders, setOrders] = useState<Order[]>([]);
   const [cart, setCart] = useState<CartItem[]>([]);
   const [isSeller, setIsSeller] = useState(false);
@@ -111,13 +134,17 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [balance, setBalance] = useState(0);
 
   // Load saved role from localStorage or default to 'client'
-  const [currentRole, setCurrentRoleState] = useState<UserRole>(() => {
+  const [currentRole, setCurrentRoleState] = useState<UserRole>('client');
+
+  // Load role from localStorage on mount (client-side only)
+  useEffect(() => {
     if (typeof window !== 'undefined') {
       const saved = localStorage.getItem('userRole');
-      return (saved as UserRole) || 'client';
+      if (saved === 'client' || saved === 'driver') {
+        setCurrentRoleState(saved);
+      }
     }
-    return 'client';
-  });
+  }, []);
 
   // Save role to localStorage when it changes
   const setCurrentRole = useCallback((role: UserRole) => {
@@ -226,8 +253,11 @@ export function AppProvider({ children }: { children: ReactNode }) {
   }, []);
 
   useEffect(() => {
-    loadData();
-  }, [loadData]);
+    // Skip loading data in dev mode - mock data is already set
+    if (!isDevModeEnabled) {
+      loadData();
+    }
+  }, [loadData, isDevModeEnabled]);
 
   const createServiceRequest = async (data: any) => {
     try {

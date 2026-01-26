@@ -14,8 +14,10 @@ router.get('/dashboard/stats', adminController.getDashboardStats);
 
 // Users
 router.get('/users', adminController.getUsers);
+router.get('/users/find/:username', adminController.findUserByUsername);
 router.post('/users/:userId/make-admin', adminController.makeAdmin);
 router.post('/users/:userId/remove-admin', adminController.removeAdmin);
+router.post('/users/:oderId/add-balance', adminController.addBalance);
 
 // Driver verification
 router.get('/drivers/pending', adminController.getPendingDrivers);

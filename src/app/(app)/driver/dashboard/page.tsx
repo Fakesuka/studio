@@ -9,7 +9,6 @@ import {
   Bell,
   MapPin,
   MessageSquare,
-  DollarSign,
   CheckCircle,
   Phone,
   Navigation,
@@ -72,7 +71,7 @@ function AvailableOrderCard({ order }: { order: Order }) {
       acceptOrder(order.id);
       toast({
         title: 'Заказ принят!',
-        description: `Вы приняли заказ #${order.id}.`,
+        description: `Вы приняли заказ #${order.orderId || order.id}.`,
       });
       setIsAccepting(false);
     }
@@ -84,7 +83,7 @@ function AvailableOrderCard({ order }: { order: Order }) {
         <CardHeader>
           <CardTitle>{order.service || 'Услуга'}</CardTitle>
           <CardDescription>
-            Заказ #{order.id || '—'} от{' '}
+            Заказ #{order.orderId || order.id || '—'} от{' '}
             {order.date ? format(new Date(order.date), 'd MMM, HH:mm', { locale: ru }) : '—'}
           </CardDescription>
         </CardHeader>
@@ -115,10 +114,9 @@ function AvailableOrderCard({ order }: { order: Order }) {
           )}
         </CardContent>
         <CardFooter className="flex-col items-stretch gap-2 md:flex-row md:justify-between">
-          <div className="flex items-center justify-center gap-2 rounded-md bg-secondary p-2">
-            <DollarSign className="h-5 w-5 text-primary" />
+          <div className="flex items-center justify-center rounded-md bg-secondary px-4 py-2">
             <span className="text-xl font-bold">
-              {orderPrice.toLocaleString('ru-RU', { currency: 'RUB' })} ₽
+              {orderPrice.toLocaleString('ru-RU')} ₽
             </span>
           </div>
           <Button
@@ -216,7 +214,7 @@ function ActiveDriverOrderCard({ order }: { order: Order }) {
     completeOrder(order.id);
     toast({
       title: 'Заказ завершен!',
-      description: `Заказ #${order.id} выполнен. Оплата зачислена на ваш кошелек.`,
+      description: `Заказ #${order.orderId || order.id} выполнен. Оплата зачислена на ваш кошелек.`,
     });
   };
 
@@ -229,7 +227,7 @@ function ActiveDriverOrderCard({ order }: { order: Order }) {
       <CardHeader>
         <CardTitle>Активный заказ: {order.service || 'Услуга'}</CardTitle>
         <CardDescription>
-          Выполните заказ #{order.id || '—'} по адресу: {order.location || 'Не указан'}
+          Выполните заказ #{order.orderId || order.id || '—'} по адресу: {order.location || 'Не указан'}
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
@@ -272,11 +270,9 @@ function ActiveDriverOrderCard({ order }: { order: Order }) {
         </div>
       </CardContent>
       <CardFooter className="flex-col items-stretch gap-2">
-        <div className="flex items-center justify-center gap-2 rounded-md bg-secondary p-3">
-          <DollarSign className="h-6 w-6 text-primary" />
+        <div className="flex items-center justify-center rounded-md bg-secondary p-3">
           <span className="text-2xl font-bold">
-            Ваш доход: {driverEarnings.toLocaleString('ru-RU', { currency: 'RUB' })}{' '}
-            ₽
+            Ваш доход: {driverEarnings.toLocaleString('ru-RU')} ₽
           </span>
         </div>
         <Button

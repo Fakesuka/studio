@@ -37,6 +37,7 @@ export type DriverProfile = {
 
 export type Order = {
   id: string;
+  orderId?: string; // Human-readable order number (e.g. SAHA-0001)
   userId: string;
   driverId?: string;
   service: ServiceType;
