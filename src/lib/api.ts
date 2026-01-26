@@ -1,4 +1,5 @@
 import { getTelegramInitData } from './telegram';
+import { safeErrorLog } from './error-utils';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
 
@@ -12,9 +13,9 @@ function serializeData(data: any): string {
     const result = JSON.stringify(cleanedData);
     return result;
   } catch (error) {
-    console.error('[API] JSON.stringify failed even after cleaning:', error);
-    console.error('[API] Problematic data:', data);
-    
+    console.error('[API] JSON.stringify failed even after cleaning');
+    console.error('[API] Error:', error instanceof Error ? error.message : String(error));
+
     // Экстренное решение: отправляем только примитивные значения
     const emergencyData = extractPrimitives(data);
     console.log('[API] Emergency fallback data:', emergencyData);
@@ -208,42 +209,6 @@ class ApiClient {
 
   constructor(baseUrl: string) {
     this.baseUrl = baseUrl;
-    
-    // Опционально: глобальный обработчик ошибок JSON.stringify
-    this.patchJSONStringify();
-  }
-
-  private patchJSONStringify() {
-    if (typeof window !== 'undefined') {
-      const originalStringify = JSON.stringify;
-      
-      JSON.stringify = function(value, replacer, space) {
-        try {
-          return originalStringify.call(this, value, replacer, space);
-        } catch (error) {
-          console.error('[Global JSON.stringify] Error:', error);
-          console.error('[Global JSON.stringify] Problematic value:', value);
-          
-          if (value && typeof value === 'object') {
-            console.error('[Global JSON.stringify] Object keys:', Object.keys(value));
-            console.error('[Global JSON.stringify] Object constructor:', value.constructor?.name);
-            
-            // Пытаемся найти проблемное свойство
-            for (const key in value) {
-              try {
-                originalStringify(value[key]);
-              } catch (e) {
-                console.error(`[Global JSON.stringify] Problem with key "${key}":`, value[key]);
-                console.error(`[Global JSON.stringify] Key type:`, typeof value[key]);
-                console.error(`[Global JSON.stringify] Key constructor:`, value[key]?.constructor?.name);
-              }
-            }
-          }
-          
-          throw error;
-        }
-      };
-    }
   }
 
   async request<T>(
@@ -314,14 +279,15 @@ class ApiClient {
       console.log(`[API] Success from ${endpoint}`, data);
       return data;
     } catch (error) {
-      console.error(`[API] Exception for ${endpoint}:`, error);
-      
+      console.error(`[API] Exception for ${endpoint}`);
+      safeErrorLog(error);
+
       // Добавляем дополнительную информацию об ошибке
       if (error instanceof Error) {
         (error as any).endpoint = endpoint;
         (error as any).timestamp = new Date().toISOString();
       }
-      
+
       throw error;
     }
   }
@@ -335,9 +301,9 @@ class ApiClient {
     console.log('[API] updateProfile called with data:', data);
     const validation = validateDataForApi(data);
     if (!validation.isValid) {
-      console.error('[API] updateProfile validation failed:', validation.errors);
+      console.warn('[API] updateProfile validation warnings:', validation.errors);
     }
-    
+
     return this.request('/users/profile', {
       method: 'PUT',
       body: serializeData(data),
@@ -498,6 +464,3 @@ class ApiClient {
 
 // Создаем экземпляр API с улучшенной обработкой ошибок
 export const api = new ApiClient(API_URL);
-
-// Экспортируем утилиты для использования в компонентах
-export { validateDataForApi, serializeData };

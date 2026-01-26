@@ -5,6 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { api } from '@/lib/api';
 import { getTelegramWebApp, getTelegramUser, getTelegramInitData } from '@/lib/telegram';
+import { serializeError, getErrorMessage } from '@/lib/error-utils';
 
 export default function DiagnosticPage() {
   const [logs, setLogs] = useState<string[]>([]);
@@ -57,7 +58,11 @@ export default function DiagnosticPage() {
       addLog(`✅ Status: ${response.status}`);
       addLog(`Response: ${JSON.stringify(data, null, 2)}`);
     } catch (error) {
-      addLog(`❌ Error: ${error instanceof Error ? error.message : 'Unknown'}`);
+      addLog(`❌ Error: ${getErrorMessage(error, 'Unknown')}`);
+      const errorInfo = serializeError(error);
+      if (errorInfo.stack) {
+        addLog(`Stack: ${errorInfo.stack.split('\n')[0]}`);
+      }
     } finally {
       setLoading(false);
     }
@@ -74,8 +79,9 @@ export default function DiagnosticPage() {
       addLog(`✅ Success!`);
       addLog(`Profile: ${JSON.stringify(profile, null, 2)}`);
     } catch (error) {
-      addLog(`❌ Error: ${error instanceof Error ? error.message : 'Unknown'}`);
-      addLog(`Error details: ${JSON.stringify(error, null, 2)}`);
+      addLog(`❌ Error: ${getErrorMessage(error, 'Unknown')}`);
+      const errorInfo = serializeError(error);
+      addLog(`Error details: ${JSON.stringify(errorInfo, null, 2)}`);
     } finally {
       setLoading(false);
     }
@@ -98,8 +104,9 @@ export default function DiagnosticPage() {
       addLog(`✅ Success!`);
       addLog(`Result: ${JSON.stringify(result, null, 2)}`);
     } catch (error) {
-      addLog(`❌ Error: ${error instanceof Error ? error.message : 'Unknown'}`);
-      addLog(`Error stack: ${error instanceof Error ? error.stack : ''}`);
+      addLog(`❌ Error: ${getErrorMessage(error, 'Unknown')}`);
+      const errorInfo = serializeError(error);
+      addLog(`Error info: ${JSON.stringify(errorInfo, null, 2)}`);
     } finally {
       setLoading(false);
     }
@@ -123,8 +130,9 @@ export default function DiagnosticPage() {
       addLog(`✅ Success!`);
       addLog(`Result: ${JSON.stringify(result, null, 2)}`);
     } catch (error) {
-      addLog(`❌ Error: ${error instanceof Error ? error.message : 'Unknown'}`);
-      addLog(`Error details: ${JSON.stringify(error, null, 2)}`);
+      addLog(`❌ Error: ${getErrorMessage(error, 'Unknown')}`);
+      const errorInfo = serializeError(error);
+      addLog(`Error details: ${JSON.stringify(errorInfo, null, 2)}`);
     } finally {
       setLoading(false);
     }
