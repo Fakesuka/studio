@@ -97,33 +97,52 @@ interface AppContextType {
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
 
-// Check if dev mode at module level
-const isDevModeEnabled = typeof window !== 'undefined' &&
-  (window.location.hostname === 'localhost' ||
-   window.location.hostname === '127.0.0.1');
-
 export function AppProvider({ children }: { children: ReactNode }) {
-  // In dev mode, initialize with mock data to prevent redirect issues
-  const [orders, setOrders] = useState<Order[]>(isDevModeEnabled ? mockOrders : []);
+  // Check dev mode inside component to avoid SSR hydration mismatch
+  const [isDevModeEnabled, setIsDevModeEnabled] = useState(false);
+
+  // Initialize dev mode flag on client side only
+  useEffect(() => {
+    const devMode = typeof window !== 'undefined' &&
+      (window.location.hostname === 'localhost' ||
+       window.location.hostname === '127.0.0.1');
+    setIsDevModeEnabled(devMode);
+
+    // If in dev mode, set mock data
+    if (devMode) {
+      setIsDriver(true);
+      setDriverProfile(mockDriverProfile);
+      setOrders(mockOrders);
+      setBalance(5000);
+      setIsContextLoading(false);
+    }
+  }, []);
+
+  // Start with loading state, data will be set after mount
+  const [orders, setOrders] = useState<Order[]>([]);
   const [cart, setCart] = useState<CartItem[]>([]);
   const [isSeller, setIsSeller] = useState(false);
   const [sellerProfile, setSellerProfile] = useState<SellerProfile | null>(null);
   const [products, setProducts] = useState<Product[]>([]);
   const [shops, setShops] = useState<Shop[]>([]);
-  const [isDriver, setIsDriver] = useState(isDevModeEnabled ? true : false);
-  const [driverProfile, setDriverProfile] = useState<DriverProfile | null>(isDevModeEnabled ? mockDriverProfile : null);
+  const [isDriver, setIsDriver] = useState(false);
+  const [driverProfile, setDriverProfile] = useState<DriverProfile | null>(null);
   const [isContextLoading, setIsContextLoading] = useState(true);
   const [marketplaceOrders, setMarketplaceOrders] = useState<MarketplaceOrder[]>([]);
-  const [balance, setBalance] = useState(isDevModeEnabled ? 5000 : 0);
+  const [balance, setBalance] = useState(0);
 
   // Load saved role from localStorage or default to 'client'
-  const [currentRole, setCurrentRoleState] = useState<UserRole>(() => {
+  const [currentRole, setCurrentRoleState] = useState<UserRole>('client');
+
+  // Load role from localStorage on mount (client-side only)
+  useEffect(() => {
     if (typeof window !== 'undefined') {
       const saved = localStorage.getItem('userRole');
-      return (saved as UserRole) || 'client';
+      if (saved === 'client' || saved === 'driver') {
+        setCurrentRoleState(saved);
+      }
     }
-    return 'client';
-  });
+  }, []);
 
   // Save role to localStorage when it changes
   const setCurrentRole = useCallback((role: UserRole) => {
@@ -232,8 +251,11 @@ export function AppProvider({ children }: { children: ReactNode }) {
   }, []);
 
   useEffect(() => {
-    loadData();
-  }, [loadData]);
+    // Skip loading data in dev mode - mock data is already set
+    if (!isDevModeEnabled) {
+      loadData();
+    }
+  }, [loadData, isDevModeEnabled]);
 
   const createServiceRequest = async (data: any) => {
     try {
