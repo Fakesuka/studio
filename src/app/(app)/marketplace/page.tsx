@@ -146,7 +146,7 @@ export default function MarketplacePage() {
           className="w-full"
         >
           <CarouselContent>
-            {shops.map(shop => (
+            {(shops || []).map(shop => (
               <CarouselItem
                 key={shop.id}
                 className="basis-1/3 pl-4 sm:basis-1/4 md:basis-1/5 lg:basis-1/6"

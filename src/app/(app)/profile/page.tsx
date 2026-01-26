@@ -199,7 +199,7 @@ export default function ProfilePage() {
     loadUserData();
   }, []);
 
-  const userShop = shops.find(shop => shop.userId === MOCK_USER_ID);
+  const userShop = (shops || []).find(shop => shop.userId === MOCK_USER_ID);
 
   const sellerForm = useForm<SellerFormValues>({
     resolver: zodResolver(sellerFormSchema),
