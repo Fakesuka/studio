@@ -18,32 +18,32 @@ export function RoleSwitcher({ currentRole, onRoleChange, isDriver, className }:
   }
 
   return (
-    <div className={cn("inline-flex items-center rounded-full bg-muted p-0.5 sm:p-1", className)}>
+    <div className={cn("inline-flex items-center rounded-full bg-muted p-0.5", className)}>
       <button
         onClick={() => onRoleChange('client')}
         className={cn(
-          "flex items-center gap-1 sm:gap-1.5 px-2 sm:px-3 py-1 sm:py-1.5 rounded-full text-xs sm:text-sm font-medium transition-all whitespace-nowrap",
+          "flex items-center gap-0.5 sm:gap-1 px-1.5 sm:px-2 py-0.5 sm:py-1 rounded-full text-[10px] sm:text-xs font-medium transition-all whitespace-nowrap",
           currentRole === 'client'
             ? "bg-background text-foreground shadow-sm"
             : "text-muted-foreground hover:text-foreground"
         )}
         aria-label="Режим клиента"
       >
-        <User className="h-3 w-3 sm:h-4 sm:w-4" />
-        <span className="hidden xs:inline sm:inline">Клиент</span>
+        <User className="h-3 w-3" />
+        <span className="hidden sm:inline">Клиент</span>
       </button>
       <button
         onClick={() => onRoleChange('driver')}
         className={cn(
-          "flex items-center gap-1 sm:gap-1.5 px-2 sm:px-3 py-1 sm:py-1.5 rounded-full text-xs sm:text-sm font-medium transition-all whitespace-nowrap",
+          "flex items-center gap-0.5 sm:gap-1 px-1.5 sm:px-2 py-0.5 sm:py-1 rounded-full text-[10px] sm:text-xs font-medium transition-all whitespace-nowrap",
           currentRole === 'driver'
             ? "bg-background text-foreground shadow-sm"
             : "text-muted-foreground hover:text-foreground"
         )}
         aria-label="Режим водителя"
       >
-        <Car className="h-3 w-3 sm:h-4 sm:w-4" />
-        <span className="hidden xs:inline sm:inline">Водитель</span>
+        <Car className="h-3 w-3" />
+        <span className="hidden sm:inline">Водитель</span>
       </button>
     </div>
   );

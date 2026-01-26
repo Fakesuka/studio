@@ -26,6 +26,7 @@ import { Button } from '@/components/ui/button';
 import { Star, MessageSquare } from 'lucide-react';
 import ReviewForm from '@/components/review-form';
 import { Chat } from '@/components/chat';
+import { getCurrentUserId } from '@/lib/user-utils';
 import {
   Dialog,
   DialogContent,
@@ -67,16 +68,16 @@ const getMarketplaceStatusVariant = (status: MarketplaceOrderStatus) => {
 
 export default function OrdersPage() {
   const { orders, marketplaceOrders, isContextLoading } = useAppContext();
-  const MOCK_USER_ID = 'self';
+  const userId = getCurrentUserId();
   const [reviewOrderId, setReviewOrderId] = useState<string | null>(null);
   const [chatOrder, setChatOrder] = useState<{ id: string; driverId: string; driverName: string } | null>(null);
 
   const userOrders = (orders || [])
-    .filter(o => o.userId === MOCK_USER_ID)
+    .filter(o => o.userId === userId)
     .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 
   const userMarketplaceOrders = (marketplaceOrders || [])
-    .filter(o => o.userId === MOCK_USER_ID)
+    .filter(o => o.userId === userId)
     .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 
   return (

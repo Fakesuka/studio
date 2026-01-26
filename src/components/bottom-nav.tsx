@@ -12,16 +12,16 @@ export function BottomNav() {
     <nav className="fixed bottom-0 left-0 right-0 z-50 border-t bg-card md:hidden">
       <div className="grid h-16 grid-cols-4 items-center">
         {bottomMenuItems.map(item => {
-          const isActive = pathname === item.href;
+          const isActive = pathname.startsWith(item.href);
           return (
             <Link
               key={item.href}
               href={item.href}
               className={cn(
-                'flex h-full flex-col items-center justify-center gap-1 p-2 text-sm font-medium transition-colors',
+                'flex h-full flex-col items-center justify-center gap-1 p-2 text-sm font-medium transition-colors hover:bg-muted/50',
                 isActive
-                  ? 'text-primary'
-                  : 'text-muted-foreground hover:text-primary'
+                  ? 'text-primary bg-muted/30'
+                  : 'text-muted-foreground'
               )}
             >
               <item.icon className="h-5 w-5" />

@@ -31,6 +31,7 @@ import { useAppContext } from '@/context/AppContext';
 import { useToast } from '@/hooks/use-toast';
 import { safeErrorLog, getErrorMessage, logError } from '@/lib/error-utils';
 import TopUpBalance from '@/components/top-up-balance';
+import { getCurrentUserId } from '@/lib/user-utils';
 import type { ServiceType, LegalStatus } from '@/lib/types';
 import { serviceTypesList } from '@/lib/types';
 import { YAKUTIA_CITIES, type YakutiaCity } from '@/lib/cities';
@@ -118,7 +119,7 @@ const driverFormSchema = z.object({
 type DriverFormValues = z.infer<typeof driverFormSchema>;
 
 export default function ProfilePage() {
-  const MOCK_USER_ID = 'self'; // In a real app, this would come from auth.
+  const userId = getCurrentUserId();
   const {
     isSeller,
     registerAsSeller,
@@ -199,7 +200,7 @@ export default function ProfilePage() {
     loadUserData();
   }, []);
 
-  const userShop = (shops || []).find(shop => shop.userId === MOCK_USER_ID);
+  const userShop = (shops || []).find(shop => shop.userId === userId);
 
   const sellerForm = useForm<SellerFormValues>({
     resolver: zodResolver(sellerFormSchema),
