@@ -1,6 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import { validateTelegramWebAppData } from '../utils/telegram';
 import prisma from '../utils/prisma';
+import { sanitizeName, sanitizeUrl, sanitizeTelegramId } from '../utils/sanitize';
 
 export interface AuthRequest extends Request {
   user?: {
@@ -53,20 +54,25 @@ export async function authenticateUser(
       firstName: telegramData.user.first_name,
     });
 
-    // Find or create user
-    const telegramId = telegramData.user.id.toString();
+    // Find or create user - with input sanitization
+    const telegramId = sanitizeTelegramId(telegramData.user.id);
     let user = await prisma.user.findUnique({
       where: { telegramId },
     });
 
     if (!user) {
       console.log('[Auth] Creating new user for Telegram ID:', telegramId);
+      // Sanitize user inputs before storing
+      const rawName = `${telegramData.user.first_name} ${telegramData.user.last_name || ''}`.trim();
+      const sanitizedName = sanitizeName(rawName) || 'User';
+      const sanitizedAvatarUrl = sanitizeUrl(telegramData.user.photo_url);
+
       // Create new user
       user = await prisma.user.create({
         data: {
           telegramId,
-          name: `${telegramData.user.first_name} ${telegramData.user.last_name || ''}`.trim(),
-          avatarUrl: telegramData.user.photo_url,
+          name: sanitizedName,
+          avatarUrl: sanitizedAvatarUrl,
         },
       });
       console.log('[Auth] New user created:', user.id);
