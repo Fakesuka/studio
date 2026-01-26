@@ -19,7 +19,40 @@ import type {
   CustomerInfo,
 } from '@/lib/types';
 import { api } from '@/lib/api';
-import { initTelegramWebApp, isTelegramWebApp } from '@/lib/telegram';
+import { initTelegramWebApp, isTelegramWebApp, isDevMode } from '@/lib/telegram';
+
+// Mock data for development mode
+const mockDriverProfile: DriverProfile = {
+  id: 'dev-driver-1',
+  name: 'Тест Водитель',
+  vehicle: 'Toyota Camry',
+  services: ['Отогрев авто', 'Доставка топлива'],
+  legalStatus: 'Самозанятый',
+  balance: 5000,
+};
+
+const mockOrders: Order[] = [
+  {
+    id: 'order-1',
+    userId: 'user-1',
+    service: 'Отогрев авто',
+    location: 'ул. Ленина, 15',
+    description: 'Машина не заводится, нужна помощь',
+    price: 2500,
+    date: new Date().toISOString(),
+    status: 'Ищет исполнителя',
+  },
+  {
+    id: 'order-2',
+    userId: 'user-2',
+    service: 'Доставка топлива',
+    location: 'пр. Мира, 42',
+    description: 'Закончился бензин, нужно 20 литров АИ-95',
+    price: 1500,
+    date: new Date(Date.now() - 3600000).toISOString(),
+    status: 'Ищет исполнителя',
+  },
+];
 
 export type UserRole = 'client' | 'driver';
 
@@ -108,12 +141,24 @@ export function AppProvider({ children }: { children: ReactNode }) {
     try {
       setIsContextLoading(true);
 
-      // Load user profile
-      const profile = await api.getProfile() as any;
-      setIsDriver(profile.isDriver);
-      setIsSeller(profile.isSeller);
-      setDriverProfile(profile.driverProfile);
-      setSellerProfile(profile.sellerProfile);
+      // In dev mode without backend, use mock data
+      const useDevMockData = isDevMode();
+
+      try {
+        // Load user profile
+        const profile = await api.getProfile() as any;
+        setIsDriver(profile.isDriver);
+        setIsSeller(profile.isSeller);
+        setDriverProfile(profile.driverProfile);
+        setSellerProfile(profile.sellerProfile);
+      } catch (error) {
+        console.error('Error loading profile:', error);
+        if (useDevMockData) {
+          console.log('[DEV] Using mock driver profile');
+          setIsDriver(true);
+          setDriverProfile(mockDriverProfile);
+        }
+      }
 
       // Load balance
       try {
@@ -121,28 +166,58 @@ export function AppProvider({ children }: { children: ReactNode }) {
         setBalance(balanceData.balance || 0);
       } catch (error) {
         console.error('Error loading balance:', error);
-        setBalance(0);
+        setBalance(useDevMockData ? 5000 : 0);
       }
 
       // Load shops and products
-      const [shopsData, productsData] = await Promise.all([
-        api.getShops(),
-        api.getProducts(),
-      ]);
-      setShops(shopsData || []);
-      setProducts(productsData || []);
+      try {
+        const [shopsData, productsData] = await Promise.all([
+          api.getShops(),
+          api.getProducts(),
+        ]);
+        setShops(shopsData || []);
+        setProducts(productsData || []);
+      } catch (error) {
+        console.error('Error loading shops/products:', error);
+        if (useDevMockData) {
+          setShops([]);
+          setProducts([]);
+        }
+      }
 
       // Load orders
-      const ordersData = await api.getMyOrders();
-      setOrders(ordersData || []);
+      try {
+        const ordersData = await api.getMyOrders();
+        setOrders(ordersData || []);
+      } catch (error) {
+        console.error('Error loading orders:', error);
+        if (useDevMockData) {
+          console.log('[DEV] Using mock orders');
+          setOrders(mockOrders);
+        }
+      }
 
       // Load cart
-      const cartData = await api.getCart();
-      setCart(cartData || []);
+      try {
+        const cartData = await api.getCart();
+        setCart(cartData || []);
+      } catch (error) {
+        console.error('Error loading cart:', error);
+        if (useDevMockData) {
+          setCart([]);
+        }
+      }
 
       // Load marketplace orders
-      const marketplaceOrdersData = await api.getMarketplaceOrders();
-      setMarketplaceOrders(marketplaceOrdersData || []);
+      try {
+        const marketplaceOrdersData = await api.getMarketplaceOrders();
+        setMarketplaceOrders(marketplaceOrdersData || []);
+      } catch (error) {
+        console.error('Error loading marketplace orders:', error);
+        if (useDevMockData) {
+          setMarketplaceOrders([]);
+        }
+      }
     } catch (error) {
       console.error('Error loading data:', error);
     } finally {

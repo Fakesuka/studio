@@ -82,24 +82,24 @@ function AvailableOrderCard({ order }: { order: Order }) {
     <>
       <Card>
         <CardHeader>
-          <CardTitle>{order.service}</CardTitle>
+          <CardTitle>{order.service || 'Услуга'}</CardTitle>
           <CardDescription>
-            Заказ #{order.id} от{' '}
-            {format(new Date(order.date), 'd MMM, HH:mm', { locale: ru })}
+            Заказ #{order.id || '—'} от{' '}
+            {order.date ? format(new Date(order.date), 'd MMM, HH:mm', { locale: ru }) : '—'}
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <div>
             <p className="flex items-center gap-2 text-sm">
               <MapPin className="h-4 w-4 text-muted-foreground" />
-              <strong>Адрес:</strong> {order.location}
+              <strong>Адрес:</strong> {order.location || 'Не указан'}
             </p>
           </div>
           <div>
             <p className="flex items-start gap-2 text-sm">
               <MessageSquare className="mt-1 h-4 w-4 flex-shrink-0 text-muted-foreground" />
               <span>
-                <strong>Описание:</strong> {order.description}
+                <strong>Описание:</strong> {order.description || 'Нет описания'}
               </span>
             </p>
           </div>
@@ -227,9 +227,9 @@ function ActiveDriverOrderCard({ order }: { order: Order }) {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Активный заказ: {order.service}</CardTitle>
+        <CardTitle>Активный заказ: {order.service || 'Услуга'}</CardTitle>
         <CardDescription>
-          Выполните заказ #{order.id} по адресу: {order.location}
+          Выполните заказ #{order.id || '—'} по адресу: {order.location || 'Не указан'}
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
@@ -246,7 +246,7 @@ function ActiveDriverOrderCard({ order }: { order: Order }) {
           <p className="flex items-start gap-2 text-sm">
             <MessageSquare className="mt-1 h-4 w-4 flex-shrink-0 text-muted-foreground" />
             <span>
-              <strong>Описание от клиента:</strong> {order.description}
+              <strong>Описание от клиента:</strong> {order.description || 'Нет описания'}
             </span>
           </p>
         </div>
