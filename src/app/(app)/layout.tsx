@@ -7,6 +7,7 @@ import { BottomNav } from '@/components/bottom-nav';
 import { DriverBottomNav } from '@/components/driver-bottom-nav';
 import { TelegramGuard } from '@/components/telegram-guard';
 import { AppProvider, useAppContext } from '@/context/AppContext';
+import { ErrorBoundary } from '@/components/error-boundary';
 
 // Home pages for each role
 const CLIENT_HOME = '/dashboard';
@@ -56,10 +57,12 @@ function LayoutContent({ children }: { children: React.ReactNode }) {
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   return (
-    <TelegramGuard>
-      <AppProvider>
-        <LayoutContent>{children}</LayoutContent>
-      </AppProvider>
-    </TelegramGuard>
+    <ErrorBoundary>
+      <TelegramGuard>
+        <AppProvider>
+          <LayoutContent>{children}</LayoutContent>
+        </AppProvider>
+      </TelegramGuard>
+    </ErrorBoundary>
   );
 }

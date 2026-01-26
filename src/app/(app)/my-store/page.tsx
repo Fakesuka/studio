@@ -59,6 +59,7 @@ import {
 } from '@/components/ui/form';
 import { useAppContext } from '@/context/AppContext';
 import { useToast } from '@/hooks/use-toast';
+import { getCurrentUserId } from '@/lib/user-utils';
 
 const productFormSchema = z
   .object({
@@ -106,9 +107,9 @@ export default function MyStorePage() {
   const [photoPreview, setPhotoPreview] = useState<string | null>(null);
   const [editingProduct, setEditingProduct] = useState<any | null>(null);
 
-  const MOCK_USER_ID = 'self';
   // Find user shop - first try by userId, then take first shop if user is seller
-  const userShop = (shops || []).find(shop => shop.userId === MOCK_USER_ID) ||
+  const userId = getCurrentUserId();
+  const userShop = (shops || []).find(shop => shop.userId === userId) ||
                    (isSeller && sellerProfile && (shops || []).length > 0 ? (shops || [])[0] : null);
   const sellerProducts = userShop
     ? (products || []).filter(p => p.shopId === userShop.id)
@@ -178,6 +179,8 @@ export default function MyStorePage() {
       // Add new product
       addProduct({
         ...finalProductData,
+        // TODO: Replace with real photo upload functionality
+        // Currently using placeholder image service
         imageUrl:
           photoPreview || `https://picsum.photos/seed/${data.name}/600/400`,
         imageHint: `photo of ${data.name}`,

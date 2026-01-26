@@ -18,10 +18,10 @@ export function DriverBottomNav() {
               key={item.href}
               href={item.href}
               className={cn(
-                'flex h-full flex-col items-center justify-center gap-1 p-2 text-sm font-medium transition-colors',
+                'flex h-full flex-col items-center justify-center gap-1 p-2 text-sm font-medium transition-colors hover:bg-muted/50',
                 isActive
-                  ? 'text-primary'
-                  : 'text-muted-foreground hover:text-primary'
+                  ? 'text-primary bg-muted/30'
+                  : 'text-muted-foreground'
               )}
             >
               <item.icon className="h-5 w-5" />

@@ -215,12 +215,18 @@ class ApiClient {
     endpoint: string,
     options: RequestInit = {}
   ): Promise<T> {
-    const initData = getTelegramInitData();
+    // Check for dev mode
+    const isDevMode = typeof window !== 'undefined' &&
+                      (localStorage.getItem('devMode') === 'true' ||
+                       process.env.NODE_ENV === 'development');
+
+    const initData = isDevMode ? 'dev_mode_mock_data' : getTelegramInitData();
 
     console.log(`[API] Request to ${endpoint}`, {
       method: options.method || 'GET',
       body: options.body,
       hasInitData: !!initData,
+      isDevMode,
       timestamp: new Date().toISOString()
     });
 

@@ -31,6 +31,7 @@ import { useAppContext } from '@/context/AppContext';
 import { useToast } from '@/hooks/use-toast';
 import { safeErrorLog, getErrorMessage, logError } from '@/lib/error-utils';
 import TopUpBalance from '@/components/top-up-balance';
+import { getCurrentUserId } from '@/lib/user-utils';
 import type { ServiceType, LegalStatus } from '@/lib/types';
 import { serviceTypesList } from '@/lib/types';
 import { YAKUTIA_CITIES, type YakutiaCity } from '@/lib/cities';
@@ -118,7 +119,7 @@ const driverFormSchema = z.object({
 type DriverFormValues = z.infer<typeof driverFormSchema>;
 
 export default function ProfilePage() {
-  const MOCK_USER_ID = 'self'; // In a real app, this would come from auth.
+  const userId = getCurrentUserId();
   const {
     isSeller,
     registerAsSeller,
@@ -199,7 +200,7 @@ export default function ProfilePage() {
     loadUserData();
   }, []);
 
-  const userShop = (shops || []).find(shop => shop.userId === MOCK_USER_ID);
+  const userShop = (shops || []).find(shop => shop.userId === userId);
 
   const sellerForm = useForm<SellerFormValues>({
     resolver: zodResolver(sellerFormSchema),
@@ -905,6 +906,90 @@ export default function ProfilePage() {
           </Form>
         </Card>
       )}
+
+      {/* Developer Settings */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <UserCog className="h-6 w-6" />
+            Настройки разработчика
+          </CardTitle>
+          <CardDescription>
+            Инструменты для отладки и диагностики приложения
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="flex items-center justify-between rounded-md border p-4">
+            <div className="flex-1">
+              <h3 className="font-medium">Режим разработчика</h3>
+              <p className="text-sm text-muted-foreground">
+                Позволяет использовать приложение в браузере без Telegram
+              </p>
+            </div>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => {
+                const currentMode = localStorage.getItem('devMode') === 'true';
+                if (currentMode) {
+                  localStorage.removeItem('devMode');
+                  alert('Dev Mode выключен. Перезагрузите страницу.');
+                } else {
+                  localStorage.setItem('devMode', 'true');
+                  alert('Dev Mode включен. Перезагрузите страницу.');
+                }
+              }}
+            >
+              {typeof window !== 'undefined' && localStorage.getItem('devMode') === 'true'
+                ? 'Выключить'
+                : 'Включить'}
+            </Button>
+          </div>
+
+          <div className="flex items-center justify-between rounded-md border border-blue-200 bg-blue-50 p-4 dark:border-blue-800 dark:bg-blue-950">
+            <div className="flex-1">
+              <h3 className="font-medium text-blue-900 dark:text-blue-100">
+                Консоль ошибок
+              </h3>
+              <p className="text-sm text-blue-700 dark:text-blue-300">
+                Просмотр ошибок без браузерной консоли
+              </p>
+            </div>
+            <Link href="/debug">
+              <Button variant="outline" size="sm">
+                Открыть
+              </Button>
+            </Link>
+          </div>
+
+          <div className="rounded-md border p-4">
+            <h3 className="mb-2 font-medium">Текущее окружение</h3>
+            <div className="space-y-1 text-sm">
+              <p className="flex justify-between">
+                <span className="text-muted-foreground">Telegram WebApp:</span>
+                <span className="font-mono">
+                  {typeof window !== 'undefined' && window.Telegram?.WebApp
+                    ? '✅ Да'
+                    : '❌ Нет'}
+                </span>
+              </p>
+              <p className="flex justify-between">
+                <span className="text-muted-foreground">Dev Mode:</span>
+                <span className="font-mono">
+                  {typeof window !== 'undefined' &&
+                  localStorage.getItem('devMode') === 'true'
+                    ? '✅ Включен'
+                    : '❌ Выключен'}
+                </span>
+              </p>
+              <p className="flex justify-between">
+                <span className="text-muted-foreground">Версия:</span>
+                <span className="font-mono">1.0.0</span>
+              </p>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
 
       {/* Dialog для пополнения баланса */}
       <Dialog open={showTopUp} onOpenChange={setShowTopUp}>
