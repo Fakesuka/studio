@@ -18,30 +18,32 @@ export function RoleSwitcher({ currentRole, onRoleChange, isDriver, className }:
   }
 
   return (
-    <div className={cn("inline-flex items-center rounded-full bg-muted p-1", className)}>
+    <div className={cn("inline-flex items-center rounded-full bg-muted p-0.5 sm:p-1", className)}>
       <button
         onClick={() => onRoleChange('client')}
         className={cn(
-          "flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium transition-all",
+          "flex items-center gap-1 sm:gap-1.5 px-2 sm:px-3 py-1 sm:py-1.5 rounded-full text-xs sm:text-sm font-medium transition-all whitespace-nowrap",
           currentRole === 'client'
             ? "bg-background text-foreground shadow-sm"
             : "text-muted-foreground hover:text-foreground"
         )}
+        aria-label="Режим клиента"
       >
-        <User className="h-4 w-4" />
-        Клиент
+        <User className="h-3 w-3 sm:h-4 sm:w-4" />
+        <span className="hidden xs:inline sm:inline">Клиент</span>
       </button>
       <button
         onClick={() => onRoleChange('driver')}
         className={cn(
-          "flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium transition-all",
+          "flex items-center gap-1 sm:gap-1.5 px-2 sm:px-3 py-1 sm:py-1.5 rounded-full text-xs sm:text-sm font-medium transition-all whitespace-nowrap",
           currentRole === 'driver'
             ? "bg-background text-foreground shadow-sm"
             : "text-muted-foreground hover:text-foreground"
         )}
+        aria-label="Режим водителя"
       >
-        <Car className="h-4 w-4" />
-        Водитель
+        <Car className="h-3 w-3 sm:h-4 sm:w-4" />
+        <span className="hidden xs:inline sm:inline">Водитель</span>
       </button>
     </div>
   );
