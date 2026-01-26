@@ -41,7 +41,11 @@ export default function DriverHistoryPage() {
   const driverOrders = driverProfile
     ? (orders || [])
         .filter(o => o.driverId === driverProfile.id)
-        .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+        .sort((a, b) => {
+          const dateA = a.date ? new Date(a.date).getTime() : 0;
+          const dateB = b.date ? new Date(b.date).getTime() : 0;
+          return dateB - dateA;
+        })
     : [];
 
   return (
@@ -68,8 +72,8 @@ export default function DriverHistoryPage() {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead className="hidden w-[100px] sm:table-cell">
-                    ID Заказа
+                  <TableHead className="hidden w-[120px] sm:table-cell">
+                    № Заказа
                   </TableHead>
                   <TableHead>Услуга</TableHead>
                   <TableHead>Статус</TableHead>
@@ -79,23 +83,25 @@ export default function DriverHistoryPage() {
               </TableHeader>
               <TableBody>
                 {driverOrders.map(order => (
-                  <TableRow key={order.id}>
+                  <TableRow key={order.id || Math.random()}>
                     <TableCell className="hidden font-medium sm:table-cell">
-                      {order.id}
+                      {order.orderId || `#${order.id?.slice(-4) || '—'}`}
                     </TableCell>
-                    <TableCell>{order.service}</TableCell>
+                    <TableCell>{order.service || 'Услуга'}</TableCell>
                     <TableCell>
                       <Badge variant={getStatusVariant(order.status)}>
-                        {order.status}
+                        {order.status || 'Неизвестно'}
                       </Badge>
                     </TableCell>
                     <TableCell className="hidden md:table-cell">
-                      {format(new Date(order.date), 'd MMMM yyyy, HH:mm', {
-                        locale: ru,
-                      })}
+                      {order.date
+                        ? format(new Date(order.date), 'd MMMM yyyy, HH:mm', {
+                            locale: ru,
+                          })
+                        : '—'}
                     </TableCell>
                     <TableCell className="text-right">
-                      {order.price.toLocaleString('ru-RU', {
+                      {(order.price ?? 0).toLocaleString('ru-RU', {
                         style: 'currency',
                         currency: 'RUB',
                       })}

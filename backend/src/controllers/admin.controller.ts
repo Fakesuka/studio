@@ -370,3 +370,91 @@ export async function removeAdmin(req: AuthRequest, res: Response) {
     return res.status(500).json({ error: 'Failed to remove admin' });
   }
 }
+
+// Add balance to user
+export async function addBalance(req: AuthRequest, res: Response) {
+  try {
+    const { oderId } = req.params;
+    const { amount, reason } = req.body;
+
+    if (!amount || amount <= 0) {
+      return res.status(400).json({ error: 'Amount must be positive' });
+    }
+
+    // Find user by oderId, oderId, or telegramId
+    let user = await prisma.user.findFirst({
+      where: {
+        OR: [
+          { id: oderId },
+          { telegramId: oderId },
+          { name: { contains: oderId, mode: 'insensitive' } },
+        ],
+      },
+    });
+
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    // Update balance and create transaction
+    const result = await prisma.$transaction(async (tx) => {
+      const updatedUser = await tx.user.update({
+        where: { id: user!.id },
+        data: {
+          balance: { increment: amount },
+        },
+      });
+
+      await tx.transaction.create({
+        data: {
+          userId: user!.id,
+          type: 'admin_bonus',
+          amount: amount,
+          description: reason || `Начисление от администратора: ${amount} ₽`,
+        },
+      });
+
+      return updatedUser;
+    });
+
+    return res.json({
+      message: `Successfully added ${amount} ₽ to user ${result.name}`,
+      user: result,
+    });
+  } catch (error) {
+    console.error('Error adding balance:', error);
+    return res.status(500).json({ error: 'Failed to add balance' });
+  }
+}
+
+// Find user by username
+export async function findUserByUsername(req: AuthRequest, res: Response) {
+  try {
+    const { username } = req.params;
+
+    // Remove @ if present
+    const cleanUsername = username.replace('@', '');
+
+    const user = await prisma.user.findFirst({
+      where: {
+        OR: [
+          { name: { contains: cleanUsername, mode: 'insensitive' } },
+          { telegramId: cleanUsername },
+        ],
+      },
+      include: {
+        driverProfile: true,
+        sellerProfile: true,
+      },
+    });
+
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    return res.json(user);
+  } catch (error) {
+    console.error('Error finding user:', error);
+    return res.status(500).json({ error: 'Failed to find user' });
+  }
+}

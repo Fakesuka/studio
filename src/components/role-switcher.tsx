@@ -1,5 +1,6 @@
 'use client';
 
+import { useRouter } from 'next/navigation';
 import { User, Car } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -13,18 +14,30 @@ interface RoleSwitcherProps {
 }
 
 export function RoleSwitcher({ currentRole, onRoleChange, isDriver, className }: RoleSwitcherProps) {
+  const router = useRouter();
+
   if (!isDriver) {
     return null;
   }
 
+  const handleRoleChange = (role: UserRole) => {
+    onRoleChange(role);
+    // Auto-navigate to the correct home page
+    if (role === 'driver') {
+      router.push('/driver/dashboard');
+    } else {
+      router.push('/dashboard');
+    }
+  };
+
   return (
     <div className={cn("inline-flex items-center rounded-full bg-muted p-0.5", className)}>
       <button
-        onClick={() => onRoleChange('client')}
+        onClick={() => handleRoleChange('client')}
         className={cn(
           "flex items-center gap-0.5 sm:gap-1 px-1.5 sm:px-2 py-0.5 sm:py-1 rounded-full text-[10px] sm:text-xs font-medium transition-all whitespace-nowrap",
           currentRole === 'client'
-            ? "bg-background text-foreground shadow-sm"
+            ? "bg-primary text-primary-foreground shadow-sm"
             : "text-muted-foreground hover:text-foreground"
         )}
         aria-label="Режим клиента"
@@ -33,11 +46,11 @@ export function RoleSwitcher({ currentRole, onRoleChange, isDriver, className }:
         <span className="hidden sm:inline">Клиент</span>
       </button>
       <button
-        onClick={() => onRoleChange('driver')}
+        onClick={() => handleRoleChange('driver')}
         className={cn(
           "flex items-center gap-0.5 sm:gap-1 px-1.5 sm:px-2 py-0.5 sm:py-1 rounded-full text-[10px] sm:text-xs font-medium transition-all whitespace-nowrap",
           currentRole === 'driver'
-            ? "bg-background text-foreground shadow-sm"
+            ? "bg-primary text-primary-foreground shadow-sm"
             : "text-muted-foreground hover:text-foreground"
         )}
         aria-label="Режим водителя"

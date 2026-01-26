@@ -65,7 +65,20 @@ declare global {
   }
 }
 
-// Mock data for development mode
+// Check if we're in development mode
+export const isDevMode = (): boolean => {
+  if (typeof window === 'undefined') return false;
+
+  // Check localStorage flag OR hostname OR NODE_ENV
+  return (
+    localStorage.getItem('devMode') === 'true' ||
+    window.location.hostname === 'localhost' ||
+    window.location.hostname === '127.0.0.1' ||
+    process.env.NODE_ENV === 'development'
+  );
+};
+
+// Mock Telegram user for development
 const MOCK_TELEGRAM_USER = {
   id: 123456789,
   first_name: 'Dev',
@@ -78,13 +91,11 @@ const MOCK_TELEGRAM_USER = {
 
 const MOCK_INIT_DATA = 'query_id=AAHdF6IQAAAAAN0XohDhrOrc&user=%7B%22id%22%3A123456789%2C%22first_name%22%3A%22Dev%22%2C%22last_name%22%3A%22User%22%2C%22username%22%3A%22devuser%22%2C%22language_code%22%3A%22ru%22%7D&auth_date=1640000000&hash=dev_mode_mock_hash';
 
-const isDevMode = (): boolean => {
-  if (typeof window === 'undefined') return false;
-  return localStorage.getItem('devMode') === 'true' || process.env.NODE_ENV === 'development';
-};
-
 export const isTelegramWebApp = (): boolean => {
-  if (isDevMode()) return true; // In dev mode, pretend we're in Telegram
+  // Allow access in dev mode
+  if (isDevMode()) {
+    return true;
+  }
   return typeof window !== 'undefined' && !!window.Telegram?.WebApp;
 };
 
@@ -110,7 +121,8 @@ export const getTelegramWebApp = () => {
 };
 
 export const getTelegramInitData = (): string | null => {
-  if (isDevMode()) {
+  // Return mock init data in dev mode when real Telegram is not available
+  if (isDevMode() && !window.Telegram?.WebApp) {
     console.log('[Telegram] Using mock init data (dev mode)');
     return MOCK_INIT_DATA;
   }
@@ -119,7 +131,8 @@ export const getTelegramInitData = (): string | null => {
 };
 
 export const getTelegramUser = () => {
-  if (isDevMode()) {
+  // Return mock user in dev mode when real Telegram is not available
+  if (isDevMode() && !window.Telegram?.WebApp) {
     console.log('[Telegram] Using mock user data (dev mode):', MOCK_TELEGRAM_USER);
     return MOCK_TELEGRAM_USER;
   }
@@ -173,7 +186,7 @@ export const hapticFeedback = (type: 'light' | 'medium' | 'heavy' | 'success' | 
 
 // Enhanced phone number getter with logging
 export const getTelegramPhoneNumber = (): string | null => {
-  if (isDevMode()) {
+  if (isDevMode() && !window.Telegram?.WebApp) {
     console.log('[Telegram] Using mock phone number (dev mode):', MOCK_TELEGRAM_USER.phone_number);
     return MOCK_TELEGRAM_USER.phone_number;
   }
