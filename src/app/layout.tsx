@@ -1,4 +1,4 @@
-import type { Metadata } from 'next';
+import type { Metadata, Viewport } from 'next';
 import Script from 'next/script';
 import { Toaster } from '@/components/ui/toaster';
 import { RootProviders } from '@/components/root-providers';
@@ -10,11 +10,15 @@ import './globals.css';
 export const metadata: Metadata = {
   title: 'YakGo',
   description: 'Ваш надежный помощник на дорогах Якутии.',
-  viewport: {
-    width: 'device-width',
-    initialScale: 1,
-    maximumScale: 1,
-  },
+  // другие метаданные...
+};
+
+// Экспортируем viewport отдельно
+export const viewport: Viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  maximumScale: 1,
+  // другие свойства viewport...
 };
 
 export default function RootLayout({
