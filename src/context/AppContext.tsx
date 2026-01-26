@@ -129,20 +129,20 @@ export function AppProvider({ children }: { children: ReactNode }) {
         api.getShops(),
         api.getProducts(),
       ]);
-      setShops(shopsData);
-      setProducts(productsData);
+      setShops(shopsData || []);
+      setProducts(productsData || []);
 
       // Load orders
       const ordersData = await api.getMyOrders();
-      setOrders(ordersData);
+      setOrders(ordersData || []);
 
       // Load cart
       const cartData = await api.getCart();
-      setCart(cartData);
+      setCart(cartData || []);
 
       // Load marketplace orders
       const marketplaceOrdersData = await api.getMarketplaceOrders();
-      setMarketplaceOrders(marketplaceOrdersData);
+      setMarketplaceOrders(marketplaceOrdersData || []);
     } catch (error) {
       console.error('Error loading data:', error);
     } finally {
@@ -199,8 +199,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  const activeClientOrder = orders.find((o) => o.status === 'В процессе') || null;
-  const activeDriverOrder = orders.find(
+  const activeClientOrder = (orders || []).find((o) => o.status === 'В процессе') || null;
+  const activeDriverOrder = (orders || []).find(
     (o) => o.driverId && o.status === 'В процессе'
   ) || null;
 
