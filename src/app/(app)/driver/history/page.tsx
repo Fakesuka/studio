@@ -39,7 +39,7 @@ const getStatusVariant = (status: OrderStatus) => {
 export default function DriverHistoryPage() {
   const { orders, driverProfile, isContextLoading } = useAppContext();
   const driverOrders = driverProfile
-    ? orders
+    ? (orders || [])
         .filter(o => o.driverId === driverProfile.id)
         .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
     : [];
