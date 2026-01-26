@@ -4,9 +4,10 @@ import { ShoppingCart, Snowflake } from 'lucide-react';
 import Link from 'next/link';
 import { Button } from './ui/button';
 import { useAppContext } from '@/context/AppContext';
+import { RoleSwitcher } from './role-switcher';
 
 export function Header() {
-  const { cart } = useAppContext();
+  const { cart, isDriver, currentRole, setCurrentRole } = useAppContext();
   const totalItems = cart.reduce((sum, item) => sum + item.quantity, 0);
 
   return (
@@ -16,6 +17,12 @@ export function Header() {
         <span className="text-lg font-bold">YakGo</span>
       </Link>
       <div className="flex-1" />
+      <RoleSwitcher
+        currentRole={currentRole}
+        onRoleChange={setCurrentRole}
+        isDriver={isDriver}
+        className="mr-2"
+      />
       <Link href="/cart" passHref>
         <Button variant="ghost" size="icon" className="relative rounded-full">
           <ShoppingCart className="h-5 w-5" />

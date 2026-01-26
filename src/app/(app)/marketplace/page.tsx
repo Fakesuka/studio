@@ -39,6 +39,7 @@ export default function MarketplacePage() {
     addToCart,
     updateCartItemQuantity,
     getCartItemQuantity,
+    isSeller,
   } = useAppContext();
 
   const [searchTerm, setSearchTerm] = useState('');
@@ -88,9 +89,18 @@ export default function MarketplacePage() {
             Товары первой необходимости для водителей.
           </p>
         </div>
-        <Link href="/profile" passHref>
-          <Button variant="outline">Стать продавцом</Button>
-        </Link>
+        {isSeller ? (
+          <Link href="/my-store" passHref>
+            <Button>
+              <Plus className="mr-2 h-4 w-4" />
+              Добавить товар
+            </Button>
+          </Link>
+        ) : (
+          <Link href="/profile" passHref>
+            <Button variant="outline">Стать продавцом</Button>
+          </Link>
+        )}
       </div>
 
       <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
