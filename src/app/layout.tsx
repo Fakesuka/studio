@@ -18,7 +18,8 @@ export const viewport: Viewport = {
   width: 'device-width',
   initialScale: 1,
   maximumScale: 1,
-  // другие свойства viewport...
+  userScalable: false,
+  // Disable zoom on mobile
 };
 
 export default function RootLayout({

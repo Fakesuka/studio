@@ -98,13 +98,16 @@ export default function MyStorePage() {
     deleteProduct,
     isSeller,
     isContextLoading,
+    sellerProfile,
   } = useAppContext();
   const { toast } = useToast();
   const [isAddProductDialogOpen, setIsAddProductDialogOpen] = useState(false);
   const [photoPreview, setPhotoPreview] = useState<string | null>(null);
 
   const MOCK_USER_ID = 'self';
-  const userShop = shops.find(shop => shop.userId === MOCK_USER_ID);
+  // Find user shop - first try by userId, then take first shop if user is seller
+  const userShop = shops.find(shop => shop.userId === MOCK_USER_ID) ||
+                   (isSeller && sellerProfile && shops.length > 0 ? shops[0] : null);
   const sellerProducts = userShop
     ? products.filter(p => p.shopId === userShop.id)
     : [];
