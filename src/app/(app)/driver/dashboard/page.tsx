@@ -9,7 +9,6 @@ import {
   Bell,
   MapPin,
   MessageSquare,
-  DollarSign,
   CheckCircle,
   Phone,
   Navigation,
@@ -115,10 +114,9 @@ function AvailableOrderCard({ order }: { order: Order }) {
           )}
         </CardContent>
         <CardFooter className="flex-col items-stretch gap-2 md:flex-row md:justify-between">
-          <div className="flex items-center justify-center gap-2 rounded-md bg-secondary p-2">
-            <DollarSign className="h-5 w-5 text-primary" />
+          <div className="flex items-center justify-center rounded-md bg-secondary px-4 py-2">
             <span className="text-xl font-bold">
-              {orderPrice.toLocaleString('ru-RU', { currency: 'RUB' })} ₽
+              {orderPrice.toLocaleString('ru-RU')} ₽
             </span>
           </div>
           <Button
@@ -272,11 +270,9 @@ function ActiveDriverOrderCard({ order }: { order: Order }) {
         </div>
       </CardContent>
       <CardFooter className="flex-col items-stretch gap-2">
-        <div className="flex items-center justify-center gap-2 rounded-md bg-secondary p-3">
-          <DollarSign className="h-6 w-6 text-primary" />
+        <div className="flex items-center justify-center rounded-md bg-secondary p-3">
           <span className="text-2xl font-bold">
-            Ваш доход: {driverEarnings.toLocaleString('ru-RU', { currency: 'RUB' })}{' '}
-            ₽
+            Ваш доход: {driverEarnings.toLocaleString('ru-RU')} ₽
           </span>
         </div>
         <Button
