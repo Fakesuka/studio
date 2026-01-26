@@ -89,4 +89,27 @@ router.get('/health/detailed', async (req: Request, res: Response) => {
   }
 });
 
+// CORS debug endpoint
+router.get('/cors-config', (req: Request, res: Response) => {
+  res.json({
+    configured: {
+      FRONTEND_URL: process.env.FRONTEND_URL || 'NOT SET (using *)',
+      origin: process.env.FRONTEND_URL || '*',
+      credentials: true,
+      allowedHeaders: ['Content-Type', 'X-Telegram-Init-Data', 'Authorization'],
+      methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    },
+    request: {
+      origin: req.headers.origin || 'none',
+      method: req.method,
+      headers: {
+        'content-type': req.headers['content-type'],
+        'x-telegram-init-data': req.headers['x-telegram-init-data'] ? 'present' : 'missing',
+      },
+    },
+    warning: !process.env.FRONTEND_URL ?
+      'FRONTEND_URL not set! CORS will allow all origins (*)' : null,
+  });
+});
+
 export default router;

@@ -29,21 +29,37 @@ const io = new Server(httpServer, {
 });
 
 // Middleware
-app.use(cors({
+const corsOptions = {
   origin: process.env.FRONTEND_URL || '*',
   credentials: true,
-  allowedHeaders: ['Content-Type', 'X-Telegram-Init-Data'],
+  allowedHeaders: ['Content-Type', 'X-Telegram-Init-Data', 'Authorization'],
+  exposedHeaders: ['Content-Type'],
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-}));
+  preflightContinue: false,
+  optionsSuccessStatus: 204,
+};
+
+app.use(cors(corsOptions));
+
+// Log CORS configuration on startup
+console.log('🔒 CORS Configuration:', {
+  origin: process.env.FRONTEND_URL || '*',
+  credentials: true,
+});
+
+// Explicit preflight handler for all routes
+app.options('*', cors(corsOptions));
+
 app.use(express.json());
 
-// Log all requests in development
-if (process.env.NODE_ENV !== 'production') {
-  app.use((req, res, next) => {
-    console.log(`[${new Date().toISOString()}] ${req.method} ${req.path}`);
-    next();
+// Log all requests
+app.use((req, res, next) => {
+  console.log(`[${new Date().toISOString()}] ${req.method} ${req.path}`, {
+    origin: req.headers.origin,
+    hasInitData: !!req.headers['x-telegram-init-data'],
   });
-}
+  next();
+});
 
 // Routes
 app.use('/', healthRoutes);
