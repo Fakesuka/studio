@@ -127,7 +127,8 @@ export default function ProfilePage() {
     isDriver,
     driverProfile,
     registerAsDriver,
-    refreshData
+    refreshData,
+    balance,
   } = useAppContext();
   const { toast } = useToast();
   const [showTopUp, setShowTopUp] = useState(false);
@@ -467,6 +468,43 @@ export default function ProfilePage() {
         <CardContent>
           <ThemeSwitcher />
         </CardContent>
+      </Card>
+
+      {/* Wallet Section - For All Users */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Wallet className="h-6 w-6" />
+            Кошелёк
+          </CardTitle>
+          <CardDescription>Ваш баланс и операции</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <p className="text-4xl font-bold">
+            {balance.toLocaleString('ru-RU', {
+              style: 'currency',
+              currency: 'RUB',
+            })}
+          </p>
+          <p className="text-sm text-muted-foreground mt-2">
+            Используйте баланс для оплаты услуг и товаров
+          </p>
+        </CardContent>
+        <CardFooter className="gap-2">
+          <Button className="flex-1" onClick={handleTopUpBalance}>
+            <Plus className="mr-2 h-4 w-4" />
+            Пополнить
+          </Button>
+          <Button
+            variant="secondary"
+            className="flex-1"
+            disabled
+            title="Скоро появится"
+          >
+            <ArrowRight className="mr-2 h-4 w-4" />
+            Вывести
+          </Button>
+        </CardFooter>
       </Card>
 
       {isSeller && userShop ? (

@@ -454,11 +454,211 @@ class ApiClient {
       const serialized = serializeData(data);
       return { success: true, serialized };
     } catch (error) {
-      return { 
-        success: false, 
-        error: error instanceof Error ? error.message : String(error) 
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : String(error)
       };
     }
+  }
+
+  // ===== PAYMENTS =====
+  async createTopUpPayment(amount: number) {
+    console.log('[API] createTopUpPayment called with amount:', amount);
+    return this.request('/payments/create', {
+      method: 'POST',
+      body: JSON.stringify({ amount }),
+    });
+  }
+
+  async checkPaymentStatus(paymentId: string) {
+    return this.request(`/payments/${paymentId}/status`);
+  }
+
+  async getTransactions() {
+    return this.request('/payments/transactions');
+  }
+
+  async requestWithdrawal(amount: number, method: string, details: any) {
+    return this.request('/payments/withdraw', {
+      method: 'POST',
+      body: JSON.stringify({ amount, method, details }),
+    });
+  }
+
+  // ===== REVIEWS =====
+  async createReview(orderId: string, rating: number, comment: string) {
+    return this.request('/reviews', {
+      method: 'POST',
+      body: JSON.stringify({ orderId, rating, comment }),
+    });
+  }
+
+  async getUserReviews(userId: string) {
+    return this.request(`/reviews/user/${userId}`);
+  }
+
+  async getMyReviews() {
+    return this.request('/reviews/my-reviews');
+  }
+
+  async canReviewOrder(orderId: string) {
+    return this.request(`/reviews/can-review/${orderId}`);
+  }
+
+  // ===== CHAT =====
+  async getConversations() {
+    return this.request('/chat/conversations');
+  }
+
+  async getUnreadCount() {
+    return this.request('/chat/unread-count');
+  }
+
+  async getChatMessages(orderId: string) {
+    return this.request(`/chat/${orderId}/messages`);
+  }
+
+  async sendChatMessage(orderId: string, content: string) {
+    return this.request(`/chat/${orderId}/send`, {
+      method: 'POST',
+      body: JSON.stringify({ content }),
+    });
+  }
+
+  // ===== BONUSES & PROMOCODES =====
+  async applyPromocode(code: string) {
+    return this.request('/bonuses/apply-promocode', {
+      method: 'POST',
+      body: JSON.stringify({ code }),
+    });
+  }
+
+  async confirmPromocodeUsage(code: string, orderId: string) {
+    return this.request('/bonuses/confirm-promocode-usage', {
+      method: 'POST',
+      body: JSON.stringify({ code, orderId }),
+    });
+  }
+
+  async getReferralLink() {
+    return this.request('/bonuses/referral-link');
+  }
+
+  async registerReferral(referralCode: string) {
+    return this.request('/bonuses/register-referral', {
+      method: 'POST',
+      body: JSON.stringify({ referralCode }),
+    });
+  }
+
+  // ===== ANALYTICS =====
+  async getDriverAnalytics() {
+    return this.request('/analytics/driver');
+  }
+
+  async getSellerAnalytics() {
+    return this.request('/analytics/seller');
+  }
+
+  async getTopDrivers() {
+    return this.request('/analytics/top-drivers');
+  }
+
+  // ===== ADMIN =====
+  async getDashboardStats() {
+    return this.request('/admin/dashboard/stats');
+  }
+
+  async getAllUsers() {
+    return this.request('/admin/users');
+  }
+
+  async makeAdmin(userId: string) {
+    return this.request(`/admin/users/${userId}/make-admin`, {
+      method: 'POST',
+    });
+  }
+
+  async removeAdmin(userId: string) {
+    return this.request(`/admin/users/${userId}/remove-admin`, {
+      method: 'POST',
+    });
+  }
+
+  async getPendingDrivers() {
+    return this.request('/admin/drivers/pending');
+  }
+
+  async verifyDriver(driverId: string) {
+    return this.request(`/admin/drivers/${driverId}/verify`, {
+      method: 'POST',
+    });
+  }
+
+  async unverifyDriver(driverId: string) {
+    return this.request(`/admin/drivers/${driverId}/unverify`, {
+      method: 'POST',
+    });
+  }
+
+  async getPendingSellers() {
+    return this.request('/admin/sellers/pending');
+  }
+
+  async verifySeller(sellerId: string) {
+    return this.request(`/admin/sellers/${sellerId}/verify`, {
+      method: 'POST',
+    });
+  }
+
+  async unverifySeller(sellerId: string) {
+    return this.request(`/admin/sellers/${sellerId}/unverify`, {
+      method: 'POST',
+    });
+  }
+
+  async getPendingProducts() {
+    return this.request('/admin/products/pending');
+  }
+
+  async approveProduct(productId: string) {
+    return this.request(`/admin/products/${productId}/approve`, {
+      method: 'POST',
+    });
+  }
+
+  async unapproveProduct(productId: string) {
+    return this.request(`/admin/products/${productId}/unapprove`, {
+      method: 'POST',
+    });
+  }
+
+  async adminDeleteProduct(productId: string) {
+    return this.request(`/admin/products/${productId}`, {
+      method: 'DELETE',
+    });
+  }
+
+  async getAllOrders() {
+    return this.request('/admin/orders');
+  }
+
+  // Admin: Create promocode
+  async createPromocode(data: {
+    code: string;
+    type: string;
+    value: number;
+    maxUses?: number;
+    expiresAt?: string;
+  }) {
+    return this.request('/bonuses/promocodes', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  }
+
+  async getAllPromocodes() {
+    return this.request('/bonuses/promocodes');
   }
 }
 

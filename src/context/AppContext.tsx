@@ -21,6 +21,8 @@ import type {
 import { api } from '@/lib/api';
 import { initTelegramWebApp, isTelegramWebApp } from '@/lib/telegram';
 
+export type UserRole = 'client' | 'driver';
+
 interface AppContextType {
   orders: Order[];
   activeClientOrder: Order | null;
@@ -55,6 +57,9 @@ interface AppContextType {
     total: number;
   }) => Promise<void>;
   refreshData: () => Promise<void>;
+  currentRole: UserRole;
+  setCurrentRole: (role: UserRole) => void;
+  balance: number;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
@@ -70,6 +75,24 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [driverProfile, setDriverProfile] = useState<DriverProfile | null>(null);
   const [isContextLoading, setIsContextLoading] = useState(true);
   const [marketplaceOrders, setMarketplaceOrders] = useState<MarketplaceOrder[]>([]);
+  const [balance, setBalance] = useState(0);
+
+  // Load saved role from localStorage or default to 'client'
+  const [currentRole, setCurrentRoleState] = useState<UserRole>(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('userRole');
+      return (saved as UserRole) || 'client';
+    }
+    return 'client';
+  });
+
+  // Save role to localStorage when it changes
+  const setCurrentRole = useCallback((role: UserRole) => {
+    setCurrentRoleState(role);
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('userRole', role);
+    }
+  }, []);
 
   // Initialize Telegram WebApp
   useEffect(() => {
@@ -91,6 +114,15 @@ export function AppProvider({ children }: { children: ReactNode }) {
       setIsSeller(profile.isSeller);
       setDriverProfile(profile.driverProfile);
       setSellerProfile(profile.sellerProfile);
+
+      // Load balance
+      try {
+        const balanceData = await api.getBalance() as any;
+        setBalance(balanceData.balance || 0);
+      } catch (error) {
+        console.error('Error loading balance:', error);
+        setBalance(0);
+      }
 
       // Load shops and products
       const [shopsData, productsData] = await Promise.all([
@@ -318,6 +350,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
         marketplaceOrders,
         placeMarketplaceOrder,
         refreshData,
+        currentRole,
+        setCurrentRole,
+        balance,
       }}
     >
       {children}
