@@ -71,11 +71,11 @@ export default function OrdersPage() {
   const [reviewOrderId, setReviewOrderId] = useState<string | null>(null);
   const [chatOrder, setChatOrder] = useState<{ id: string; driverId: string; driverName: string } | null>(null);
 
-  const userOrders = orders
+  const userOrders = (orders || [])
     .filter(o => o.userId === MOCK_USER_ID)
     .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 
-  const userMarketplaceOrders = marketplaceOrders
+  const userMarketplaceOrders = (marketplaceOrders || [])
     .filter(o => o.userId === MOCK_USER_ID)
     .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 
