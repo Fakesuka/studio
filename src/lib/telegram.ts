@@ -129,3 +129,20 @@ export const hapticFeedback = (type: 'light' | 'medium' | 'heavy' | 'success' | 
     }
   }
 };
+
+// Enhanced phone number getter with logging
+export const getTelegramPhoneNumber = (): string | null => {
+  const webApp = getTelegramWebApp();
+  if (!webApp) {
+    console.log('[Telegram] WebApp not available');
+    return null;
+  }
+
+  const user = webApp.initDataUnsafe?.user;
+  console.log('[Telegram] User data:', JSON.stringify(user, null, 2));
+
+  const phone = user?.phone_number;
+  console.log('[Telegram] Phone number from user:', phone);
+
+  return phone || null;
+};

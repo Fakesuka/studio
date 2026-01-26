@@ -14,24 +14,43 @@ class ApiClient {
     options: RequestInit = {}
   ): Promise<T> {
     const initData = getTelegramInitData();
-    
+
+    console.log(`[API] Request to ${endpoint}`, {
+      method: options.method || 'GET',
+      body: options.body,
+      hasInitData: !!initData,
+    });
+
     const headers: HeadersInit = {
       'Content-Type': 'application/json',
       ...(initData && { 'X-Telegram-Init-Data': initData }),
       ...options.headers,
     };
 
-    const response = await fetch(`${this.baseUrl}${endpoint}`, {
-      ...options,
-      headers,
-    });
+    try {
+      const response = await fetch(`${this.baseUrl}${endpoint}`, {
+        ...options,
+        headers,
+      });
 
-    if (!response.ok) {
-      const error = await response.json().catch(() => ({ error: 'Request failed' }));
-      throw new Error(error.error || `HTTP ${response.status}`);
+      console.log(`[API] Response from ${endpoint}:`, {
+        status: response.status,
+        ok: response.ok,
+      });
+
+      if (!response.ok) {
+        const error = await response.json().catch(() => ({ error: 'Request failed' }));
+        console.error(`[API] Error from ${endpoint}:`, error);
+        throw new Error(error.error || error.details || `HTTP ${response.status}`);
+      }
+
+      const data = await response.json();
+      console.log(`[API] Success from ${endpoint}`, data);
+      return data;
+    } catch (error) {
+      console.error(`[API] Exception for ${endpoint}:`, error);
+      throw error;
     }
-
-    return response.json();
   }
 
   // Users
