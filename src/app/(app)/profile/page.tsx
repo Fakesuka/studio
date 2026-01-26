@@ -508,67 +508,34 @@ export default function ProfilePage() {
       </Card>
 
       {isSeller && userShop ? (
-        <>
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Store className="h-6 w-6" />
-                Ваш магазин
-              </CardTitle>
-              <CardDescription>{userShop.description}</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="flex items-center gap-2 rounded-md border border-green-500 bg-green-50 p-4 text-green-700">
-                <CheckCircle className="h-5 w-5" />
-                <p className="text-sm font-medium">Статус продавца: Активен</p>
-              </div>
-              <p className="text-sm text-muted-foreground">
-                Управляйте товарами и настройками вашего магазина на отдельной
-                странице.
-              </p>
-            </CardContent>
-            <CardFooter>
-              <Link href="/my-store" className="w-full">
-                <Button className="w-full">
-                  Перейти к управлению магазином
-                  <ArrowRight className="ml-2 h-4 w-4" />
-                </Button>
-              </Link>
-            </CardFooter>
-          </Card>
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Wallet className="h-6 w-6" />
-                Кошелек продавца
-              </CardTitle>
-              <CardDescription>Ваш баланс и операции.</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <p className="text-4xl font-bold">
-                {(sellerProfile?.balance ?? 0).toLocaleString('ru-RU', {
-                  style: 'currency',
-                  currency: 'RUB',
-                })}
-              </p>
-            </CardContent>
-            <CardFooter className="gap-2">
-              <Button className="flex-1" onClick={handleTopUpBalance}>
-                <Plus className="mr-2 h-4 w-4" />
-                Пополнить
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Store className="h-6 w-6" />
+              Вы уже продавец
+            </CardTitle>
+            <CardDescription>
+              Ваш магазин: {userShop.name}
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="flex items-center gap-2 rounded-md border border-green-500 bg-green-50 dark:bg-green-900/20 p-4 text-green-700 dark:text-green-400">
+              <CheckCircle className="h-5 w-5" />
+              <p className="text-sm font-medium">Статус продавца: Активен</p>
+            </div>
+            <p className="text-sm text-muted-foreground">
+              Управляйте товарами и настройками вашего магазина
+            </p>
+          </CardContent>
+          <CardFooter>
+            <Link href="/my-store" className="w-full">
+              <Button className="w-full">
+                Перейти в мой магазин
+                <ArrowRight className="ml-2 h-4 w-4" />
               </Button>
-              <Button
-                variant="secondary"
-                className="flex-1"
-                disabled
-                title="Скоро появится"
-              >
-                <ArrowRight className="mr-2 h-4 w-4" />
-                Вывести
-              </Button>
-            </CardFooter>
-          </Card>
-        </>
+            </Link>
+          </CardFooter>
+        </Card>
       ) : (
         <Card>
           <CardHeader>

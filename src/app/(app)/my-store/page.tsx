@@ -13,6 +13,7 @@ import {
   Store,
   Snowflake,
   PackageOpen,
+  Pencil,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
@@ -103,6 +104,7 @@ export default function MyStorePage() {
   const { toast } = useToast();
   const [isAddProductDialogOpen, setIsAddProductDialogOpen] = useState(false);
   const [photoPreview, setPhotoPreview] = useState<string | null>(null);
+  const [editingProduct, setEditingProduct] = useState<any | null>(null);
 
   const MOCK_USER_ID = 'self';
   // Find user shop - first try by userId, then take first shop if user is seller
@@ -158,19 +160,52 @@ export default function MyStorePage() {
       delete finalProductData.deliveryPrice;
     }
 
-    addProduct({
-      ...finalProductData,
-      imageUrl:
-        photoPreview || `https://picsum.photos/seed/${data.name}/600/400`,
-      imageHint: `photo of ${data.name}`,
-    });
-    toast({
-      title: 'Товар добавлен!',
-      description: `${data.name} теперь в вашем магазине.`,
-    });
+    if (editingProduct) {
+      // Update existing product
+      // Note: updateProduct needs to be added to context
+      // For now, we'll delete and re-add
+      deleteProduct(editingProduct.id);
+      addProduct({
+        ...finalProductData,
+        imageUrl: photoPreview || editingProduct.imageUrl,
+        imageHint: `photo of ${data.name}`,
+      });
+      toast({
+        title: 'Товар обновлен!',
+        description: `${data.name} был успешно обновлен.`,
+      });
+    } else {
+      // Add new product
+      addProduct({
+        ...finalProductData,
+        imageUrl:
+          photoPreview || `https://picsum.photos/seed/${data.name}/600/400`,
+        imageHint: `photo of ${data.name}`,
+      });
+      toast({
+        title: 'Товар добавлен!',
+        description: `${data.name} теперь в вашем магазине.`,
+      });
+    }
+
     setIsAddProductDialogOpen(false);
+    setEditingProduct(null);
     productForm.reset();
     setPhotoPreview(null);
+  };
+
+  const handleEditProduct = (product: any) => {
+    setEditingProduct(product);
+    productForm.reset({
+      name: product.name,
+      description: product.description,
+      price: product.price,
+      delivery: product.delivery,
+      deliveryPrice: product.deliveryPrice,
+      pickup: product.pickup,
+    });
+    setPhotoPreview(product.imageUrl);
+    setIsAddProductDialogOpen(true);
   };
 
   const handleDeleteProduct = (productId: string) => {
@@ -179,6 +214,15 @@ export default function MyStorePage() {
       title: 'Товар удален',
       description: 'Товар был успешно удален из вашего магазина.',
     });
+  };
+
+  const handleDialogClose = (open: boolean) => {
+    setIsAddProductDialogOpen(open);
+    if (!open) {
+      setEditingProduct(null);
+      productForm.reset();
+      setPhotoPreview(null);
+    }
   };
 
   const handlePhotoChange = async (
@@ -210,7 +254,7 @@ export default function MyStorePage() {
         </div>
         <Dialog
           open={isAddProductDialogOpen}
-          onOpenChange={setIsAddProductDialogOpen}
+          onOpenChange={handleDialogClose}
         >
           <DialogTrigger asChild>
             <Button>
@@ -220,9 +264,11 @@ export default function MyStorePage() {
           </DialogTrigger>
           <DialogContent className="flex h-full max-h-[95vh] w-full flex-col sm:max-w-[425px]">
             <DialogHeader>
-              <DialogTitle>Новый товар</DialogTitle>
+              <DialogTitle>{editingProduct ? 'Редактировать товар' : 'Новый товар'}</DialogTitle>
               <DialogDescription>
-                Заполните информацию о товаре, чтобы добавить его в магазин.
+                {editingProduct
+                  ? 'Измените информацию о товаре.'
+                  : 'Заполните информацию о товаре, чтобы добавить его в магазин.'}
               </DialogDescription>
             </DialogHeader>
             <div className="flex-1 overflow-y-auto py-4">
@@ -389,7 +435,7 @@ export default function MyStorePage() {
                 form="add-product-form"
                 disabled={productForm.formState.isSubmitting}
               >
-                Добавить
+                {editingProduct ? 'Сохранить' : 'Добавить'}
               </Button>
             </DialogFooter>
           </DialogContent>
@@ -426,6 +472,14 @@ export default function MyStorePage() {
                     </p>
                   </CardContent>
                   <CardFooter className="flex justify-end gap-2 p-4 pt-0">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleEditProduct(product)}
+                    >
+                      <Pencil className="mr-2 h-4 w-4" />
+                      Изменить
+                    </Button>
                     <AlertDialog>
                       <AlertDialogTrigger asChild>
                         <Button variant="destructive" size="sm">
