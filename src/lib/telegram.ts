@@ -65,7 +65,28 @@ declare global {
   }
 }
 
+// Check if we're in development mode
+export const isDevMode = (): boolean => {
+  return typeof window !== 'undefined' &&
+    (window.location.hostname === 'localhost' ||
+     window.location.hostname === '127.0.0.1' ||
+     process.env.NODE_ENV === 'development');
+};
+
+// Mock Telegram user for development
+const mockTelegramUser = {
+  id: 123456789,
+  first_name: 'Тест',
+  last_name: 'Водитель',
+  username: 'test_driver',
+  language_code: 'ru',
+};
+
 export const isTelegramWebApp = (): boolean => {
+  // Allow access in dev mode
+  if (isDevMode()) {
+    return true;
+  }
   return typeof window !== 'undefined' && !!window.Telegram?.WebApp;
 };
 
@@ -77,11 +98,19 @@ export const getTelegramWebApp = () => {
 };
 
 export const getTelegramInitData = (): string | null => {
+  // Return mock init data in dev mode
+  if (isDevMode() && !window.Telegram?.WebApp) {
+    return 'dev_mode_test_data';
+  }
   const webApp = getTelegramWebApp();
   return webApp?.initData || null;
 };
 
 export const getTelegramUser = () => {
+  // Return mock user in dev mode
+  if (isDevMode() && !window.Telegram?.WebApp) {
+    return mockTelegramUser;
+  }
   const webApp = getTelegramWebApp();
   return webApp?.initDataUnsafe?.user || null;
 };
