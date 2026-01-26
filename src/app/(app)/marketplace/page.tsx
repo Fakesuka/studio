@@ -214,7 +214,7 @@ export default function MarketplacePage() {
                   )}
                 </div>
               </CardContent>
-              <CardFooter className="flex items-center justify-between p-4 pt-0">
+              <CardFooter className="flex flex-col gap-3 p-4 pt-0">
                 <p className="text-lg font-semibold">
                   {product.price.toLocaleString('ru-RU', {
                     style: 'currency',
@@ -224,11 +224,12 @@ export default function MarketplacePage() {
                 {quantityInCart(product.id) === 0 ? (
                   <Button
                     onClick={() => handleAddToCart(product.id, product.name)}
+                    className="w-full"
                   >
                     <ShoppingCart className="mr-2 h-4 w-4" />В корзину
                   </Button>
                 ) : (
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center justify-center gap-2">
                     <Button
                       variant="outline"
                       size="icon"

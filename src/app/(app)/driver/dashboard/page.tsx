@@ -323,7 +323,7 @@ export default function DriverDashboard() {
     );
   }
 
-  const availableOrders = orders.filter(o => o.status === 'Ищет исполнителя');
+  const availableOrders = (orders || []).filter(o => o.status === 'Ищет исполнителя');
 
   return (
     <div className="space-y-6">
