@@ -116,8 +116,68 @@ const driverFormSchema = z.object({
 
 type DriverFormValues = z.infer<typeof driverFormSchema>;
 
+// Вспомогательная функция для очистки данных
+function cleanData(data: any): any {
+  if (data === null || data === undefined) {
+    return null;
+  }
+  
+  if (Array.isArray(data)) {
+    return data.map(item => cleanData(item)).filter(item => item !== undefined && item !== null);
+  }
+  
+  if (typeof data === 'object') {
+    // Преобразуем Date в строку
+    if (data instanceof Date) {
+      return data.toISOString();
+    }
+    
+    // Обрабатываем File/Blob
+    if (data instanceof File || data instanceof Blob) {
+      return {
+        name: data.name,
+        type: data.type,
+        size: data.size,
+        lastModified: data.lastModified,
+        _type: 'FileInfo'
+      };
+    }
+    
+    // Пропускаем функции
+    if (typeof data === 'function') {
+      return undefined;
+    }
+    
+    // Для DOM элементов
+    if (data.nodeType !== undefined || data instanceof HTMLElement) {
+      return undefined;
+    }
+    
+    // Для React рефов
+    if (data.current !== undefined) {
+      return undefined;
+    }
+    
+    // Рекурсивно очищаем объект
+    const result: any = {};
+    for (const [key, value] of Object.entries(data)) {
+      if (value === undefined) continue;
+      
+      const cleanedValue = cleanData(value);
+      if (cleanedValue !== undefined) {
+        result[key] = cleanedValue;
+      }
+    }
+    
+    return result;
+  }
+  
+  // Примитивные типы оставляем как есть
+  return data;
+}
+
 export default function ProfilePage() {
-  const MOCK_USER_ID = 'self'; // In a real app, this would come from auth.
+  const MOCK_USER_ID = 'self';
   const {
     isSeller,
     registerAsSeller,
@@ -135,36 +195,40 @@ export default function ProfilePage() {
   const [phone, setPhone] = useState('');
   const [city, setCity] = useState<YakutiaCity>('Якутск');
   const [customCity, setCustomCity] = useState('');
+  const [isSaving, setIsSaving] = useState(false);
 
   useEffect(() => {
     const loadUserData = async () => {
       try {
         console.log('[Profile] Loading user data from API');
-        // Load profile from API first
+        // Загружаем профиль из API
         const profile = await api.getProfile() as any;
         console.log('[Profile] Profile loaded from API:', profile);
 
-        if (profile.name) {
-          console.log('[Profile] Setting name from API:', profile.name);
-          setName(profile.name);
+        // Очищаем данные от возможных несериализуемых значений
+        const cleanedProfile = cleanData(profile);
+        
+        if (cleanedProfile?.name) {
+          console.log('[Profile] Setting name from API:', cleanedProfile.name);
+          setName(String(cleanedProfile.name));
         }
-        if (profile.phone) {
-          console.log('[Profile] Setting phone from API:', profile.phone);
-          setPhone(profile.phone);
+        if (cleanedProfile?.phone) {
+          console.log('[Profile] Setting phone from API:', cleanedProfile.phone);
+          setPhone(String(cleanedProfile.phone));
         }
-        if (profile.city) {
-          console.log('[Profile] Setting city from API:', profile.city);
-          setCity(profile.city as YakutiaCity);
+        if (cleanedProfile?.city) {
+          console.log('[Profile] Setting city from API:', cleanedProfile.city);
+          setCity(cleanedProfile.city as YakutiaCity);
         }
 
-        // Get data from Telegram WebApp
+        // Получаем данные из Telegram WebApp
         console.log('[Profile] Getting Telegram user data');
         const telegramUser = getTelegramUser();
         console.log('[Profile] Telegram user:', JSON.stringify(telegramUser, null, 2));
 
         if (telegramUser) {
           const fullName = `${telegramUser.first_name} ${telegramUser.last_name || ''}`.trim();
-          if (!profile.name) {
+          if (!profile?.name) {
             console.log('[Profile] Using Telegram name:', fullName);
             setName(fullName);
           }
@@ -172,8 +236,7 @@ export default function ProfilePage() {
           console.log('[Profile] Setting username:', usernameStr);
           setUsername(usernameStr);
 
-          // Get phone number from Telegram if available
-          if (telegramUser.phone_number && !profile.phone) {
+          if (telegramUser.phone_number && !profile?.phone) {
             console.log('[Profile] Using Telegram phone:', telegramUser.phone_number);
             setPhone(telegramUser.phone_number);
           }
@@ -227,8 +290,6 @@ export default function ProfilePage() {
       console.log('Sending seller registration payload:', sellerData);
 
       await registerAsSeller(sellerData);
-
-      // Reload user data to update isSeller flag
       await refreshData();
 
       toast({
@@ -257,8 +318,6 @@ export default function ProfilePage() {
       console.log('Sending driver registration payload:', payload);
 
       await registerAsDriver(payload);
-
-      // Reload user data to update isDriver flag
       await refreshData();
 
       toast({
@@ -305,7 +364,6 @@ export default function ProfilePage() {
     const user = webApp.initDataUnsafe?.user;
     console.log('[Profile] User object:', JSON.stringify(user, null, 2));
 
-    // Try to get phone directly from user data
     if (user?.phone_number) {
       console.log('[Profile] Phone found in user data:', user.phone_number);
       setPhone(user.phone_number);
@@ -317,11 +375,9 @@ export default function ProfilePage() {
     }
 
     console.log('[Profile] Phone not in user data, requesting via requestContact');
-    // If not available, request it
     webApp.requestContact((contactShared) => {
       console.log('[Profile] Contact shared:', contactShared);
       if (contactShared) {
-        // Check again after share
         const updatedUser = webApp.initDataUnsafe?.user;
         console.log('[Profile] Updated user data:', JSON.stringify(updatedUser, null, 2));
 
@@ -348,11 +404,76 @@ export default function ProfilePage() {
   };
 
   const handleSaveProfile = async () => {
+    if (isSaving) return;
+    
+    setIsSaving(true);
+    
     try {
       const selectedCity = city === 'Другой' ? customCity : city;
-      const profileData = { name, phone, city: selectedCity };
-      console.log('Saving profile data:', profileData);
-
+      
+      // Создаем абсолютно чистый объект с проверкой типов
+      const profileData: Record<string, string> = {};
+      
+      if (typeof name === 'string') {
+        const trimmedName = name.trim();
+        if (trimmedName) profileData.name = trimmedName;
+      }
+      
+      if (typeof phone === 'string') {
+        const trimmedPhone = phone.trim();
+        if (trimmedPhone) profileData.phone = trimmedPhone;
+      }
+      
+      if (typeof selectedCity === 'string') {
+        const trimmedCity = selectedCity.trim();
+        if (trimmedCity) profileData.city = trimmedCity;
+      }
+      
+      console.log('Saving profile data (cleaned):', profileData);
+      
+      // Проверяем, есть ли данные для сохранения
+      if (Object.keys(profileData).length === 0) {
+        toast({
+          title: 'Нет изменений',
+          description: 'Нечего сохранять',
+          variant: 'destructive',
+        });
+        return;
+      }
+      
+      // Проверка сериализуемости
+      try {
+        const testSerialization = JSON.stringify(profileData);
+        console.log('✅ Данные сериализуемы, размер:', testSerialization.length, 'bytes');
+      } catch (jsonError) {
+        console.error('❌ Ошибка сериализации:', jsonError);
+        
+        // Создаем гарантированно чистые данные
+        const guaranteedData = {
+          name: String(name || ''),
+          phone: String(phone || ''),
+          city: String(selectedCity || ''),
+        };
+        
+        // Удаляем пустые поля
+        Object.keys(guaranteedData).forEach(key => {
+          if (!guaranteedData[key as keyof typeof guaranteedData]) {
+            delete guaranteedData[key as keyof typeof guaranteedData];
+          }
+        });
+        
+        console.log('Отправляем гарантированно чистые данные:', guaranteedData);
+        await api.updateProfile(guaranteedData);
+        await refreshData();
+        
+        toast({
+          title: 'Профиль обновлен',
+          description: 'Ваши данные успешно сохранены.',
+        });
+        return;
+      }
+      
+      // Отправляем данные
       await api.updateProfile(profileData);
       await refreshData();
 
@@ -360,13 +481,53 @@ export default function ProfilePage() {
         title: 'Профиль обновлен',
         description: 'Ваши данные успешно сохранены.',
       });
+      
     } catch (error) {
       console.error('Profile save error:', error);
+      
+      // Подробное логирование ошибки
+      if (error instanceof Error) {
+        console.error('Error name:', error.name);
+        console.error('Error message:', error.message);
+        console.error('Error stack:', error.stack);
+        
+        // Проверяем на ошибку сериализации
+        const errorStr = String(error.message).toLowerCase();
+        if (errorStr.includes('circular') || 
+            errorStr.includes('json') || 
+            errorStr.includes('stringify') ||
+            errorStr.includes('serial')) {
+          console.error('⚠️ Обнаружена ошибка сериализации JSON');
+          
+          // Пытаемся отправить только строки
+          const stringData = {
+            name: String(name),
+            phone: String(phone),
+            city: String(city === 'Другой' ? customCity : city)
+          };
+          
+          try {
+            console.log('Пытаемся отправить данные как строки:', stringData);
+            await api.updateProfile(stringData);
+            await refreshData();
+            toast({
+              title: 'Профиль обновлен',
+              description: 'Данные сохранены (исправлена ошибка формата).',
+            });
+            return;
+          } catch (retryError) {
+            console.error('Повторная попытка также не удалась:', retryError);
+          }
+        }
+      }
+      
       toast({
         title: 'Ошибка',
         description: error instanceof Error ? error.message : 'Не удалось сохранить профиль.',
         variant: 'destructive',
       });
+    } finally {
+      setIsSaving(false);
     }
   };
 
@@ -449,7 +610,9 @@ export default function ProfilePage() {
           </div>
         </CardContent>
         <CardFooter>
-          <Button onClick={handleSaveProfile}>Сохранить изменения</Button>
+          <Button onClick={handleSaveProfile} disabled={isSaving}>
+            {isSaving ? 'Сохранение...' : 'Сохранить изменения'}
+          </Button>
         </CardFooter>
       </Card>
 
@@ -474,444 +637,4 @@ export default function ProfilePage() {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Store className="h-6 w-6" />
-                Ваш магазин
-              </CardTitle>
-              <CardDescription>{userShop.description}</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="flex items-center gap-2 rounded-md border border-green-500 bg-green-50 p-4 text-green-700">
-                <CheckCircle className="h-5 w-5" />
-                <p className="text-sm font-medium">Статус продавца: Активен</p>
-              </div>
-              <p className="text-sm text-muted-foreground">
-                Управляйте товарами и настройками вашего магазина на отдельной
-                странице.
-              </p>
-            </CardContent>
-            <CardFooter>
-              <Link href="/my-store" className="w-full">
-                <Button className="w-full">
-                  Перейти к управлению магазином
-                  <ArrowRight className="ml-2 h-4 w-4" />
-                </Button>
-              </Link>
-            </CardFooter>
-          </Card>
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Wallet className="h-6 w-6" />
-                Кошелек продавца
-              </CardTitle>
-              <CardDescription>Ваш баланс и операции.</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <p className="text-4xl font-bold">
-                {(sellerProfile?.balance ?? 0).toLocaleString('ru-RU', {
-                  style: 'currency',
-                  currency: 'RUB',
-                })}
-              </p>
-            </CardContent>
-            <CardFooter className="gap-2">
-              <Button className="flex-1" onClick={handleTopUpBalance}>
-                <Plus className="mr-2 h-4 w-4" />
-                Пополнить
-              </Button>
-              <Button
-                variant="secondary"
-                className="flex-1"
-                disabled
-                title="Скоро появится"
-              >
-                <ArrowRight className="mr-2 h-4 w-4" />
-                Вывести
-              </Button>
-            </CardFooter>
-          </Card>
-        </>
-      ) : (
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Store className="h-6 w-6" />
-              Стать продавцом
-            </CardTitle>
-            <CardDescription>
-              Заполните форму, чтобы начать продавать свои товары на нашей
-              площадке.
-            </CardDescription>
-          </CardHeader>
-          <Form {...sellerForm}>
-            <form onSubmit={sellerForm.handleSubmit(onSellerSubmit)}>
-              <CardContent className="space-y-4">
-                <FormField
-                  control={sellerForm.control}
-                  name="type"
-                  render={({ field }) => (
-                    <FormItem className="space-y-3">
-                      <FormLabel>Тип продавца</FormLabel>
-                      <FormControl>
-                        <RadioGroup
-                          onValueChange={field.onChange}
-                          defaultValue={field.value}
-                          className="flex flex-col space-y-1"
-                        >
-                          <FormItem className="flex items-center space-x-3 space-y-0">
-                            <FormControl>
-                              <RadioGroupItem value="person" />
-                            </FormControl>
-                            <FormLabel className="font-normal">
-                              Частное лицо
-                            </FormLabel>
-                          </FormItem>
-                          <FormItem className="flex items-center space-x-3 space-y-0">
-                            <FormControl>
-                              <RadioGroupItem value="store" />
-                            </FormControl>
-                            <FormLabel className="font-normal">
-                              Магазин
-                            </FormLabel>
-                          </FormItem>
-                        </RadioGroup>
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={sellerForm.control}
-                  name="storeName"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>
-                        {sellerType === 'store'
-                          ? 'Название магазина'
-                          : 'Ваше имя или название'}
-                      </FormLabel>
-                      <FormControl>
-                        <Input
-                          placeholder="Например, 'Автозапчасти от Ивана'"
-                          {...field}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={sellerForm.control}
-                  name="storeDescription"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Краткое описание</FormLabel>
-                      <FormControl>
-                        <Textarea
-                          placeholder="Опишите, какие товары вы продаете..."
-                          {...field}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                {sellerType === 'store' && (
-                  <>
-                    <FormField
-                      control={sellerForm.control}
-                      name="address"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Адрес магазина</FormLabel>
-                          <FormControl>
-                            <Input
-                              placeholder={`г. ${city === 'Другой' ? customCity || 'Ваш город' : city}, ул. Ленина, 1`}
-                              {...field}
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    <FormField
-                      control={sellerForm.control}
-                      name="workingHours"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Время работы</FormLabel>
-                          <FormControl>
-                            <Input
-                              placeholder="Пн-Пт: 9:00 - 18:00"
-                              {...field}
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                  </>
-                )}
-                <FormField
-                  control={sellerForm.control}
-                  name="agreement"
-                  render={({ field }) => (
-                    <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
-                      <FormControl>
-                        <Checkbox
-                          checked={field.value}
-                          onCheckedChange={field.onChange}
-                        />
-                      </FormControl>
-                      <div className="space-y-1 leading-none">
-                        <FormLabel>
-                          Я принимаю{' '}
-                          <Link
-                            href="/terms/sellers"
-                            className="text-primary underline"
-                            target="_blank"
-                            rel="noopener noreferrer"
-                          >
-                            правила для продавцов
-                          </Link>
-                          .
-                        </FormLabel>
-                        <FormMessage />
-                      </div>
-                    </FormItem>
-                  )}
-                />
-              </CardContent>
-              <CardFooter>
-                <Button
-                  type="submit"
-                  className="w-full"
-                  disabled={sellerForm.formState.isSubmitting}
-                >
-                  Зарегистрироваться
-                </Button>
-              </CardFooter>
-            </form>
-          </Form>
-        </Card>
-      )}
-
-      {/* Driver Registration Section */}
-      {isDriver ? (
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Car className="h-6 w-6" />
-              Профиль водителя
-            </CardTitle>
-            <CardDescription>Вы зарегистрированы как водитель</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="flex items-center gap-2 rounded-md border border-green-500 bg-green-50 dark:bg-green-900/20 p-4 text-green-700 dark:text-green-400">
-              <CheckCircle className="h-5 w-5" />
-              <p className="text-sm font-medium">Статус водителя: Активен</p>
-            </div>
-            <p className="text-sm text-muted-foreground">
-              Управляйте своими заказами и настройками на панели водителя.
-            </p>
-          </CardContent>
-          <CardFooter>
-            <Link href="/driver/dashboard" className="w-full">
-              <Button className="w-full">
-                Перейти к заказам
-                <ArrowRight className="ml-2 h-4 w-4" />
-              </Button>
-            </Link>
-          </CardFooter>
-        </Card>
-      ) : (
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <UserCog className="h-6 w-6" />
-              Стать водителем
-            </CardTitle>
-            <CardDescription>
-              Заполните форму, чтобы начать принимать заказы.
-            </CardDescription>
-          </CardHeader>
-          <Form {...driverForm}>
-            <form onSubmit={driverForm.handleSubmit(onDriverSubmit)}>
-              <CardContent className="space-y-6">
-                <FormField
-                  control={driverForm.control}
-                  name="name"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Ваше имя</FormLabel>
-                      <FormControl>
-                        <Input placeholder="Иван Петров" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={driverForm.control}
-                  name="vehicle"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Ваш автомобиль</FormLabel>
-                      <FormControl>
-                        <Input
-                          placeholder="Например, Toyota Camry"
-                          {...field}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={driverForm.control}
-                  name="legalStatus"
-                  render={({ field }) => (
-                    <FormItem className="space-y-3">
-                      <FormLabel>Юридический статус</FormLabel>
-                      <FormControl>
-                        <RadioGroup
-                          onValueChange={field.onChange}
-                          defaultValue={field.value}
-                          className="flex flex-col space-y-1"
-                        >
-                          <FormItem className="flex items-center space-x-3 space-y-0">
-                            <FormControl>
-                              <RadioGroupItem value="Самозанятый" />
-                            </FormControl>
-                            <FormLabel className="font-normal">
-                              Самозанятый
-                            </FormLabel>
-                          </FormItem>
-                          <FormItem className="flex items-center space-x-3 space-y-0">
-                            <FormControl>
-                              <RadioGroupItem value="ИП" />
-                            </FormControl>
-                            <FormLabel className="font-normal">
-                              ИП (Индивидуальный предприниматель)
-                            </FormLabel>
-                          </FormItem>
-                        </RadioGroup>
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={driverForm.control}
-                  name="services"
-                  render={() => (
-                    <FormItem>
-                      <div className="mb-4">
-                        <FormLabel className="text-base">
-                          Какие услуги вы оказываете?
-                        </FormLabel>
-                        <FormDescription>
-                          Выберите одну или несколько категорий.
-                        </FormDescription>
-                      </div>
-                      {serviceTypesList.map(item => (
-                        <FormField
-                          key={item}
-                          control={driverForm.control}
-                          name="services"
-                          render={({ field }) => {
-                            return (
-                              <FormItem
-                                key={item}
-                                className="flex flex-row items-start space-x-3 space-y-0"
-                              >
-                                <FormControl>
-                                  <Checkbox
-                                    checked={field.value?.includes(item)}
-                                    onCheckedChange={checked => {
-                                      return checked
-                                        ? field.onChange([
-                                            ...field.value,
-                                            item,
-                                          ])
-                                        : field.onChange(
-                                            field.value?.filter(
-                                              value => value !== item
-                                            )
-                                          );
-                                    }}
-                                  />
-                                </FormControl>
-                                <FormLabel className="font-normal">
-                                  {item}
-                                </FormLabel>
-                              </FormItem>
-                            );
-                          }}
-                        />
-                      ))}
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={driverForm.control}
-                  name="agreement"
-                  render={({ field }) => (
-                    <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
-                      <FormControl>
-                        <Checkbox
-                          checked={field.value}
-                          onCheckedChange={field.onChange}
-                        />
-                      </FormControl>
-                      <div className="space-y-1 leading-none">
-                        <FormLabel>
-                          Я принимаю{' '}
-                          <Link
-                            href="/terms/drivers"
-                            className="text-primary underline"
-                            target="_blank"
-                            rel="noopener noreferrer"
-                          >
-                            условия использования
-                          </Link>
-                          .
-                        </FormLabel>
-                        <FormMessage />
-                      </div>
-                    </FormItem>
-                  )}
-                />
-              </CardContent>
-              <CardFooter>
-                <Button
-                  type="submit"
-                  className="w-full"
-                  disabled={driverForm.formState.isSubmitting}
-                >
-                  Стать водителем
-                </Button>
-              </CardFooter>
-            </form>
-          </Form>
-        </Card>
-      )}
-
-      {/* Dialog для пополнения баланса */}
-      <Dialog open={showTopUp} onOpenChange={setShowTopUp}>
-        <DialogContent className="max-w-md">
-          <DialogHeader>
-            <DialogTitle>Пополнение баланса</DialogTitle>
-            <DialogDescription>
-              Выберите сумму и завершите оплату через ЮKassa
-            </DialogDescription>
-          </DialogHeader>
-          <TopUpBalance onSuccess={handleTopUpSuccess} />
-        </DialogContent>
-      </Dialog>
-    </div>
-  );
-}
+ 
