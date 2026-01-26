@@ -179,6 +179,8 @@ export default function MyStorePage() {
       // Add new product
       addProduct({
         ...finalProductData,
+        // TODO: Replace with real photo upload functionality
+        // Currently using placeholder image service
         imageUrl:
           photoPreview || `https://picsum.photos/seed/${data.name}/600/400`,
         imageHint: `photo of ${data.name}`,

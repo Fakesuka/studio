@@ -36,3 +36,33 @@ export function getCurrentUserName(): string {
   }
   return 'User';
 }
+
+/**
+ * Get current user avatar URL from Telegram
+ * Returns real photo URL or undefined if not available
+ */
+export function getCurrentUserAvatar(): string | undefined {
+  const telegramUser = getTelegramUser();
+  return telegramUser?.photo_url;
+}
+
+/**
+ * Get user initials for avatar fallback
+ * @param name - User name (optional, will use current user if not provided)
+ * @returns Initials (up to 2 characters)
+ */
+export function getUserInitials(name?: string): string {
+  if (!name) {
+    name = getCurrentUserName();
+  }
+
+  if (!name || name === 'User') return 'U';
+
+  return name
+    .split(' ')
+    .map(n => n[0])
+    .filter(Boolean)
+    .join('')
+    .toUpperCase()
+    .substring(0, 2);
+}
