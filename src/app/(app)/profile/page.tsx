@@ -1,5 +1,22 @@
 'use client';
 
+import { useState, useEffect } from 'react';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
+import Link from 'next/link';
+import {
+  Store,
+  CheckCircle,
+  ArrowRight,
+  Wallet,
+  Plus,
+  Paintbrush,
+  UserCog,
+  Car,
+} from 'lucide-react';
+
+// UI Components
 import {
   Card,
   CardContent,
@@ -12,12 +29,6 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { z } from 'zod';
-import { useState, useEffect } from 'react';
-import { api } from '@/lib/api';
-import { getTelegramUser } from '@/lib/telegram';
 import {
   Form,
   FormControl,
@@ -27,26 +38,7 @@ import {
   FormLabel,
   FormMessage,
 } from '@/components/ui/form';
-import { useAppContext } from '@/context/AppContext';
-import { useToast } from '@/hooks/use-toast';
-import TopUpBalance from '@/components/top-up-balance';
-import type { ServiceType, LegalStatus } from '@/lib/types';
-import { serviceTypesList } from '@/lib/types';
-import { YAKUTIA_CITIES, type YakutiaCity } from '@/lib/cities';
-import { getTelegramWebApp } from '@/lib/telegram';
-import {
-  Store,
-  CheckCircle,
-  ArrowRight,
-  Wallet,
-  Plus,
-  Paintbrush,
-  UserCog,
-  Car,
-} from 'lucide-react';
-import Link from 'next/link';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { ThemeSwitcher } from '@/components/theme-switcher';
 import { Checkbox } from '@/components/ui/checkbox';
 import {
   Select,
@@ -63,6 +55,21 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 
+// Custom Components
+import { ThemeSwitcher } from '@/components/theme-switcher';
+import TopUpBalance from '@/components/top-up-balance';
+
+// Hooks & Context
+import { useAppContext } from '@/context/AppContext';
+import { useToast } from '@/hooks/use-toast';
+
+// API & Utils
+import { api } from '@/lib/api';
+import { getTelegramUser, getTelegramWebApp } from '@/lib/telegram';
+import { serviceTypesList, type ServiceType, type LegalStatus } from '@/lib/types';
+import { YAKUTIA_CITIES, type YakutiaCity } from '@/lib/cities';
+
+// Schemas
 const sellerFormSchema = z
   .object({
     type: z.enum(['store', 'person'], {
@@ -116,7 +123,7 @@ const driverFormSchema = z.object({
 
 type DriverFormValues = z.infer<typeof driverFormSchema>;
 
-// Вспомогательная функция для очистки данных
+// Helper function to clean data
 function cleanData(data: any): any {
   if (data === null || data === undefined) {
     return null;
@@ -127,12 +134,10 @@ function cleanData(data: any): any {
   }
   
   if (typeof data === 'object') {
-    // Преобразуем Date в строку
     if (data instanceof Date) {
       return data.toISOString();
     }
     
-    // Обрабатываем File/Blob
     if (data instanceof File || data instanceof Blob) {
       return {
         name: data.name,
@@ -143,22 +148,18 @@ function cleanData(data: any): any {
       };
     }
     
-    // Пропускаем функции
     if (typeof data === 'function') {
       return undefined;
     }
     
-    // Для DOM элементов
     if (data.nodeType !== undefined || data instanceof HTMLElement) {
       return undefined;
     }
     
-    // Для React рефов
     if (data.current !== undefined) {
       return undefined;
     }
     
-    // Рекурсивно очищаем объект
     const result: any = {};
     for (const [key, value] of Object.entries(data)) {
       if (value === undefined) continue;
@@ -172,7 +173,6 @@ function cleanData(data: any): any {
     return result;
   }
   
-  // Примитивные типы оставляем как есть
   return data;
 }
 
@@ -197,15 +197,34 @@ export default function ProfilePage() {
   const [customCity, setCustomCity] = useState('');
   const [isSaving, setIsSaving] = useState(false);
 
+  const sellerForm = useForm<SellerFormValues>({
+    resolver: zodResolver(sellerFormSchema),
+    defaultValues: {
+      type: 'person',
+      storeName: '',
+      storeDescription: '',
+      agreement: false,
+    },
+  });
+  const sellerType = sellerForm.watch('type');
+
+  const driverForm = useForm<DriverFormValues>({
+    resolver: zodResolver(driverFormSchema),
+    defaultValues: {
+      name: '',
+      vehicle: '',
+      services: [],
+      agreement: false,
+    },
+  });
+
   useEffect(() => {
     const loadUserData = async () => {
       try {
         console.log('[Profile] Loading user data from API');
-        // Загружаем профиль из API
         const profile = await api.getProfile() as any;
         console.log('[Profile] Profile loaded from API:', profile);
 
-        // Очищаем данные от возможных несериализуемых значений
         const cleanedProfile = cleanData(profile);
         
         if (cleanedProfile?.name) {
@@ -221,7 +240,6 @@ export default function ProfilePage() {
           setCity(cleanedProfile.city as YakutiaCity);
         }
 
-        // Получаем данные из Telegram WebApp
         console.log('[Profile] Getting Telegram user data');
         const telegramUser = getTelegramUser();
         console.log('[Profile] Telegram user:', JSON.stringify(telegramUser, null, 2));
@@ -261,27 +279,6 @@ export default function ProfilePage() {
   }, []);
 
   const userShop = shops.find(shop => shop.userId === MOCK_USER_ID);
-
-  const sellerForm = useForm<SellerFormValues>({
-    resolver: zodResolver(sellerFormSchema),
-    defaultValues: {
-      type: 'person',
-      storeName: '',
-      storeDescription: '',
-      agreement: false,
-    },
-  });
-  const sellerType = sellerForm.watch('type');
-
-  const driverForm = useForm<DriverFormValues>({
-    resolver: zodResolver(driverFormSchema),
-    defaultValues: {
-      name: '',
-      vehicle: '',
-      services: [],
-      agreement: false,
-    },
-  });
 
   const onSellerSubmit = async (data: SellerFormValues) => {
     try {
@@ -411,7 +408,6 @@ export default function ProfilePage() {
     try {
       const selectedCity = city === 'Другой' ? customCity : city;
       
-      // Создаем абсолютно чистый объект с проверкой типов
       const profileData: Record<string, string> = {};
       
       if (typeof name === 'string') {
@@ -431,7 +427,6 @@ export default function ProfilePage() {
       
       console.log('Saving profile data (cleaned):', profileData);
       
-      // Проверяем, есть ли данные для сохранения
       if (Object.keys(profileData).length === 0) {
         toast({
           title: 'Нет изменений',
@@ -441,21 +436,18 @@ export default function ProfilePage() {
         return;
       }
       
-      // Проверка сериализуемости
       try {
         const testSerialization = JSON.stringify(profileData);
         console.log('✅ Данные сериализуемы, размер:', testSerialization.length, 'bytes');
       } catch (jsonError) {
         console.error('❌ Ошибка сериализации:', jsonError);
         
-        // Создаем гарантированно чистые данные
         const guaranteedData = {
           name: String(name || ''),
           phone: String(phone || ''),
           city: String(selectedCity || ''),
         };
         
-        // Удаляем пустые поля
         Object.keys(guaranteedData).forEach(key => {
           if (!guaranteedData[key as keyof typeof guaranteedData]) {
             delete guaranteedData[key as keyof typeof guaranteedData];
@@ -473,7 +465,6 @@ export default function ProfilePage() {
         return;
       }
       
-      // Отправляем данные
       await api.updateProfile(profileData);
       await refreshData();
 
@@ -485,13 +476,11 @@ export default function ProfilePage() {
     } catch (error) {
       console.error('Profile save error:', error);
       
-      // Подробное логирование ошибки
       if (error instanceof Error) {
         console.error('Error name:', error.name);
         console.error('Error message:', error.message);
         console.error('Error stack:', error.stack);
         
-        // Проверяем на ошибку сериализации
         const errorStr = String(error.message).toLowerCase();
         if (errorStr.includes('circular') || 
             errorStr.includes('json') || 
@@ -499,7 +488,6 @@ export default function ProfilePage() {
             errorStr.includes('serial')) {
           console.error('⚠️ Обнаружена ошибка сериализации JSON');
           
-          // Пытаемся отправить только строки
           const stringData = {
             name: String(name),
             phone: String(phone),
@@ -637,4 +625,19 @@ export default function ProfilePage() {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Store className="h-6 w-6" />
- 
+                Ваш магазин
+              </CardTitle>
+              <CardDescription>{userShop.description}</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="flex items-center gap-2 rounded-md border border-green-500 bg-green-50 p-4 text-green-700">
+                <CheckCircle className="h-5 w-5" />
+                <p className="text-sm font-medium">Статус продавца: Активен</p>
+              </div>
+              <p className="text-sm text-muted-foreground">
+                Управляйте товарами и настройками вашего магазина на отдельной
+                странице.
+              </p>
+            </CardContent>
+            <CardFooter>
+       
