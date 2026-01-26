@@ -631,10 +631,25 @@ export default function ProfilePage() {
         </CardContent>
       </Card>
 
-      {isSeller && userShop ? (
-        <>
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Store className="h-6 w-6" />
- 
+            {isSeller && userShop && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Store className="h-6 w-6" />
+              Ваш магазин
+            </CardTitle>
+            <CardDescription>
+              Управление вашим магазином
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            {/* Контент магазина */}
+          </CardContent>
+        </Card>
+      )}
+
+    </div>
+  );
+};
+
+export default ProfilePage;
