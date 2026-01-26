@@ -48,7 +48,8 @@ function AvailableOrderCard({ order }: { order: Order }) {
   const [showLowBalanceDialog, setShowLowBalanceDialog] = useState(false);
 
   const COMMISSION_RATE = 0.10;
-  const orderCommission = order.price * COMMISSION_RATE;
+  const orderPrice = order.price ?? 0;
+  const orderCommission = orderPrice * COMMISSION_RATE;
   const currentBalance = driverProfile?.balance ?? 0;
   const hasEnoughBalance = currentBalance >= orderCommission;
 
@@ -117,7 +118,7 @@ function AvailableOrderCard({ order }: { order: Order }) {
           <div className="flex items-center justify-center gap-2 rounded-md bg-secondary p-2">
             <DollarSign className="h-5 w-5 text-primary" />
             <span className="text-xl font-bold">
-              {order.price.toLocaleString('ru-RU', { currency: 'RUB' })} ₽
+              {orderPrice.toLocaleString('ru-RU', { currency: 'RUB' })} ₽
             </span>
           </div>
           <Button
@@ -220,7 +221,8 @@ function ActiveDriverOrderCard({ order }: { order: Order }) {
   };
 
   const COMMISSION_RATE = 0.10;
-  const driverEarnings = order.price * (1 - COMMISSION_RATE);
+  const orderPrice = order.price ?? 0;
+  const driverEarnings = orderPrice * (1 - COMMISSION_RATE);
 
   return (
     <Card>

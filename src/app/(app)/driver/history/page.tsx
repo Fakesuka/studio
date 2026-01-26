@@ -95,7 +95,7 @@ export default function DriverHistoryPage() {
                       })}
                     </TableCell>
                     <TableCell className="text-right">
-                      {order.price.toLocaleString('ru-RU', {
+                      {(order.price ?? 0).toLocaleString('ru-RU', {
                         style: 'currency',
                         currency: 'RUB',
                       })}
