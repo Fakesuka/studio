@@ -631,7 +631,7 @@ export default function ProfilePage() {
         </CardContent>
       </Card>
 
-            {isSeller && userShop && (
+                        {isSeller && userShop && (
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
@@ -644,12 +644,31 @@ export default function ProfilePage() {
           </CardHeader>
           <CardContent>
             {/* Контент магазина */}
+            <div className="space-y-4">
+              <div>
+                <h4 className="font-medium mb-2">Название магазина:</h4>
+                <p>{userShop.name}</p>
+              </div>
+              <div>
+                <h4 className="font-medium mb-2">Описание:</h4>
+                <p className="text-sm text-muted-foreground">
+                  {userShop.description}
+                </p>
+              </div>
+              <Button asChild variant="outline">
+                <Link href={`/shop/${userShop.id}`}>
+                  Перейти в магазин
+                </Link>
+              </Button>
+            </div>
           </CardContent>
         </Card>
       )}
 
+      {/* Если нужны другие карточки для продавца/водителя */}
+      
     </div>
   );
-};
+}
 
 export default ProfilePage;
