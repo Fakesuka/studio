@@ -71,7 +71,7 @@ function AvailableOrderCard({ order }: { order: Order }) {
       acceptOrder(order.id);
       toast({
         title: 'Заказ принят!',
-        description: `Вы приняли заказ #${order.id}.`,
+        description: `Вы приняли заказ #${order.orderId || order.id}.`,
       });
       setIsAccepting(false);
     }
@@ -83,7 +83,7 @@ function AvailableOrderCard({ order }: { order: Order }) {
         <CardHeader>
           <CardTitle>{order.service || 'Услуга'}</CardTitle>
           <CardDescription>
-            Заказ #{order.id || '—'} от{' '}
+            Заказ #{order.orderId || order.id || '—'} от{' '}
             {order.date ? format(new Date(order.date), 'd MMM, HH:mm', { locale: ru }) : '—'}
           </CardDescription>
         </CardHeader>
@@ -214,7 +214,7 @@ function ActiveDriverOrderCard({ order }: { order: Order }) {
     completeOrder(order.id);
     toast({
       title: 'Заказ завершен!',
-      description: `Заказ #${order.id} выполнен. Оплата зачислена на ваш кошелек.`,
+      description: `Заказ #${order.orderId || order.id} выполнен. Оплата зачислена на ваш кошелек.`,
     });
   };
 
@@ -227,7 +227,7 @@ function ActiveDriverOrderCard({ order }: { order: Order }) {
       <CardHeader>
         <CardTitle>Активный заказ: {order.service || 'Услуга'}</CardTitle>
         <CardDescription>
-          Выполните заказ #{order.id || '—'} по адресу: {order.location || 'Не указан'}
+          Выполните заказ #{order.orderId || order.id || '—'} по адресу: {order.location || 'Не указан'}
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">

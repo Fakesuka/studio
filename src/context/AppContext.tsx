@@ -34,6 +34,7 @@ const mockDriverProfile: DriverProfile = {
 const mockOrders: Order[] = [
   {
     id: 'order-1',
+    orderId: 'SAHA-0001',
     userId: 'user-1',
     service: 'Отогрев авто',
     location: 'ул. Ленина, 15',
@@ -44,6 +45,7 @@ const mockOrders: Order[] = [
   },
   {
     id: 'order-2',
+    orderId: 'SAHA-0002',
     userId: 'user-2',
     service: 'Доставка топлива',
     location: 'пр. Мира, 42',

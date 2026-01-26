@@ -72,8 +72,8 @@ export default function DriverHistoryPage() {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead className="hidden w-[100px] sm:table-cell">
-                    ID Заказа
+                  <TableHead className="hidden w-[120px] sm:table-cell">
+                    № Заказа
                   </TableHead>
                   <TableHead>Услуга</TableHead>
                   <TableHead>Статус</TableHead>
@@ -85,7 +85,7 @@ export default function DriverHistoryPage() {
                 {driverOrders.map(order => (
                   <TableRow key={order.id || Math.random()}>
                     <TableCell className="hidden font-medium sm:table-cell">
-                      {order.id || '—'}
+                      {order.orderId || `#${order.id?.slice(-4) || '—'}`}
                     </TableCell>
                     <TableCell>{order.service || 'Услуга'}</TableCell>
                     <TableCell>
