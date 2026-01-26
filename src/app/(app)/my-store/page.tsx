@@ -108,10 +108,10 @@ export default function MyStorePage() {
 
   const MOCK_USER_ID = 'self';
   // Find user shop - first try by userId, then take first shop if user is seller
-  const userShop = shops.find(shop => shop.userId === MOCK_USER_ID) ||
-                   (isSeller && sellerProfile && shops.length > 0 ? shops[0] : null);
+  const userShop = (shops || []).find(shop => shop.userId === MOCK_USER_ID) ||
+                   (isSeller && sellerProfile && (shops || []).length > 0 ? (shops || [])[0] : null);
   const sellerProducts = userShop
-    ? products.filter(p => p.shopId === userShop.id)
+    ? (products || []).filter(p => p.shopId === userShop.id)
     : [];
 
   const productForm = useForm<ProductFormValues>({

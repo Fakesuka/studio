@@ -36,8 +36,8 @@ export default function ShopPage() {
     getCartItemQuantity,
   } = useAppContext();
 
-  const shop = shops.find(s => s.id === shopId);
-  const shopProducts = products.filter(p => p.shopId === shopId);
+  const shop = (shops || []).find(s => s.id === shopId);
+  const shopProducts = (products || []).filter(p => p.shopId === shopId);
 
   if (!shop) {
     notFound();
