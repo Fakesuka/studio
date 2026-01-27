@@ -2,21 +2,50 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog';
 import { api } from '@/lib/api';
-import { Users, Car, Store, Package, ShoppingCart, CheckCircle, XCircle, AlertCircle } from 'lucide-react';
+import { Users, Car, Store, Package, CheckCircle, Gift, Plus, Trash2 } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
 
 export default function AdminPanel() {
   const router = useRouter();
+  const { toast } = useToast();
   const [stats, setStats] = useState<any>(null);
   const [pendingDrivers, setPendingDrivers] = useState<any[]>([]);
   const [pendingSellers, setPendingSellers] = useState<any[]>([]);
   const [pendingProducts, setPendingProducts] = useState<any[]>([]);
   const [allUsers, setAllUsers] = useState<any[]>([]);
+  const [promocodes, setPromocodes] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [showNewPromoDialog, setShowNewPromoDialog] = useState(false);
+  const [newPromo, setNewPromo] = useState({
+    code: '',
+    type: 'discount_percent',
+    value: 10,
+    maxUses: 100,
+    expiresAt: '',
+  });
 
   useEffect(() => {
     loadData();
@@ -25,22 +54,54 @@ export default function AdminPanel() {
   const loadData = async () => {
     try {
       setLoading(true);
-      const [statsData, driversData, sellersData, productsData, usersData] = await Promise.all([
+      const [statsData, driversData, sellersData, productsData, usersData, promocodesData] = await Promise.all([
         fetch('/api/admin/dashboard/stats', { headers: getHeaders() }).then(r => r.json()),
         fetch('/api/admin/drivers/pending', { headers: getHeaders() }).then(r => r.json()),
         fetch('/api/admin/sellers/pending', { headers: getHeaders() }).then(r => r.json()),
         fetch('/api/admin/products/pending', { headers: getHeaders() }).then(r => r.json()),
         fetch('/api/admin/users?limit=100', { headers: getHeaders() }).then(r => r.json()),
+        fetch('/api/bonuses/promocodes', { headers: getHeaders() }).then(r => r.json()).catch(() => ({ promocodes: [] })),
       ]);
       setStats(statsData);
       setPendingDrivers(driversData);
       setPendingSellers(sellersData);
       setPendingProducts(productsData);
       setAllUsers(usersData);
+      setPromocodes(promocodesData.promocodes || []);
     } catch (error) {
       console.error('Error loading admin data:', error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const createPromocode = async () => {
+    try {
+      await fetch('/api/bonuses/promocodes', {
+        method: 'POST',
+        headers: { ...getHeaders(), 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          code: newPromo.code.toUpperCase(),
+          type: newPromo.type,
+          value: newPromo.value,
+          maxUses: newPromo.maxUses || null,
+          expiresAt: newPromo.expiresAt || null,
+        }),
+      });
+      toast({
+        title: 'Промокод создан!',
+        description: `Код ${newPromo.code.toUpperCase()} успешно создан.`,
+      });
+      setShowNewPromoDialog(false);
+      setNewPromo({ code: '', type: 'discount_percent', value: 10, maxUses: 100, expiresAt: '' });
+      loadData();
+    } catch (error) {
+      console.error('Error creating promocode:', error);
+      toast({
+        title: 'Ошибка',
+        description: 'Не удалось создать промокод',
+        variant: 'destructive',
+      });
     }
   };
 
@@ -156,6 +217,10 @@ export default function AdminPanel() {
             Товары {pendingProducts.length > 0 && `(${pendingProducts.length})`}
           </TabsTrigger>
           <TabsTrigger value="users">Все пользователи</TabsTrigger>
+          <TabsTrigger value="promocodes">
+            <Gift className="mr-2 h-4 w-4" />
+            Промокоды
+          </TabsTrigger>
         </TabsList>
 
         {/* Pending Drivers */}
@@ -268,6 +333,135 @@ export default function AdminPanel() {
                   </div>
                 ))}
               </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* Promocodes */}
+        <TabsContent value="promocodes" className="space-y-4">
+          <Card>
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <div>
+                  <CardTitle>Управление промокодами</CardTitle>
+                  <CardDescription>Создавайте и управляйте промокодами для пользователей</CardDescription>
+                </div>
+                <Dialog open={showNewPromoDialog} onOpenChange={setShowNewPromoDialog}>
+                  <DialogTrigger asChild>
+                    <Button>
+                      <Plus className="mr-2 h-4 w-4" />
+                      Создать промокод
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent>
+                    <DialogHeader>
+                      <DialogTitle>Новый промокод</DialogTitle>
+                      <DialogDescription>
+                        Заполните данные для создания нового промокода
+                      </DialogDescription>
+                    </DialogHeader>
+                    <div className="space-y-4 py-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="code">Код промокода</Label>
+                        <Input
+                          id="code"
+                          placeholder="YAKGO2024"
+                          value={newPromo.code}
+                          onChange={(e) => setNewPromo({ ...newPromo, code: e.target.value })}
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="type">Тип промокода</Label>
+                        <Select
+                          value={newPromo.type}
+                          onValueChange={(value) => setNewPromo({ ...newPromo, type: value })}
+                        >
+                          <SelectTrigger>
+                            <SelectValue placeholder="Выберите тип" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="discount_percent">Скидка %</SelectItem>
+                            <SelectItem value="discount_fixed">Скидка ₽</SelectItem>
+                            <SelectItem value="bonus_balance">Бонус на баланс</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="value">
+                          Значение {newPromo.type === 'discount_percent' ? '(%)' : '(₽)'}
+                        </Label>
+                        <Input
+                          id="value"
+                          type="number"
+                          placeholder="10"
+                          value={newPromo.value}
+                          onChange={(e) => setNewPromo({ ...newPromo, value: Number(e.target.value) })}
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="maxUses">Макс. использований (0 = безлимит)</Label>
+                        <Input
+                          id="maxUses"
+                          type="number"
+                          placeholder="100"
+                          value={newPromo.maxUses}
+                          onChange={(e) => setNewPromo({ ...newPromo, maxUses: Number(e.target.value) })}
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="expiresAt">Срок действия (опционально)</Label>
+                        <Input
+                          id="expiresAt"
+                          type="date"
+                          value={newPromo.expiresAt}
+                          onChange={(e) => setNewPromo({ ...newPromo, expiresAt: e.target.value })}
+                        />
+                      </div>
+                    </div>
+                    <DialogFooter>
+                      <Button variant="outline" onClick={() => setShowNewPromoDialog(false)}>
+                        Отмена
+                      </Button>
+                      <Button onClick={createPromocode} disabled={!newPromo.code}>
+                        Создать
+                      </Button>
+                    </DialogFooter>
+                  </DialogContent>
+                </Dialog>
+              </div>
+            </CardHeader>
+            <CardContent>
+              {promocodes.length === 0 ? (
+                <p className="text-muted-foreground text-center py-8">
+                  Нет созданных промокодов
+                </p>
+              ) : (
+                <div className="space-y-3">
+                  {promocodes.map((promo: any) => (
+                    <div key={promo.id} className="flex items-center justify-between p-4 border rounded-lg">
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <code className="bg-muted px-2 py-1 rounded font-mono font-bold">
+                            {promo.code}
+                          </code>
+                          <Badge variant={promo.active ? 'default' : 'secondary'}>
+                            {promo.active ? 'Активен' : 'Неактивен'}
+                          </Badge>
+                        </div>
+                        <p className="text-sm text-muted-foreground mt-1">
+                          {promo.type === 'discount_percent' && `Скидка ${promo.value}%`}
+                          {promo.type === 'discount_fixed' && `Скидка ${promo.value} ₽`}
+                          {promo.type === 'bonus_balance' && `Бонус ${promo.value} ₽ на баланс`}
+                        </p>
+                        <p className="text-xs text-muted-foreground">
+                          Использований: {promo.usedCount}/{promo.maxUses || '∞'}
+                          {promo.expiresAt && ` • До ${new Date(promo.expiresAt).toLocaleDateString('ru-RU')}`}
+                        </p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
             </CardContent>
           </Card>
         </TabsContent>
