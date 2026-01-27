@@ -3,72 +3,59 @@ import { PrismaClient } from '@prisma/client';
 const prisma = new PrismaClient();
 
 async function updateUserBalance() {
-  console.log('💰 Updating balance for user pllotnikv...');
+  console.log('💰 Updating balance for user pllotnikvv...');
 
   try {
     // Find user by username or name
     const user = await prisma.user.findFirst({
       where: {
         OR: [
-          { name: { contains: 'pllotnikv', mode: 'insensitive' } },
-          { phone: { contains: 'pllotnikv', mode: 'insensitive' } },
+          { name: { contains: 'pllotnikvv', mode: 'insensitive' } },
+          { phone: { contains: 'pllotnikvv', mode: 'insensitive' } },
+          { telegramId: { contains: 'pllotnikvv', mode: 'insensitive' } },
         ],
       },
     });
 
     if (!user) {
-      console.log('❌ User pllotnikv not found. Creating new user...');
+      console.log('❌ User pllotnikvv not found. Listing all users...');
 
-      // Create user with balance
-      const newUser = await prisma.user.create({
-        data: {
-          telegramId: 'pllotnikv_id',
-          name: 'pllotnikv',
-          phone: '+79991234560',
-          balance: 10000,
+      const allUsers = await prisma.user.findMany({
+        select: {
+          id: true,
+          name: true,
+          telegramId: true,
+          balance: true,
         },
+        take: 20,
       });
 
-      console.log('✅ Created user pllotnikv with 10000 RUB balance');
-      console.log('User ID:', newUser.id);
+      console.log('\n📋 Available users:');
+      console.table(allUsers);
+      console.log('\n⚠️  User pllotnikvv not found in database');
       return;
     }
 
-    // Update balance to 10000
+    // Add 10000 to current balance
     const updatedUser = await prisma.user.update({
       where: { id: user.id },
-      data: { balance: 10000 },
+      data: { balance: { increment: 10000 } },
+    });
+
+    // Create transaction record
+    await prisma.transaction.create({
+      data: {
+        userId: user.id,
+        type: 'topup',
+        amount: 10000,
+        description: 'Пополнение баланса администратором',
+      },
     });
 
     console.log(`✅ Updated balance for ${user.name} (ID: ${user.id})`);
-    console.log(`   Old balance: ${user.balance} RUB`);
-    console.log(`   New balance: ${updatedUser.balance} RUB`);
-
-    // If user has driver profile, update that balance too
-    const driverProfile = await prisma.driverProfile.findUnique({
-      where: { userId: user.id },
-    });
-
-    if (driverProfile) {
-      await prisma.driverProfile.update({
-        where: { id: driverProfile.id },
-        data: { balance: 10000 },
-      });
-      console.log('✅ Updated driver profile balance to 10000 RUB');
-    }
-
-    // If user has seller profile, update that balance too
-    const sellerProfile = await prisma.sellerProfile.findUnique({
-      where: { userId: user.id },
-    });
-
-    if (sellerProfile) {
-      await prisma.sellerProfile.update({
-        where: { id: sellerProfile.id },
-        data: { balance: 10000 },
-      });
-      console.log('✅ Updated seller profile balance to 10000 RUB');
-    }
+    console.log(`   Old balance: ${user.balance.toFixed(2)} RUB`);
+    console.log(`   New balance: ${updatedUser.balance.toFixed(2)} RUB`);
+    console.log(`   Added: 10000 RUB`)
 
   } catch (error) {
     console.error('❌ Error updating balance:', error);

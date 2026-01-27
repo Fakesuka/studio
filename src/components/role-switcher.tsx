@@ -31,7 +31,7 @@ export function RoleSwitcher({ currentRole, onRoleChange, isDriver, className }:
   };
 
   return (
-    <div className={cn("inline-flex items-center rounded-full bg-muted p-0.5", className)}>
+    <div className={cn("inline-flex items-center rounded-full bg-muted p-0.5 shrink-0", className)}>
       <button
         onClick={() => handleRoleChange('client')}
         className={cn(
@@ -41,9 +41,10 @@ export function RoleSwitcher({ currentRole, onRoleChange, isDriver, className }:
             : "text-muted-foreground hover:text-foreground"
         )}
         aria-label="Режим клиента"
+        title="Режим клиента"
       >
-        <User className="h-3 w-3" />
-        <span className="hidden sm:inline">Клиент</span>
+        <User className="h-3 w-3 shrink-0" />
+        <span className="hidden md:inline">Клиент</span>
       </button>
       <button
         onClick={() => handleRoleChange('driver')}
@@ -54,9 +55,10 @@ export function RoleSwitcher({ currentRole, onRoleChange, isDriver, className }:
             : "text-muted-foreground hover:text-foreground"
         )}
         aria-label="Режим водителя"
+        title="Режим водителя"
       >
-        <Car className="h-3 w-3" />
-        <span className="hidden sm:inline">Водитель</span>
+        <Car className="h-3 w-3 shrink-0" />
+        <span className="hidden md:inline">Водитель</span>
       </button>
     </div>
   );

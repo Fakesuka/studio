@@ -86,6 +86,7 @@ export default function OrdersPage() {
         <CardTitle>Мои заказы</CardTitle>
         <CardDescription>
           История ваших заказов услуг и покупок на маркетплейсе.
+          {' '}Заказы привязаны к вашему Telegram аккаунту.
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -106,8 +107,8 @@ export default function OrdersPage() {
                     </TableHead>
                     <TableHead>Услуга</TableHead>
                     <TableHead>Статус</TableHead>
-                    <TableHead className="hidden md:table-cell">
-                      Дата
+                    <TableHead className="min-w-[140px]">
+                      Дата и время
                     </TableHead>
                     <TableHead className="text-right">Цена</TableHead>
                     <TableHead className="text-right">Действия</TableHead>
@@ -119,7 +120,14 @@ export default function OrdersPage() {
                       <TableCell className="hidden font-medium sm:table-cell">
                         {order.id}
                       </TableCell>
-                      <TableCell>{order.service}</TableCell>
+                      <TableCell>
+                        <div className="font-medium">{order.service}</div>
+                        <div className="text-xs text-muted-foreground md:hidden">
+                          {format(new Date(order.date), 'd MMM yyyy, HH:mm', {
+                            locale: ru,
+                          })}
+                        </div>
+                      </TableCell>
                       <TableCell>
                         <Badge
                           variant={getServiceStatusVariant(order.status)}
@@ -128,9 +136,16 @@ export default function OrdersPage() {
                         </Badge>
                       </TableCell>
                       <TableCell className="hidden md:table-cell">
-                        {format(new Date(order.date), 'd MMMM yyyy, HH:mm', {
-                          locale: ru,
-                        })}
+                        <div className="font-medium">
+                          {format(new Date(order.date), 'd MMMM yyyy', {
+                            locale: ru,
+                          })}
+                        </div>
+                        <div className="text-xs text-muted-foreground">
+                          {format(new Date(order.date), 'HH:mm', {
+                            locale: ru,
+                          })}
+                        </div>
                       </TableCell>
                       <TableCell className="text-right">
                         {order.price.toLocaleString('ru-RU', {
@@ -190,8 +205,8 @@ export default function OrdersPage() {
                     </TableHead>
                     <TableHead>Статус</TableHead>
                     <TableHead>Кол-во</TableHead>
-                    <TableHead className="hidden md:table-cell">
-                      Дата
+                    <TableHead className="min-w-[140px]">
+                      Дата и время
                     </TableHead>
                     <TableHead className="text-right">Сумма</TableHead>
                   </TableRow>
@@ -208,17 +223,30 @@ export default function OrdersPage() {
                         >
                           {order.status}
                         </Badge>
+                        <div className="text-xs text-muted-foreground md:hidden mt-1">
+                          {format(new Date(order.date), 'd MMM yyyy, HH:mm', {
+                            locale: ru,
+                          })}
+                        </div>
                       </TableCell>
                       <TableCell>
                         {order.items.reduce(
                           (acc, item) => acc + item.quantity,
                           0
-                        )}
+                        )}{' '}
+                        <span className="text-xs text-muted-foreground">шт.</span>
                       </TableCell>
                       <TableCell className="hidden md:table-cell">
-                        {format(new Date(order.date), 'd MMMM yyyy, HH:mm', {
-                          locale: ru,
-                        })}
+                        <div className="font-medium">
+                          {format(new Date(order.date), 'd MMMM yyyy', {
+                            locale: ru,
+                          })}
+                        </div>
+                        <div className="text-xs text-muted-foreground">
+                          {format(new Date(order.date), 'HH:mm', {
+                            locale: ru,
+                          })}
+                        </div>
                       </TableCell>
                       <TableCell className="text-right">
                         {order.total.toLocaleString('ru-RU', {
