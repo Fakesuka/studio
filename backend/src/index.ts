@@ -13,6 +13,7 @@ import chatRoutes from './routes/chat.routes';
 import analyticsRoutes from './routes/analytics.routes';
 import bonusesRoutes from './routes/bonuses.routes';
 import healthRoutes from './routes/health.routes';
+import aiRoutes from './routes/ai.routes';
 import prisma from './utils/prisma';
 import { startBot, stopBot } from './bot';
 
@@ -72,6 +73,7 @@ app.use('/api/reviews', reviewsRoutes);
 app.use('/api/chat', chatRoutes);
 app.use('/api/analytics', analyticsRoutes);
 app.use('/api/bonuses', bonusesRoutes);
+app.use('/api/ai', aiRoutes);
 
 // WebSocket for real-time driver tracking
 io.on('connection', (socket) => {

@@ -4,19 +4,19 @@ import dotenv from 'dotenv';
 dotenv.config();
 
 const BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN;
-const MINI_APP_URL = process.env.FRONTEND_URL || 'http://localhost:9002';
-
-if (!BOT_TOKEN) {
-  console.error('❌ TELEGRAM_BOT_TOKEN is not set in environment variables');
-  process.exit(1);
-}
+const MINI_APP_URL = process.env.FRONTEND_URL || 'http://localhost:3000';
 
 let bot: TelegramBot | null = null;
 
 export function startBot() {
+  if (!BOT_TOKEN) {
+    console.warn('⚠️ TELEGRAM_BOT_TOKEN is not set - bot will not start');
+    return null;
+  }
+
   try {
     // Create bot instance
-    bot = new TelegramBot(BOT_TOKEN!, { polling: true });
+    bot = new TelegramBot(BOT_TOKEN, { polling: true });
 
     console.log('🤖 YakGo Telegram Bot started successfully!');
     console.log(`🔗 Mini App URL: ${MINI_APP_URL}`);

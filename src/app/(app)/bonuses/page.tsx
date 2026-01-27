@@ -16,10 +16,11 @@ import { Gift, Users, Copy, Check } from 'lucide-react';
 import { api } from '@/lib/api';
 
 interface ReferralData {
-  referralCode: string;
   referralLink: string;
-  totalReferrals: number;
-  totalBonusEarned: number;
+  stats: {
+    totalReferrals: number;
+    totalBonusEarned: number;
+  };
   referrals: {
     userName: string;
     bonusAmount: number;
@@ -59,14 +60,17 @@ export default function BonusesPage() {
 
     setIsLoading(true);
     try {
-      const result = await api.request('/bonuses/apply-promocode', {
-        method: 'POST',
-        body: JSON.stringify({ code: promocode }),
-      });
+      const result = await api.applyPromocode(promocode);
+
+      const bonusText = result.promocode?.type === 'bonus_balance'
+        ? `${result.promocode.value} ₽ на баланс`
+        : result.discountAmount
+        ? `скидка ${result.discountAmount} ₽`
+        : 'бонус активирован';
 
       toast({
         title: 'Промокод применен!',
-        description: `Вы получили бонус: ${result.bonusAmount} ₽`,
+        description: `Вы получили ${bonusText}`,
       });
 
       setPromocode('');
@@ -146,7 +150,7 @@ export default function BonusesPage() {
                     Всего рефералов
                   </p>
                   <p className="text-2xl font-bold">
-                    {referralData.totalReferrals}
+                    {referralData.stats?.totalReferrals ?? 0}
                   </p>
                 </div>
                 <div className="bg-muted p-4 rounded-lg">
@@ -154,7 +158,7 @@ export default function BonusesPage() {
                     Заработано бонусов
                   </p>
                   <p className="text-2xl font-bold">
-                    {referralData.totalBonusEarned} ₽
+                    {referralData.stats?.totalBonusEarned ?? 0} ₽
                   </p>
                 </div>
               </div>
