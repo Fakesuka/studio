@@ -1,8 +1,14 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import { User, Car } from 'lucide-react';
+import { User, Car, Info } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useState, useEffect } from 'react';
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/ui/popover';
 
 export type UserRole = 'client' | 'driver';
 
@@ -15,6 +21,23 @@ interface RoleSwitcherProps {
 
 export function RoleSwitcher({ currentRole, onRoleChange, isDriver, className }: RoleSwitcherProps) {
   const router = useRouter();
+  const [showHint, setShowHint] = useState(false);
+
+  // Show hint on first load if user hasn't seen it
+  useEffect(() => {
+    if (isDriver) {
+      const hasSeenHint = localStorage.getItem('roleSwitcherHintSeen');
+      if (!hasSeenHint) {
+        setShowHint(true);
+        // Auto-hide after 5 seconds
+        const timer = setTimeout(() => {
+          setShowHint(false);
+          localStorage.setItem('roleSwitcherHintSeen', 'true');
+        }, 5000);
+        return () => clearTimeout(timer);
+      }
+    }
+  }, [isDriver]);
 
   if (!isDriver) {
     return null;
@@ -22,6 +45,8 @@ export function RoleSwitcher({ currentRole, onRoleChange, isDriver, className }:
 
   const handleRoleChange = (role: UserRole) => {
     onRoleChange(role);
+    setShowHint(false);
+    localStorage.setItem('roleSwitcherHintSeen', 'true');
     // Auto-navigate to the correct home page
     if (role === 'driver') {
       router.push('/driver/dashboard');
@@ -31,7 +56,9 @@ export function RoleSwitcher({ currentRole, onRoleChange, isDriver, className }:
   };
 
   return (
-    <div className={cn("inline-flex items-center rounded-full bg-muted p-0.5 shrink-0", className)}>
+    <Popover open={showHint} onOpenChange={setShowHint}>
+      <PopoverTrigger asChild>
+        <div className={cn("inline-flex items-center rounded-full bg-muted p-0.5 shrink-0 cursor-pointer", className)}>
       <button
         onClick={() => handleRoleChange('client')}
         className={cn(
@@ -60,6 +87,20 @@ export function RoleSwitcher({ currentRole, onRoleChange, isDriver, className }:
         <Car className="h-3 w-3 shrink-0" />
         <span className="hidden md:inline">Водитель</span>
       </button>
-    </div>
+        </div>
+      </PopoverTrigger>
+      <PopoverContent side="bottom" className="w-64 p-3" sideOffset={8}>
+        <div className="flex items-start gap-2">
+          <Info className="h-4 w-4 text-primary mt-0.5 shrink-0" />
+          <div className="space-y-1">
+            <p className="text-sm font-medium">Переключатель ролей</p>
+            <p className="text-xs text-muted-foreground">
+              Используйте этот слайдер для переключения между режимами клиента и водителя.
+              Нажмите на нужную роль для переключения.
+            </p>
+          </div>
+        </div>
+      </PopoverContent>
+    </Popover>
   );
 }
