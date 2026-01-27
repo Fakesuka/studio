@@ -17,6 +17,7 @@ import {
   User,
   Settings,
   Snowflake,
+  Gift,
 } from 'lucide-react';
 import { usePathname } from 'next/navigation';
 import Link from 'next/link';
@@ -28,6 +29,7 @@ export function MainSidebar() {
     { href: '/dashboard', label: 'Панель управления', icon: LayoutDashboard },
     { href: '/orders', label: 'Мои заказы', icon: ScrollText },
     { href: '/marketplace', label: 'Маркетплейс', icon: Store },
+    { href: '/bonuses', label: 'Бонусы', icon: Gift },
     { href: '/profile', label: 'Профиль', icon: User },
   ];
 

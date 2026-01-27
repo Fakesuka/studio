@@ -10,7 +10,7 @@ export function DriverBottomNav() {
 
   return (
     <nav className="fixed bottom-0 left-0 right-0 z-50 border-t bg-card md:hidden">
-      <div className="grid h-16 grid-cols-4 items-center">
+      <div className="grid h-16 grid-cols-5 items-center">
         {driverBottomMenuItems.map(item => {
           const isActive = pathname.startsWith(item.href);
           return (
