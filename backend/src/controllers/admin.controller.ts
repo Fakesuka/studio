@@ -433,7 +433,7 @@ export async function findUserByUsername(req: AuthRequest, res: Response) {
     const { username } = req.params;
 
     // Remove @ if present
-    const cleanUsername = username.replace('@', '');
+    const cleanUsername = String(username).replace('@', '');
 
     const user = await prisma.user.findFirst({
       where: {
