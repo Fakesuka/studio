@@ -107,7 +107,7 @@ async function diagnosWithOllama(description: string): Promise<{ diagnosis: stri
       throw new Error(`Ollama API error: ${response.status}`);
     }
 
-    const data = await response.json();
+    const data = await response.json() as { response: string };
     const result = JSON.parse(data.response);
 
     return {
@@ -156,7 +156,7 @@ async function diagnosWithDashScope(description: string): Promise<{ diagnosis: s
       throw new Error(`DashScope API error: ${response.status}`);
     }
 
-    const data = await response.json();
+    const data = await response.json() as { output: { choices: { message: { content: string } }[] } };
     const content = data.output.choices[0].message.content;
     const result = JSON.parse(content);
 
@@ -227,9 +227,9 @@ export async function getAIStatus(req: AuthRequest, res: Response): Promise<void
       try {
         const response = await fetch(`${OLLAMA_URL}/api/tags`, { method: 'GET' });
         if (response.ok) {
-          const data = await response.json();
+          const data = await response.json() as { models?: { name: string }[] };
           status.ollama = true;
-          status.ollamaModels = data.models?.map((m: any) => m.name) || [];
+          status.ollamaModels = data.models?.map((m) => m.name) || [];
         }
       } catch (e) {
         status.ollama = false;
