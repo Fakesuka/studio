@@ -18,6 +18,9 @@ interface Map2GISProps {
   center: [number, number];
   zoom: number;
   markers?: MapMarker[];
+  routes?: [number, number][][];
+  interactive?: boolean;
+  onClick?: (coords: [number, number]) => void;
   className?: string;
 }
 
@@ -25,11 +28,15 @@ const Map2GIS: React.FC<Map2GISProps> = ({
   center,
   zoom,
   markers = [],
+  routes = [],
+  interactive = false,
+  onClick,
   className,
 }) => {
   const mapRef = useRef<any>(null);
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const markersRef = useRef<Map<string, any>>(new Map());
+  const routesRef = useRef<any[]>([]);
 
   // Effect for initializing the map
   useEffect(() => {
@@ -42,10 +49,17 @@ const Map2GIS: React.FC<Map2GISProps> = ({
           center: center,
           zoom: zoom,
           fullscreenControl: false,
-          zoomControl: false,
-          dragging: false,
+          zoomControl: interactive,
+          dragging: interactive,
         });
         mapRef.current = map;
+
+        if (interactive && onClick) {
+          map.on('click', (event: any) => {
+            const { lat, lng } = event.latlng;
+            onClick([lat, lng]);
+          });
+        }
       } catch (e) {
         console.error('Error initializing 2GIS map:', e);
       }
@@ -128,6 +142,24 @@ const Map2GIS: React.FC<Map2GISProps> = ({
       map.setView(center, zoom);
     }
   }, [markers, center, zoom]);
+
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map) return;
+
+    routesRef.current.forEach(route => route.remove());
+    routesRef.current = [];
+
+    routes.forEach(routeCoords => {
+      if (routeCoords.length < 2) return;
+      const polyline = DG.polyline(routeCoords, {
+        color: '#facc15',
+        weight: 4,
+        opacity: 0.8,
+      }).addTo(map);
+      routesRef.current.push(polyline);
+    });
+  }, [routes]);
 
   return <div ref={mapContainerRef} className={cn('h-full w-full', className)} />;
 };

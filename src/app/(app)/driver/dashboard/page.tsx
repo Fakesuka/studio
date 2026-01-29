@@ -1,7 +1,7 @@
 'use client';
 import { useAppContext } from '@/context/AppContext';
 import { useRouter } from 'next/navigation';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import { sendDriverLocation } from '@/lib/websocket';
 import { getTelegramUser } from '@/lib/telegram';
 import {
@@ -14,6 +14,8 @@ import {
   Navigation,
   Wallet,
 } from 'lucide-react';
+import dynamic from 'next/dynamic';
+import type { MapMarker } from '@/components/map-2gis';
 import {
   Card,
   CardContent,
@@ -37,6 +39,11 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
+
+const Map2GIS = dynamic(() => import('@/components/map-2gis'), {
+  ssr: false,
+  loading: () => <div className="h-full w-full animate-pulse rounded-lg bg-muted" />,
+});
 
 function AvailableOrderCard({ order }: { order: Order }) {
   const { acceptOrder, driverProfile } = useAppContext();
@@ -168,7 +175,14 @@ function ActiveDriverOrderCard({ order }: { order: Order }) {
   const { completeOrder } = useAppContext();
   const { toast } = useToast();
   const [isTrackingLocation, setIsTrackingLocation] = useState(false);
+  const [driverCoords, setDriverCoords] = useState<[number, number] | null>(
+    null
+  );
   const user = getTelegramUser();
+  const customerCoords =
+    order.latitude && order.longitude
+      ? ([order.latitude, order.longitude] as [number, number])
+      : null;
 
   // Broadcast driver location in real-time
   useEffect(() => {
@@ -185,6 +199,7 @@ function ActiveDriverOrderCard({ order }: { order: Order }) {
           position.coords.latitude,
           position.coords.longitude
         );
+        setDriverCoords([position.coords.latitude, position.coords.longitude]);
       },
       (error) => {
         console.error('Geolocation error:', error);
@@ -210,6 +225,22 @@ function ActiveDriverOrderCard({ order }: { order: Order }) {
     };
   }, [user?.id, toast]);
 
+  const markers = useMemo((): MapMarker[] => {
+    const result: MapMarker[] = [];
+    if (customerCoords) {
+      result.push({ id: 'customer', coords: customerCoords });
+    }
+    if (driverCoords) {
+      result.push({ id: 'driver', coords: driverCoords });
+    }
+    return result;
+  }, [customerCoords, driverCoords]);
+
+  const routes = useMemo(() => {
+    if (!customerCoords || !driverCoords) return [];
+    return [[driverCoords, customerCoords]];
+  }, [customerCoords, driverCoords]);
+
   const handleComplete = () => {
     completeOrder(order.id);
     toast({
@@ -231,6 +262,15 @@ function ActiveDriverOrderCard({ order }: { order: Order }) {
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
+        <div className="relative aspect-[4/3] w-full overflow-hidden rounded-lg border">
+          {customerCoords ? (
+            <Map2GIS center={customerCoords} zoom={13} markers={markers} routes={routes} />
+          ) : (
+            <div className="flex h-full items-center justify-center text-sm text-muted-foreground">
+              Координаты клиента пока недоступны.
+            </div>
+          )}
+        </div>
         {isTrackingLocation && (
           <div className="flex items-center gap-2 rounded-md bg-green-50 p-3 text-green-700 dark:bg-green-950 dark:text-green-300">
             <Navigation className="h-4 w-4 animate-pulse" />

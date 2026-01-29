@@ -47,7 +47,7 @@ function LayoutContent({ children }: { children: React.ReactNode }) {
   return (
     <div className="flex min-h-screen w-full flex-col bg-muted/40">
       <Header />
-      <main className="flex flex-1 flex-col bg-background p-4 pb-20 md:gap-8 md:p-8 md:pb-20">
+      <main className="flex flex-1 flex-col bg-background p-4 pb-28 md:gap-8 md:p-8 md:pb-28">
         {children}
       </main>
       {showDriverNav ? <DriverBottomNav /> : <BottomNav />}

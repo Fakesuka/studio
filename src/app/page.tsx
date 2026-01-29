@@ -2,9 +2,10 @@
 
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
-import { Snowflake, ArrowRight } from 'lucide-react';
+import { ArrowRight } from 'lucide-react';
 import { getTelegramUser } from '@/lib/telegram';
 import { useEffect, useState } from 'react';
+import Image from 'next/image';
 
 export default function WelcomePage() {
   const router = useRouter();
@@ -52,7 +53,13 @@ export default function WelcomePage() {
         </div>
 
         <div className="relative z-10 flex flex-col items-center text-center text-white p-4">
-          <Snowflake className="h-16 w-16 text-blue-400 animate-pulse" />
+          <Image
+            src="/logo.svg"
+            alt="YakGo"
+            width={160}
+            height={56}
+            className="drop-shadow-lg"
+          />
           <h1 className="mt-4 text-4xl font-bold tracking-tight drop-shadow-lg sm:text-5xl">
             С возвращением,
           </h1>
@@ -81,10 +88,13 @@ export default function WelcomePage() {
       </div>
 
       <div className="relative z-10 flex flex-col items-center text-center text-white p-4">
-        <Snowflake className="h-16 w-16 text-blue-400" />
-        <h1 className="mt-4 text-5xl font-bold tracking-tight drop-shadow-lg sm:text-6xl">
-          YakGo
-        </h1>
+        <Image
+          src="/logo.svg"
+          alt="YakGo"
+          width={200}
+          height={64}
+          className="drop-shadow-lg"
+        />
         <p className="mt-2 max-w-md text-lg text-blue-100 drop-shadow-lg">
           Ваш надежный помощник на дорогах Якутии.
         </p>

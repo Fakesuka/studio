@@ -2,6 +2,10 @@ import { Response } from 'express';
 import { AuthRequest } from '../middleware/auth';
 import prisma from '../utils/prisma';
 import { generateOrderId } from '../utils/telegram';
+import {
+  notifyMarketplaceOrderForSeller,
+  notifyMarketplaceOrderPlaced,
+} from '../utils/telegram-notifications';
 
 // Get all shops
 export async function getShops(req: AuthRequest, res: Response) {
@@ -414,11 +418,55 @@ export async function placeOrder(req: AuthRequest, res: Response) {
       include: {
         items: {
           include: {
-            product: true,
+            product: {
+              include: {
+                shop: {
+                  include: {
+                    user: true,
+                  },
+                },
+              },
+            },
           },
         },
       },
     });
+
+    if (completeOrder) {
+      const buyerItems = completeOrder.items.map(item => ({
+        name: item.product.name,
+        quantity: item.quantity,
+      }));
+
+      await notifyMarketplaceOrderPlaced(req.user!.telegramId, {
+        orderId,
+        total: completeOrder.total,
+        items: buyerItems,
+      });
+
+      const sellerByTelegramId = new Map<string, { items: { name: string; quantity: number }[]; total: number }>();
+
+      for (const item of completeOrder.items) {
+        const sellerTelegramId = item.product?.shop?.user?.telegramId;
+        if (!sellerTelegramId) continue;
+
+        const existing = sellerByTelegramId.get(sellerTelegramId) || { items: [], total: 0 };
+        existing.items.push({ name: item.product.name, quantity: item.quantity });
+        existing.total += item.price * item.quantity;
+        sellerByTelegramId.set(sellerTelegramId, existing);
+      }
+
+      await Promise.all(
+        Array.from(sellerByTelegramId.entries()).map(([telegramId, payload]) =>
+          notifyMarketplaceOrderForSeller(telegramId, {
+            orderId,
+            customerName,
+            total: payload.total,
+            items: payload.items,
+          })
+        )
+      );
+    }
 
     return res.status(201).json(completeOrder);
   } catch (error) {

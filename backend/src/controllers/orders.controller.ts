@@ -2,6 +2,11 @@ import { Response } from 'express';
 import { AuthRequest } from '../middleware/auth';
 import prisma from '../utils/prisma';
 import { generateOrderId } from '../utils/telegram';
+import {
+  notifyNewOrder,
+  notifyOrderAccepted,
+  notifyOrderCompleted,
+} from '../utils/telegram-notifications';
 
 // Create new service order
 export async function createOrder(req: AuthRequest, res: Response) {
@@ -28,6 +33,30 @@ export async function createOrder(req: AuthRequest, res: Response) {
         status: 'Ищет исполнителя',
       },
     });
+
+    const driversToNotify = await prisma.driverProfile.findMany({
+      where: {
+        services: { has: service },
+        verified: true,
+      },
+      include: {
+        user: true,
+      },
+    });
+
+    await Promise.all(
+      driversToNotify
+        .map(driver => driver.user?.telegramId)
+        .filter(Boolean)
+        .map(telegramId =>
+          notifyNewOrder(telegramId!, {
+            orderId,
+            service,
+            location,
+            price,
+          })
+        )
+    );
 
     return res.status(201).json(order);
   } catch (error) {
@@ -162,6 +191,13 @@ export async function acceptOrder(req: AuthRequest, res: Response) {
       },
     });
 
+    await notifyOrderAccepted(updatedOrder.user.telegramId, {
+      orderId: updatedOrder.orderId,
+      driverName: updatedOrder.driver?.driverProfile?.name || 'Водитель',
+      vehicle: updatedOrder.driver?.driverProfile?.vehicle || '—',
+      arrivalTime: updatedOrder.arrivalTime || 10,
+    });
+
     return res.json(updatedOrder);
   } catch (error) {
     console.error('Error accepting order:', error);
@@ -222,6 +258,27 @@ export async function completeOrder(req: AuthRequest, res: Response) {
 
       return { order: updatedOrder, balance: user.balance };
     });
+
+    const orderWithCustomer = await prisma.order.findUnique({
+      where: { id: order.id },
+      include: {
+        user: true,
+      },
+    });
+
+    if (orderWithCustomer?.user?.telegramId) {
+      await notifyOrderCompleted(orderWithCustomer.user.telegramId, {
+        orderId: orderWithCustomer.orderId,
+        service: orderWithCustomer.service,
+        price: orderWithCustomer.price,
+      }, false);
+    }
+
+    await notifyOrderCompleted(req.user!.telegramId, {
+      orderId: order.orderId,
+      service: order.service,
+      price: order.price,
+    }, true);
 
     return res.json(result);
   } catch (error) {
