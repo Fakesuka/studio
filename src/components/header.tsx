@@ -1,10 +1,11 @@
 'use client';
 
-import { ShoppingCart, Snowflake } from 'lucide-react';
+import { ShoppingCart } from 'lucide-react';
 import Link from 'next/link';
 import { Button } from './ui/button';
 import { useAppContext } from '@/context/AppContext';
 import { RoleSwitcher } from './role-switcher';
+import Image from 'next/image';
 
 export function Header() {
   const { cart, isDriver, currentRole, setCurrentRole } = useAppContext();
@@ -12,9 +13,8 @@ export function Header() {
 
   return (
     <header className="flex h-14 items-center gap-2 sm:gap-4 border-b bg-card px-3 sm:px-4 lg:h-[60px] lg:px-6">
-      <Link href="/dashboard" className="flex items-center gap-1.5 sm:gap-2 font-semibold">
-        <Snowflake className="h-5 w-5 sm:h-6 sm:w-6 text-primary shrink-0" />
-        <span className="text-base sm:text-lg font-bold">YakGo</span>
+      <Link href="/dashboard" className="flex items-center gap-2 font-semibold">
+        <Image src="/logo.svg" alt="YakGo" width={92} height={32} priority />
       </Link>
       <div className="flex-1" />
       <RoleSwitcher

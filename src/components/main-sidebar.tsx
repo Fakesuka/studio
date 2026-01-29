@@ -16,11 +16,11 @@ import {
   Store,
   User,
   Settings,
-  Snowflake,
   Gift,
 } from 'lucide-react';
 import { usePathname } from 'next/navigation';
 import Link from 'next/link';
+import Image from 'next/image';
 
 export function MainSidebar() {
   const pathname = usePathname();
@@ -37,8 +37,7 @@ export function MainSidebar() {
     <Sidebar>
       <SidebarHeader>
         <Link href="/dashboard" className="flex items-center gap-2 font-semibold">
-            <Snowflake className="h-7 w-7 text-primary" />
-            <span className="text-xl font-bold">YakGo</span>
+          <Image src="/logo.svg" alt="YakGo" width={120} height={36} priority />
         </Link>
       </SidebarHeader>
       <SidebarContent className="p-2">
