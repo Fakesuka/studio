@@ -42,6 +42,8 @@ export type Order = {
   driverId?: string;
   service: ServiceType;
   location: string;
+  latitude?: number;
+  longitude?: number;
   description: string;
   photo?: string;
   price: number;
