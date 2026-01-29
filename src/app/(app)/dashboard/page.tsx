@@ -7,6 +7,7 @@ import {
   Wrench,
   AlertTriangle,
   LocateFixed,
+  ArrowUpRight,
 } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
@@ -19,7 +20,7 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
-import type { Order } from '@/lib/types';
+import type { MarketplaceOrderStatus, Order, OrderStatus } from '@/lib/types';
 import Link from 'next/link';
 import { useAppContext } from '@/context/AppContext';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -28,12 +29,44 @@ import { useState, useEffect, useMemo } from 'react';
 import dynamic from 'next/dynamic';
 import type { MapMarker } from '@/components/map-2gis';
 import { subscribeToOrder } from '@/lib/websocket';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { getCurrentUserId } from '@/lib/user-utils';
 
 const Map2GIS = dynamic(() => import('@/components/map-2gis'), {
   ssr: false,
   loading: () => <Skeleton className="h-full w-full" />,
 });
 
+const getServiceStatusVariant = (status: OrderStatus) => {
+  switch (status) {
+    case 'Завершен':
+      return 'secondary';
+    case 'В процессе':
+      return 'default';
+    case 'Отменен':
+      return 'destructive';
+    case 'Ищет исполнителя':
+      return 'outline';
+    default:
+      return 'secondary';
+  }
+};
+
+const getMarketplaceStatusVariant = (status: MarketplaceOrderStatus) => {
+  switch (status) {
+    case 'Завершен':
+      return 'secondary';
+    case 'Доставляется':
+    case 'В обработке':
+      return 'default';
+    case 'Отменен':
+      return 'destructive';
+    case 'Новый':
+      return 'outline';
+    default:
+      return 'secondary';
+  }
+};
 
 function ActiveOrderCard({ order }: { order: Order }) {
   const [customerCoords, setCustomerCoords] = useState<[number, number] | null>(
@@ -302,7 +335,16 @@ function DashboardSkeleton() {
 }
 
 export default function Dashboard() {
-  const { activeClientOrder, isContextLoading } = useAppContext();
+  const { activeClientOrder, orders, marketplaceOrders, isContextLoading } = useAppContext();
+  const userId = getCurrentUserId();
+
+  const userOrders = (orders || [])
+    .filter(order => order.userId === userId)
+    .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+
+  const userMarketplaceOrders = (marketplaceOrders || [])
+    .filter(order => order.userId === userId)
+    .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 
   if (isContextLoading) {
     return <DashboardSkeleton />;
@@ -333,10 +375,102 @@ export default function Dashboard() {
         </Card>
       </div>
 
+      <div className="flex items-center justify-between">
+        <div>
+          <h2 className="text-2xl font-bold">Мои заказы</h2>
+          <p className="text-sm text-muted-foreground">
+            Текущие и завершенные заявки в одном месте.
+          </p>
+        </div>
+        <Link href="/orders" className="text-sm text-primary">
+          <span className="inline-flex items-center gap-1">
+            Все заказы
+            <ArrowUpRight className="h-4 w-4" />
+          </span>
+        </Link>
+      </div>
+
       {activeClientOrder ? (
         <ActiveOrderCard order={activeClientOrder} />
       ) : null}
 
+      <Card>
+        <CardHeader>
+          <CardTitle>История</CardTitle>
+          <CardDescription>
+            Ваши заказы услуг и покупки в маркете в одном месте.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <Tabs defaultValue="services">
+            <TabsList className="grid w-full max-w-md grid-cols-2">
+              <TabsTrigger value="services">Услуги</TabsTrigger>
+              <TabsTrigger value="marketplace">Покупки</TabsTrigger>
+            </TabsList>
+            <TabsContent value="services" className="mt-4 space-y-3">
+              {userOrders.length > 0 ? (
+                userOrders.map(order => (
+                  <Card key={order.id} className="flex flex-col">
+                    <CardHeader className="flex flex-row items-start justify-between">
+                      <div>
+                        <CardTitle className="text-lg">{order.service}</CardTitle>
+                        <CardDescription>{order.location}</CardDescription>
+                      </div>
+                      <Badge variant={getServiceStatusVariant(order.status)}>
+                        {order.status}
+                      </Badge>
+                    </CardHeader>
+                    <CardContent className="flex items-center justify-between text-sm text-muted-foreground">
+                      <span>№ {order.orderId || order.id}</span>
+                      <span>{order.price.toLocaleString('ru-RU')} ₽</span>
+                    </CardContent>
+                  </Card>
+                ))
+              ) : (
+                <div className="flex h-32 items-center justify-center rounded-lg border border-dashed text-sm text-muted-foreground">
+                  У вас пока нет заказов услуг.
+                </div>
+              )}
+            </TabsContent>
+            <TabsContent value="marketplace" className="mt-4 space-y-3">
+              {userMarketplaceOrders.length > 0 ? (
+                userMarketplaceOrders.map(order => (
+                  <Card key={order.id} className="flex flex-col">
+                    <CardHeader className="flex flex-row items-start justify-between">
+                      <div>
+                        <CardTitle className="text-lg">
+                          Заказ в маркете
+                        </CardTitle>
+                        <CardDescription>
+                          № {order.id}
+                        </CardDescription>
+                      </div>
+                      <Badge variant={getMarketplaceStatusVariant(order.status)}>
+                        {order.status}
+                      </Badge>
+                    </CardHeader>
+                    <CardContent className="flex items-center justify-between text-sm text-muted-foreground">
+                      <span>{order.total.toLocaleString('ru-RU')} ₽</span>
+                      <span>{order.items.length} поз.</span>
+                    </CardContent>
+                  </Card>
+                ))
+              ) : (
+                <div className="flex h-32 items-center justify-center rounded-lg border border-dashed text-sm text-muted-foreground">
+                  Покупок в маркете пока нет.
+                </div>
+              )}
+            </TabsContent>
+          </Tabs>
+        </CardContent>
+        <CardFooter>
+          <Link href="/orders" className="w-full">
+            <Button variant="outline" className="w-full">
+              Открыть полную историю
+            </Button>
+          </Link>
+        </CardFooter>
+      </Card>
     </div>
   );
 }
