@@ -5,7 +5,15 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { Flame, Fuel, Truck, Wrench, Sparkles, Snowflake } from 'lucide-react';
+import {
+  Flame,
+  Fuel,
+  Truck,
+  Wrench,
+  Sparkles,
+  Snowflake,
+  MapPinned,
+} from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -38,10 +46,24 @@ import { useAppContext } from '@/context/AppContext';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
+import {
   diagnoseProblem,
   type DiagnoseProblemOutput,
 } from '@/ai/qwen';
 import { api } from '@/lib/api';
+import dynamic from 'next/dynamic';
+import type { MapMarker } from '@/components/map-2gis';
+
+const Map2GIS = dynamic(() => import('@/components/map-2gis'), {
+  ssr: false,
+  loading: () => <div className="h-full w-full animate-pulse rounded-lg bg-muted" />,
+});
 
 const formSchema = z.object({
   serviceType: z.string({
@@ -53,6 +75,8 @@ const formSchema = z.object({
   suggestedPrice: z.coerce
     .number()
     .positive('Цена должна быть положительным числом.'),
+  latitude: z.number().optional(),
+  longitude: z.number().optional(),
 });
 
 type ServiceRequestFormValues = z.infer<typeof formSchema>;
@@ -78,6 +102,14 @@ export function ServiceRequestForm() {
     null
   );
   const [isDiagnosing, setIsDiagnosing] = useState(false);
+  const [isMapOpen, setIsMapOpen] = useState(false);
+  const [mapCenter, setMapCenter] = useState<[number, number]>([
+    62.0339,
+    129.7331,
+  ]);
+  const [selectedCoords, setSelectedCoords] = useState<[number, number] | null>(
+    null
+  );
 
   useEffect(() => {
     // Load user's city from profile
@@ -86,6 +118,16 @@ export function ServiceRequestForm() {
         setUserCity(profile.city);
       }
     }).catch(console.error);
+  }, []);
+
+  useEffect(() => {
+    if (!navigator.geolocation) return;
+    navigator.geolocation.getCurrentPosition(
+      position => {
+        setMapCenter([position.coords.latitude, position.coords.longitude]);
+      },
+      () => null
+    );
   }, []);
 
   const form = useForm<ServiceRequestFormValues>({
@@ -175,6 +217,15 @@ export function ServiceRequestForm() {
   const suggestedServiceLabel = aiDiagnosis?.suggestedService
     ? serviceTypes.find(s => s.value === aiDiagnosis.suggestedService)?.label
     : '';
+
+  const mapMarkers: MapMarker[] = selectedCoords
+    ? [
+        {
+          id: 'selected',
+          coords: selectedCoords,
+        },
+      ]
+    : [];
 
   return (
     <Card className="w-full max-w-2xl">
@@ -313,11 +364,25 @@ export function ServiceRequestForm() {
                 <FormItem>
                   <FormLabel>Где вы находитесь?</FormLabel>
                   <FormControl>
-                    <Input
-                      placeholder={`Например, г. ${userCity}, ул. Ленина, д. 1`}
-                      {...field}
-                    />
+                    <div className="flex gap-2">
+                      <Input
+                        placeholder={`Например, г. ${userCity}, ул. Ленина, д. 1`}
+                        {...field}
+                      />
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={() => setIsMapOpen(true)}
+                        className="shrink-0"
+                      >
+                        <MapPinned className="mr-2 h-4 w-4" />
+                        Карта
+                      </Button>
+                    </div>
                   </FormControl>
+                  <FormDescription>
+                    Можно выбрать точку на карте или ввести адрес вручную.
+                  </FormDescription>
                   <FormMessage />
                 </FormItem>
               )}
@@ -352,6 +417,52 @@ export function ServiceRequestForm() {
           </CardFooter>
         </form>
       </Form>
+      <Dialog open={isMapOpen} onOpenChange={setIsMapOpen}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Выберите точку на карте</DialogTitle>
+            <DialogDescription>
+              Нажмите на карту, чтобы поставить маркер. Координаты автоматически
+              подставятся в адрес.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="aspect-[4/3] w-full overflow-hidden rounded-lg border">
+            <Map2GIS
+              center={mapCenter}
+              zoom={13}
+              markers={mapMarkers}
+              interactive
+              onClick={(coords) => setSelectedCoords(coords)}
+            />
+          </div>
+          <div className="flex flex-col gap-2 text-sm text-muted-foreground">
+            {selectedCoords ? (
+              <span>
+                Выбрано: {selectedCoords[0].toFixed(6)},{' '}
+                {selectedCoords[1].toFixed(6)}
+              </span>
+            ) : (
+              <span>Точка не выбрана</span>
+            )}
+            <Button
+              type="button"
+              disabled={!selectedCoords}
+              onClick={() => {
+                if (!selectedCoords) return;
+                const [lat, lng] = selectedCoords;
+                setValue('location', `${lat.toFixed(6)}, ${lng.toFixed(6)}`, {
+                  shouldValidate: true,
+                });
+                setValue('latitude', lat);
+                setValue('longitude', lng);
+                setIsMapOpen(false);
+              }}
+            >
+              Использовать точку
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </Card>
   );
 }

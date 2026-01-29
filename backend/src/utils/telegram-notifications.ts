@@ -2,6 +2,21 @@ import axios from 'axios';
 
 const TELEGRAM_BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN || '';
 const TELEGRAM_API_URL = `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}`;
+const FRONTEND_URL = process.env.FRONTEND_URL || '';
+
+const buildWebAppButton = (path: string) => {
+  if (!FRONTEND_URL) return undefined;
+  return {
+    inline_keyboard: [
+      [
+        {
+          text: 'Открыть приложение',
+          web_app: { url: `${FRONTEND_URL}${path}` },
+        },
+      ],
+    ],
+  };
+};
 
 /**
  * Отправить уведомление пользователю через Telegram
@@ -55,7 +70,9 @@ export async function notifyNewOrder(
 Откройте приложение для принятия заказа.
   `.trim();
 
-  await sendNotification(driverTelegramId, message);
+  await sendNotification(driverTelegramId, message, {
+    replyMarkup: buildWebAppButton('/driver/dashboard'),
+  });
 }
 
 /**
@@ -81,7 +98,9 @@ export async function notifyOrderAccepted(
 Водитель уже в пути!
   `.trim();
 
-  await sendNotification(customerTelegramId, message);
+  await sendNotification(customerTelegramId, message, {
+    replyMarkup: buildWebAppButton('/dashboard'),
+  });
 }
 
 /**
@@ -117,7 +136,9 @@ export async function notifyOrderCompleted(
 Пожалуйста, оцените работу водителя.
     `.trim();
 
-  await sendNotification(telegramId, message);
+  await sendNotification(telegramId, message, {
+    replyMarkup: buildWebAppButton(isDriver ? '/driver/profile' : '/orders'),
+  });
 }
 
 /**
@@ -146,7 +167,9 @@ export async function notifyNewMessage(
 Откройте чат в приложении для ответа.
   `.trim();
 
-  await sendNotification(receiverTelegramId, message);
+  await sendNotification(receiverTelegramId, message, {
+    replyMarkup: buildWebAppButton('/orders'),
+  });
 }
 
 /**
@@ -166,7 +189,9 @@ export async function notifyBalanceTopUp(
 Спасибо за пополнение!
   `.trim();
 
-  await sendNotification(telegramId, message);
+  await sendNotification(telegramId, message, {
+    replyMarkup: buildWebAppButton('/driver/profile'),
+  });
 }
 
 /**
@@ -196,7 +221,9 @@ export async function notifyWithdrawalProcessed(
 Средства возвращены на ваш баланс.
     `.trim();
 
-  await sendNotification(telegramId, message);
+  await sendNotification(telegramId, message, {
+    replyMarkup: buildWebAppButton('/driver/profile'),
+  });
 }
 
 /**
@@ -223,7 +250,9 @@ ${reviewDetails.comment ? `Комментарий: "${reviewDetails.comment}"` :
 Спасибо за отличную работу!
   `.trim();
 
-  await sendNotification(telegramId, message);
+  await sendNotification(telegramId, message, {
+    replyMarkup: buildWebAppButton('/driver/profile'),
+  });
 }
 
 /**
@@ -243,7 +272,9 @@ ${referredUserName} зарегистрировался по вашей ссыл�
 Продолжайте приглашать друзей и зарабатывать!
   `.trim();
 
-  await sendNotification(telegramId, message);
+  await sendNotification(telegramId, message, {
+    replyMarkup: buildWebAppButton('/bonuses'),
+  });
 }
 
 /**
@@ -263,5 +294,65 @@ export async function notifyPromocodeApplied(
 Ваша экономия на этом заказе!
   `.trim();
 
-  await sendNotification(telegramId, message);
+  await sendNotification(telegramId, message, {
+    replyMarkup: buildWebAppButton('/bonuses'),
+  });
+}
+
+export async function notifyMarketplaceOrderPlaced(
+  telegramId: string,
+  orderDetails: {
+    orderId: string;
+    total: number;
+    items: { name: string; quantity: number }[];
+  }
+): Promise<void> {
+  const itemsPreview = orderDetails.items
+    .slice(0, 4)
+    .map(item => `• ${item.name} × ${item.quantity}`)
+    .join('\n');
+
+  const message = `
+🛍 <b>Покупка оформлена</b>
+
+📋 Заказ: ${orderDetails.orderId}
+💰 Сумма: ${orderDetails.total.toLocaleString('ru-RU')} ₽
+${itemsPreview ? `\nТовары:\n${itemsPreview}` : ''}
+
+Статус заказа можно отследить в приложении.
+  `.trim();
+
+  await sendNotification(telegramId, message, {
+    replyMarkup: buildWebAppButton('/orders'),
+  });
+}
+
+export async function notifyMarketplaceOrderForSeller(
+  telegramId: string,
+  orderDetails: {
+    orderId: string;
+    customerName: string;
+    total: number;
+    items: { name: string; quantity: number }[];
+  }
+): Promise<void> {
+  const itemsPreview = orderDetails.items
+    .slice(0, 4)
+    .map(item => `• ${item.name} × ${item.quantity}`)
+    .join('\n');
+
+  const message = `
+📦 <b>Новая покупка в маркете</b>
+
+📋 Заказ: ${orderDetails.orderId}
+👤 Клиент: ${orderDetails.customerName}
+💰 Сумма: ${orderDetails.total.toLocaleString('ru-RU')} ₽
+${itemsPreview ? `\nТовары:\n${itemsPreview}` : ''}
+
+Откройте приложение для обработки заказа.
+  `.trim();
+
+  await sendNotification(telegramId, message, {
+    replyMarkup: buildWebAppButton('/my-store'),
+  });
 }

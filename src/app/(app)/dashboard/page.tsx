@@ -2,13 +2,9 @@
 
 import {
   Car,
-  MapPin,
   Star,
   Clock,
-  Fuel,
   Wrench,
-  Truck,
-  Flame,
   AlertTriangle,
   LocateFixed,
 } from 'lucide-react';
@@ -23,8 +19,7 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
-import { mockProviders } from '@/lib/data';
-import type { Order, ServiceProvider, ServiceType } from '@/lib/types';
+import type { Order } from '@/lib/types';
 import Link from 'next/link';
 import { useAppContext } from '@/context/AppContext';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -39,20 +34,6 @@ const Map2GIS = dynamic(() => import('@/components/map-2gis'), {
   loading: () => <Skeleton className="h-full w-full" />,
 });
 
-function getServiceIcon(serviceType: ServiceType) {
-  switch (serviceType) {
-    case 'Отогрев авто':
-      return <Flame className="h-4 w-4 text-muted-foreground" />;
-    case 'Доставка топлива':
-      return <Fuel className="h-4 w-4 text-muted-foreground" />;
-    case 'Техпомощь':
-      return <Wrench className="h-4 w-4 text-muted-foreground" />;
-    case 'Эвакуатор':
-      return <Truck className="h-4 w-4 text-muted-foreground" />;
-    default:
-      return <Car className="h-4 w-4 text-muted-foreground" />;
-  }
-}
 
 function ActiveOrderCard({ order }: { order: Order }) {
   const [customerCoords, setCustomerCoords] = useState<[number, number] | null>(
@@ -79,6 +60,12 @@ function ActiveOrderCard({ order }: { order: Order }) {
   }, [timeRemaining]);
 
   useEffect(() => {
+    if (order.latitude && order.longitude) {
+      setCustomerCoords([order.latitude, order.longitude]);
+      setLocationStatus('success');
+      return;
+    }
+
     if (!navigator.geolocation) {
       setLocationStatus('error');
       setLocationError('Геолокация не поддерживается вашим браузером.');
@@ -157,6 +144,11 @@ function ActiveOrderCard({ order }: { order: Order }) {
     return m;
   }, [customerCoords, driverCoords]);
 
+  const routes = useMemo(() => {
+    if (!customerCoords || !driverCoords) return [];
+    return [[driverCoords, customerCoords]];
+  }, [customerCoords, driverCoords]);
+
   const renderMapContent = () => {
     if (locationStatus === 'loading') {
       return (
@@ -179,13 +171,20 @@ function ActiveOrderCard({ order }: { order: Order }) {
       );
     }
 
-    return <Map2GIS center={customerCoords} zoom={13} markers={markers} />;
+    return (
+      <Map2GIS
+        center={customerCoords}
+        zoom={13}
+        markers={markers}
+        routes={routes}
+      />
+    );
   };
 
   return (
     <Card className="col-span-1 lg:col-span-2">
       <CardHeader>
-        <CardTitle>Активный вызов: {order.id}</CardTitle>
+        <CardTitle>Активный вызов: {order.orderId || order.id}</CardTitle>
         <CardDescription>
           {order.service} - Статус:{' '}
           <Badge variant="default">{order.status}</Badge>
@@ -244,32 +243,10 @@ function ActiveOrderCard({ order }: { order: Order }) {
   );
 }
 
-function ProviderCard({ provider }: { provider: ServiceProvider }) {
-  return (
-    <div className="flex items-center gap-4">
-      <Avatar className="hidden h-10 w-10 sm:flex">
-        <AvatarImage src={provider.avatarUrl} alt="Provider" />
-        <AvatarFallback>{provider.name.charAt(0)}</AvatarFallback>
-      </Avatar>
-      <div className="grid flex-1 gap-1">
-        <p className="text-sm font-medium leading-none">{provider.name}</p>
-        <div className="flex items-center text-sm text-muted-foreground">
-          <MapPin className="mr-1 h-3 w-3" />
-          {provider.distance} км от вас
-        </div>
-      </div>
-      <div className="flex items-center gap-1 text-sm font-medium">
-        <Star className="h-4 w-4 fill-primary text-primary" />
-        {provider.rating}
-      </div>
-    </div>
-  );
-}
-
 function DashboardSkeleton() {
   return (
-    <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3 lg:gap-6">
-      <div className="col-span-1 flex flex-col gap-4 lg:gap-6">
+    <div className="flex flex-col gap-6">
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <Skeleton className="h-5 w-20" />
@@ -286,51 +263,40 @@ function DashboardSkeleton() {
             <Skeleton className="h-4 w-72" />
           </CardHeader>
           <CardContent className="flex flex-1 flex-col">
-            <Skeleton className="flex h-full min-h-[120px] w-full" />
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader>
-            <Skeleton className="h-7 w-48" />
-            <Skeleton className="h-4 w-56" />
-          </CardHeader>
-          <CardContent className="grid gap-6">
-            <div className="flex items-center gap-4">
-              <Skeleton className="h-10 w-10 rounded-full" />
-              <div className="grid flex-1 gap-2">
-                <Skeleton className="h-4 w-24" />
-                <Skeleton className="h-4 w-32" />
-              </div>
-            </div>
-            <div className="flex items-center gap-4">
-              <Skeleton className="h-10 w-10 rounded-full" />
-              <div className="grid flex-1 gap-2">
-                <Skeleton className="h-4 w-20" />
-                <Skeleton className="h-4 w-28" />
-              </div>
-            </div>
-            <div className="flex items-center gap-4">
-              <Skeleton className="h-10 w-10 rounded-full" />
-              <div className="grid flex-1 gap-2">
-                <Skeleton className="h-4 w-28" />
-                <Skeleton className="h-4 w-36" />
-              </div>
-            </div>
+            <Skeleton className="flex h-full min-h-[140px] w-full" />
           </CardContent>
         </Card>
       </div>
-      <Card className="col-span-1 lg:col-span-2">
-        <CardHeader>
-          <Skeleton className="h-8 w-48" />
-          <Skeleton className="h-4 w-64" />
-        </CardHeader>
-        <CardContent>
-          <Skeleton className="relative aspect-[4/3] w-full" />
-        </CardContent>
-        <CardFooter>
-          <Skeleton className="h-10 w-full" />
-        </CardFooter>
-      </Card>
+      <div>
+        <Skeleton className="h-6 w-40" />
+        <Skeleton className="mt-2 h-4 w-64" />
+      </div>
+      <div className="grid gap-4 lg:grid-cols-2">
+        <Card>
+          <CardHeader>
+            <Skeleton className="h-6 w-48" />
+            <Skeleton className="h-4 w-56" />
+          </CardHeader>
+          <CardContent>
+            <Skeleton className="h-4 w-40" />
+          </CardContent>
+          <CardFooter>
+            <Skeleton className="h-9 w-full" />
+          </CardFooter>
+        </Card>
+        <Card>
+          <CardHeader>
+            <Skeleton className="h-6 w-48" />
+            <Skeleton className="h-4 w-56" />
+          </CardHeader>
+          <CardContent>
+            <Skeleton className="h-4 w-40" />
+          </CardContent>
+          <CardFooter>
+            <Skeleton className="h-9 w-full" />
+          </CardFooter>
+        </Card>
+      </div>
     </div>
   );
 }
@@ -343,62 +309,34 @@ export default function Dashboard() {
   }
 
   return (
-    <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3 lg:gap-6">
-      <div className="col-span-1 flex flex-col gap-4 lg:gap-6">
+    <div className="flex flex-col gap-6">
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
         <WeatherWidget />
         <Card className="flex flex-col">
           <CardHeader>
-            <CardTitle>Нужна помощь?</CardTitle>
+            <CardTitle>Создать заявку</CardTitle>
             <CardDescription>
-              Быстро вызовите специалиста для решения вашей проблемы.
+              Опишите проблему, укажите адрес и ожидаемую стоимость.
             </CardDescription>
           </CardHeader>
           <CardContent className="flex flex-1 flex-col">
             <Link href="/services/new" className="flex flex-1 flex-col">
-              <div className="flex h-full min-h-[120px] w-full flex-col items-center justify-center gap-2 rounded-lg bg-gradient-to-br from-primary to-blue-400 p-6 text-primary-foreground shadow-lg transition-all duration-300 hover:shadow-primary/50 active:scale-[0.98] active:shadow-primary/30">
-                <Wrench className="h-10 w-10" />
-                <span className="text-lg font-bold">Создать заявку</span>
+              <div className="flex h-full min-h-[140px] w-full flex-col items-center justify-center gap-3 rounded-xl bg-gradient-to-br from-slate-950 via-slate-900 to-slate-800 p-6 text-white shadow-lg transition-all duration-300 hover:shadow-xl">
+                <Wrench className="h-10 w-10 text-yellow-400" />
+                <span className="text-lg font-semibold">Новая заявка</span>
+                <span className="text-xs text-slate-300">
+                  Быстро подобрать исполнителя
+                </span>
               </div>
             </Link>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader>
-            <CardTitle>Свободные исполнители</CardTitle>
-            <CardDescription>
-              Проверенные специалисты поблизости.
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="grid gap-6">
-            {mockProviders.map(provider => (
-              <ProviderCard key={provider.id} provider={provider} />
-            ))}
           </CardContent>
         </Card>
       </div>
 
       {activeClientOrder ? (
         <ActiveOrderCard order={activeClientOrder} />
-      ) : (
-        <Card className="col-span-1 flex flex-col items-center justify-center text-center lg:col-span-2">
-          <CardHeader>
-            <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-secondary">
-              <Car className="h-8 w-8 text-secondary-foreground" />
-            </div>
-            <CardTitle>Нет активных вызовов</CardTitle>
-            <CardDescription>
-              В данный момент у вас нет активных заявок.
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <Link href="/services/new">
-              <Button className="transition-transform active:scale-95">
-                Создать заявку
-              </Button>
-            </Link>
-          </CardContent>
-        </Card>
-      )}
+      ) : null}
+
     </div>
   );
 }

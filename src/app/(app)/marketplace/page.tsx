@@ -25,6 +25,7 @@ import {
   Plus,
   Truck,
   Package,
+  Store,
 } from 'lucide-react';
 import { useAppContext } from '@/context/AppContext';
 import { Badge } from '@/components/ui/badge';
@@ -92,8 +93,8 @@ export default function MarketplacePage() {
         {isSeller ? (
           <Link href="/my-store" passHref>
             <Button>
-              <Plus className="mr-2 h-4 w-4" />
-              Добавить товар
+              <Store className="mr-2 h-4 w-4" />
+              Управление магазином
             </Button>
           </Link>
         ) : (
