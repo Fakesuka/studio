@@ -54,10 +54,11 @@ export default function CheckoutPage() {
     }).catch(console.error);
   }, []);
 
-  const subtotal = cart.reduce(
-    (sum, item) => sum + item.price * item.quantity,
-    0
-  );
+  const subtotal = cart.reduce((sum, item) => {
+    const normalizedItem = item as typeof item & { product?: typeof item };
+    const product = normalizedItem.product ?? item;
+    return sum + product.price * item.quantity;
+  }, 0);
   const shipping = cart.length > 0 ? 500 : 0; // Assuming a fixed shipping cost for simplicity
   const total = subtotal + shipping;
 
@@ -186,28 +187,34 @@ export default function CheckoutPage() {
               <CardTitle>Ваш заказ</CardTitle>
             </CardHeader>
             <CardContent className="flex flex-col gap-4">
-              {cart.map(item => (
-                <div key={item.id} className="flex items-start gap-3">
+              {cart.map(item => {
+                const normalizedItem = item as typeof item & { product?: typeof item };
+                const product = normalizedItem.product ?? item;
+                const productId = normalizedItem.product?.id ?? item.id;
+                const imageSrc = product.imageUrl || '/logo.svg';
+                return (
+                <div key={productId} className="flex items-start gap-3">
                   <div className="relative h-16 w-16 flex-shrink-0 overflow-hidden rounded-md border">
                     <Image
-                      src={item.imageUrl}
-                      alt={item.name}
+                      src={imageSrc}
+                      alt={product.name}
                       fill
                       className="object-cover"
-                      data-ai-hint={item.imageHint}
+                      data-ai-hint={product.imageHint}
                     />
                   </div>
                   <div className="flex-1">
-                    <p className="font-medium leading-tight">{item.name}</p>
+                    <p className="font-medium leading-tight">{product.name}</p>
                     <p className="text-sm text-muted-foreground">
-                      {item.quantity} x {item.price.toLocaleString('ru-RU')} ₽
+                      {item.quantity} x {product.price.toLocaleString('ru-RU')} ₽
                     </p>
                   </div>
                   <p className="font-semibold">
-                    {(item.price * item.quantity).toLocaleString('ru-RU')} ₽
+                    {(product.price * item.quantity).toLocaleString('ru-RU')} ₽
                   </p>
                 </div>
-              ))}
+              );
+              })}
               <Separator />
               <div className="grid gap-2">
                 <div className="flex justify-between">

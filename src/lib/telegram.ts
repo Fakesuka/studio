@@ -60,6 +60,8 @@ declare global {
         showScanQrPopup(params: any, callback?: (text: string) => boolean): void;
         closeScanQrPopup(): void;
         requestContact(callback?: (contactShared: boolean) => void): void;
+        requestFullscreen?(): void;
+        exitFullscreen?(): void;
       };
     };
   }
@@ -145,12 +147,25 @@ export const initTelegramWebApp = () => {
   if (webApp) {
     webApp.ready();
     webApp.expand();
+    const requestFullscreen =
+      (webApp as any).requestFullscreen || (webApp as any).web_app_request_fullscreen;
+    if (requestFullscreen) {
+      requestFullscreen.call(webApp);
+    }
+    if (typeof window !== 'undefined' && window.screen?.orientation?.lock) {
+      window.screen.orientation.lock('portrait').catch(() => null);
+    }
   }
 };
 
 export const closeTelegramWebApp = () => {
   const webApp = getTelegramWebApp();
   if (webApp) {
+    const exitFullscreen =
+      (webApp as any).exitFullscreen || (webApp as any).web_app_exit_fullscreen;
+    if (exitFullscreen) {
+      exitFullscreen.call(webApp);
+    }
     webApp.close();
   }
 };
