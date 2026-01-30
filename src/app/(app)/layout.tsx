@@ -45,12 +45,22 @@ function LayoutContent({ children }: { children: React.ReactNode }) {
   }, [currentRole, isContextLoading, pathname, router]);
 
   return (
-    <div className="flex min-h-screen w-full flex-col bg-muted/40">
-      <Header />
-      <main className="flex flex-1 flex-col bg-background p-4 pb-28 md:gap-8 md:p-8 md:pb-28">
-        {children}
-      </main>
-      {showDriverNav ? <DriverBottomNav /> : <BottomNav />}
+    <div className="relative flex min-h-screen w-screen flex-col overflow-hidden">
+      <div className="absolute inset-0 z-0 bg-gradient-to-br from-[#F7F3EE] via-[#F1F6FF] to-[#E8F0FF] dark:from-[#0F1115] dark:via-[#1A1024] dark:to-[#121826]">
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,_var(--tw-gradient-stops))] from-[#6B7CFF]/10 via-transparent to-transparent dark:from-[#22D3EE]/15" />
+        <div className="absolute inset-0 opacity-70 dark:opacity-60">
+          <div className="absolute left-10 top-12 h-72 w-72 rounded-full bg-white/70 blur-3xl dark:bg-[#22D3EE]/10" />
+          <div className="absolute bottom-10 right-10 h-80 w-80 rounded-full bg-[#BFD6FF]/60 blur-[140px] dark:bg-[#3B82F6]/15" />
+        </div>
+      </div>
+
+      <div className="relative z-10 flex min-h-screen w-full flex-col">
+        <Header />
+        <main className="flex flex-1 flex-col bg-white/70 p-4 pb-28 backdrop-blur-xl dark:bg-slate-950/40 md:gap-8 md:p-8 md:pb-28">
+          {children}
+        </main>
+        {showDriverNav ? <DriverBottomNav /> : <BottomNav />}
+      </div>
     </div>
   );
 }
