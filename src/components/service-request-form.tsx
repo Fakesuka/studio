@@ -65,6 +65,9 @@ const Map2GIS = dynamic(() => import('@/components/map-2gis'), {
   loading: () => <div className="h-full w-full animate-pulse rounded-lg bg-muted" />,
 });
 
+const GIS_API_KEY =
+  process.env.NEXT_PUBLIC_2GIS_API_KEY || '1e0bb99c-b88d-4624-974a-63ab8c556c19';
+
 const formSchema = z.object({
   serviceType: z.string({
     required_error: 'Пожалуйста, выберите тип услуги.',
@@ -103,6 +106,7 @@ export function ServiceRequestForm() {
   );
   const [isDiagnosing, setIsDiagnosing] = useState(false);
   const [isMapOpen, setIsMapOpen] = useState(false);
+  const [isAddressDialogOpen, setIsAddressDialogOpen] = useState(false);
   const [mapCenter, setMapCenter] = useState<[number, number]>([
     62.0339,
     129.7331,
@@ -110,6 +114,9 @@ export function ServiceRequestForm() {
   const [selectedCoords, setSelectedCoords] = useState<[number, number] | null>(
     null
   );
+  const [selectedAddress, setSelectedAddress] = useState('');
+  const [manualAddress, setManualAddress] = useState('');
+  const [isGeocoding, setIsGeocoding] = useState(false);
 
   useEffect(() => {
     // Load user's city from profile
@@ -226,6 +233,26 @@ export function ServiceRequestForm() {
         },
       ]
     : [];
+
+  const reverseGeocode = async ([lat, lng]: [number, number]) => {
+    try {
+      setIsGeocoding(true);
+      const url = `https://catalog.api.2gis.com/3.0/items/geocode?lat=${lat}&lon=${lng}&key=${GIS_API_KEY}`;
+      const response = await fetch(url);
+      if (!response.ok) return '';
+      const data = await response.json();
+      const address =
+        data?.result?.items?.[0]?.address_name ||
+        data?.result?.items?.[0]?.name ||
+        '';
+      return address;
+    } catch (error) {
+      console.error('Reverse geocode failed:', error);
+      return '';
+    } finally {
+      setIsGeocoding(false);
+    }
+  };
 
   return (
     <Card className="w-full max-w-2xl">
@@ -418,47 +445,105 @@ export function ServiceRequestForm() {
         </form>
       </Form>
       <Dialog open={isMapOpen} onOpenChange={setIsMapOpen}>
-        <DialogContent className="max-w-2xl">
-          <DialogHeader>
-            <DialogTitle>Выберите точку на карте</DialogTitle>
-            <DialogDescription>
-              Нажмите на карту, чтобы поставить маркер. Координаты автоматически
-              подставятся в адрес.
-            </DialogDescription>
-          </DialogHeader>
-          <div className="aspect-[4/3] w-full overflow-hidden rounded-lg border">
+        <DialogContent className="flex h-[100dvh] w-screen max-w-none flex-col gap-0 p-0">
+          <div className="border-b px-6 py-4">
+            <DialogHeader>
+              <DialogTitle>Выберите точку на карте</DialogTitle>
+              <DialogDescription>
+                Нажмите на карту, чтобы поставить маркер. Адрес подставится автоматически.
+              </DialogDescription>
+            </DialogHeader>
+          </div>
+          <div className="flex-1 overflow-hidden">
             <Map2GIS
               center={mapCenter}
               zoom={13}
               markers={mapMarkers}
               interactive
-              onClick={(coords) => setSelectedCoords(coords)}
+              onClick={async (coords) => {
+                setSelectedCoords(coords);
+                const address = await reverseGeocode(coords);
+                if (address) {
+                  setSelectedAddress(address);
+                  if (!manualAddress) {
+                    setManualAddress(address);
+                  }
+                }
+              }}
             />
           </div>
-          <div className="flex flex-col gap-2 text-sm text-muted-foreground">
-            {selectedCoords ? (
-              <span>
-                Выбрано: {selectedCoords[0].toFixed(6)},{' '}
-                {selectedCoords[1].toFixed(6)}
-              </span>
-            ) : (
-              <span>Точка не выбрана</span>
-            )}
+          <div className="border-t bg-background px-6 py-4">
+            <div className="flex flex-col gap-3 text-sm text-muted-foreground">
+              {selectedCoords ? (
+                <div className="rounded-lg border px-3 py-2">
+                  <div className="text-xs uppercase tracking-wide text-muted-foreground">
+                    Адрес
+                  </div>
+                  <div className="text-sm text-foreground">
+                    {manualAddress || selectedAddress || (isGeocoding ? 'Определяем адрес...' : 'Адрес не найден')}
+                  </div>
+                </div>
+              ) : (
+                <span>Точка не выбрана</span>
+              )}
+              <div className="flex flex-wrap gap-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  disabled={!selectedCoords}
+                  onClick={() => setIsAddressDialogOpen(true)}
+                >
+                  Указать адрес
+                </Button>
+                <Button
+                  type="button"
+                  disabled={!selectedCoords}
+                  onClick={() => {
+                    if (!selectedCoords) return;
+                    const [lat, lng] = selectedCoords;
+                    const addressValue =
+                      manualAddress || selectedAddress || `${lat.toFixed(6)}, ${lng.toFixed(6)}`;
+                    setValue('location', addressValue, {
+                      shouldValidate: true,
+                    });
+                    setValue('latitude', lat);
+                    setValue('longitude', lng);
+                    setIsMapOpen(false);
+                  }}
+                >
+                  Использовать точку
+                </Button>
+              </div>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+      <Dialog open={isAddressDialogOpen} onOpenChange={setIsAddressDialogOpen}>
+        <DialogContent className="sm:max-w-[420px]">
+          <DialogHeader>
+            <DialogTitle>Уточните адрес</DialogTitle>
+            <DialogDescription>
+              Вы можете отредактировать адрес перед сохранением.
+            </DialogDescription>
+          </DialogHeader>
+          <Input
+            value={manualAddress || selectedAddress}
+            onChange={(event) => setManualAddress(event.target.value)}
+            placeholder={`Например, г. ${userCity}, ул. Ленина, д. 1`}
+          />
+          <div className="flex justify-end gap-2">
             <Button
               type="button"
-              disabled={!selectedCoords}
-              onClick={() => {
-                if (!selectedCoords) return;
-                const [lat, lng] = selectedCoords;
-                setValue('location', `${lat.toFixed(6)}, ${lng.toFixed(6)}`, {
-                  shouldValidate: true,
-                });
-                setValue('latitude', lat);
-                setValue('longitude', lng);
-                setIsMapOpen(false);
-              }}
+              variant="outline"
+              onClick={() => setIsAddressDialogOpen(false)}
             >
-              Использовать точку
+              Отмена
+            </Button>
+            <Button
+              type="button"
+              onClick={() => setIsAddressDialogOpen(false)}
+            >
+              Сохранить
             </Button>
           </div>
         </DialogContent>

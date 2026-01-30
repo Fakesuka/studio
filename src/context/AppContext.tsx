@@ -80,6 +80,7 @@ interface AppContextType {
   shops: Shop[];
   addProduct: (productData: Omit<Product, 'id' | 'shopId'>) => Promise<void>;
   deleteProduct: (productId: string) => Promise<void>;
+  updateShop: (shopId: string, data: Partial<Shop>) => Promise<void>;
   isDriver: boolean;
   driverProfile: DriverProfile | null;
   registerAsDriver: (
@@ -163,6 +164,17 @@ export function AppProvider({ children }: { children: ReactNode }) {
     }
   }, []);
 
+  const normalizeCartData = (cartData: any): CartItem[] => {
+    if (!cartData) return [];
+    if (Array.isArray(cartData)) return cartData;
+    if (Array.isArray(cartData.items)) return cartData.items;
+    if (Array.isArray(cartData.cart)) return cartData.cart;
+    return [];
+  };
+
+  const getCartItemId = (item: CartItem & { product?: Product; productId?: string }) =>
+    item.product?.id ?? item.productId ?? item.id;
+
   // Load initial data
   const loadData = useCallback(async () => {
     try {
@@ -227,7 +239,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       // Load cart
       try {
         const cartData = await api.getCart();
-        setCart(cartData || []);
+        setCart(normalizeCartData(cartData));
       } catch (error) {
         console.error('Error loading cart:', error);
         if (useDevMockData) {
@@ -311,9 +323,24 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   const addToCart = async (productId: string) => {
     try {
-      await api.addToCart(productId, 1);
+      const addResult = await api.addToCart(productId, 1);
       const cartData = await api.getCart();
-      setCart(cartData);
+      const normalized = normalizeCartData(cartData);
+      if (normalized.length > 0) {
+        setCart(normalized);
+      } else if (addResult) {
+        setCart(prev => {
+          const existing = prev.find(item => getCartItemId(item) === productId);
+          if (existing) {
+            return prev.map(item =>
+              getCartItemId(item) === productId
+                ? { ...item, quantity: item.quantity + 1 }
+                : item
+            );
+          }
+          return prev;
+        });
+      }
     } catch (error) {
       console.error('Error adding to cart:', error);
       throw error;
@@ -327,7 +354,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       } else {
         await api.updateCartItem(productId, quantity);
         const cartData = await api.getCart();
-        setCart(cartData);
+        setCart(normalizeCartData(cartData));
       }
     } catch (error) {
       console.error('Error updating cart item:', error);
@@ -338,7 +365,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const removeFromCart = async (productId: string) => {
     try {
       await api.removeFromCart(productId);
-      setCart((prev) => prev.filter((item) => item.id !== productId));
+      setCart(prev =>
+        prev.filter(item => getCartItemId(item) !== productId)
+      );
     } catch (error) {
       console.error('Error removing from cart:', error);
       throw error;
@@ -347,7 +376,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   const getCartItemQuantity = useCallback(
     (productId: string) => {
-      const item = cart.find((item) => item.id === productId || item.product?.id === productId);
+      const item = cart.find((item) => getCartItemId(item) === productId);
       return item ? item.quantity : 0;
     },
     [cart]
@@ -369,6 +398,18 @@ export function AppProvider({ children }: { children: ReactNode }) {
       setProducts((prev) => prev.filter((p) => p.id !== productId));
     } catch (error) {
       console.error('Error deleting product:', error);
+      throw error;
+    }
+  };
+
+  const updateShop = async (shopId: string, data: Partial<Shop>) => {
+    try {
+      const updatedShop = await api.updateShop(shopId, data);
+      setShops(prev =>
+        prev.map(shop => (shop.id === shopId ? updatedShop : shop))
+      );
+    } catch (error) {
+      console.error('Error updating shop:', error);
       throw error;
     }
   };
@@ -411,7 +452,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
         customerPhone: details.customer.phone,
         customerAddress: details.customer.address,
         items: details.items.map((item) => ({
-          productId: item.id,
+          productId: (item as CartItem & { product?: Product; productId?: string }).product?.id
+            || (item as CartItem & { product?: Product; productId?: string }).productId
+            || item.id,
           quantity: item.quantity,
         })),
       });
@@ -449,6 +492,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         shops,
         addProduct,
         deleteProduct,
+        updateShop,
         isDriver,
         driverProfile,
         registerAsDriver,
