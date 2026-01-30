@@ -384,6 +384,14 @@ class ApiClient {
     return this.request(`/marketplace/shops/${shopId}`);
   }
 
+  async updateShop(shopId: string, data: any) {
+    console.log('[API] updateShop called with data:', data);
+    return this.request(`/marketplace/shops/${shopId}`, {
+      method: 'PUT',
+      body: serializeData(data),
+    });
+  }
+
   async getProducts() {
     return this.request('/marketplace/products');
   }
