@@ -59,6 +59,7 @@ export default function CheckoutPage() {
     const product = normalizedItem.product ?? item;
     const price = Number(product?.price ?? 0);
     return sum + price * item.quantity;
+    return sum + product.price * item.quantity;
   }, 0);
   const shipping = cart.length > 0 ? 500 : 0; // Assuming a fixed shipping cost for simplicity
   const total = subtotal + shipping;
@@ -200,6 +201,8 @@ export default function CheckoutPage() {
                     <Image
                       src={imageSrc}
                       alt={product?.name || 'Товар'}
+                      src={product.imageUrl}
+                      alt={product.name}
                       fill
                       className="object-cover"
                       data-ai-hint={product.imageHint}
@@ -215,6 +218,13 @@ export default function CheckoutPage() {
                   </div>
                   <p className="font-semibold">
                     {(price * item.quantity).toLocaleString('ru-RU')} ₽
+                    <p className="font-medium leading-tight">{product.name}</p>
+                    <p className="text-sm text-muted-foreground">
+                      {item.quantity} x {product.price.toLocaleString('ru-RU')} ₽
+                    </p>
+                  </div>
+                  <p className="font-semibold">
+                    {(product.price * item.quantity).toLocaleString('ru-RU')} ₽
                   </p>
                 </div>
               );

@@ -105,6 +105,7 @@ export function ServiceRequestForm() {
   );
   const [isDiagnosing, setIsDiagnosing] = useState(false);
   const [isMapOpen, setIsMapOpen] = useState(false);
+  const [isAddressDialogOpen, setIsAddressDialogOpen] = useState(false);
   const [mapCenter, setMapCenter] = useState<[number, number]>([
     62.0339,
     129.7331,
@@ -236,6 +237,7 @@ export function ServiceRequestForm() {
     try {
       setIsGeocoding(true);
       const url = `https://catalog.api.2gis.com/3.0/items/geocode?lat=${lat}&lon=${lng}&key=${GIS_API_KEY}&fields=items.full_name,items.address_name,items.name`;
+      const url = `https://catalog.api.2gis.com/3.0/items/geocode?lat=${lat}&lon=${lng}&key=${GIS_API_KEY}`;
       const response = await fetch(url);
       if (!response.ok) return '';
       const data = await response.json();
@@ -445,6 +447,14 @@ export function ServiceRequestForm() {
       </Form>
       <Dialog open={isMapOpen} onOpenChange={setIsMapOpen}>
         <DialogContent className="flex h-[100dvh] w-screen max-w-none flex-col gap-0 p-0">
+          <div className="border-b px-6 py-4">
+            <DialogHeader>
+              <DialogTitle>Выберите точку на карте</DialogTitle>
+              <DialogDescription>
+                Нажмите на карту, чтобы поставить маркер. Адрес подставится автоматически.
+              </DialogDescription>
+            </DialogHeader>
+          </div>
           <div className="flex-1 overflow-hidden">
             <Map2GIS
               center={mapCenter}
@@ -510,6 +520,35 @@ export function ServiceRequestForm() {
                       manualAddress ||
                       selectedAddress ||
                       `${lat.toFixed(6)}, ${lng.toFixed(6)}`;
+              {selectedCoords ? (
+                <div className="rounded-lg border px-3 py-2">
+                  <div className="text-xs uppercase tracking-wide text-muted-foreground">
+                    Адрес
+                  </div>
+                  <div className="text-sm text-foreground">
+                    {manualAddress || selectedAddress || (isGeocoding ? 'Определяем адрес...' : 'Адрес не найден')}
+                  </div>
+                </div>
+              ) : (
+                <span>Точка не выбрана</span>
+              )}
+              <div className="flex flex-wrap gap-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  disabled={!selectedCoords}
+                  onClick={() => setIsAddressDialogOpen(true)}
+                >
+                  Указать адрес
+                </Button>
+                <Button
+                  type="button"
+                  disabled={!selectedCoords}
+                  onClick={() => {
+                    if (!selectedCoords) return;
+                    const [lat, lng] = selectedCoords;
+                    const addressValue =
+                      manualAddress || selectedAddress || `${lat.toFixed(6)}, ${lng.toFixed(6)}`;
                     setValue('location', addressValue, {
                       shouldValidate: true,
                     });
@@ -523,6 +562,41 @@ export function ServiceRequestForm() {
                 </Button>
               </div>
             </div>
+                >
+                  Использовать точку
+                </Button>
+              </div>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+      <Dialog open={isAddressDialogOpen} onOpenChange={setIsAddressDialogOpen}>
+        <DialogContent className="sm:max-w-[420px]">
+          <DialogHeader>
+            <DialogTitle>Уточните адрес</DialogTitle>
+            <DialogDescription>
+              Вы можете отредактировать адрес перед сохранением.
+            </DialogDescription>
+          </DialogHeader>
+          <Input
+            value={manualAddress || selectedAddress}
+            onChange={(event) => setManualAddress(event.target.value)}
+            placeholder={`Например, г. ${userCity}, ул. Ленина, д. 1`}
+          />
+          <div className="flex justify-end gap-2">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => setIsAddressDialogOpen(false)}
+            >
+              Отмена
+            </Button>
+            <Button
+              type="button"
+              onClick={() => setIsAddressDialogOpen(false)}
+            >
+              Сохранить
+            </Button>
           </div>
         </DialogContent>
       </Dialog>
