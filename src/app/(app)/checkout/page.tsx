@@ -191,12 +191,11 @@ export default function CheckoutPage() {
                 const normalizedItem = item as typeof item & { product?: typeof item };
                 const product = normalizedItem.product ?? item;
                 const productId = normalizedItem.product?.id ?? item.id;
-                const imageSrc = product.imageUrl || '/logo.svg';
                 return (
                 <div key={productId} className="flex items-start gap-3">
                   <div className="relative h-16 w-16 flex-shrink-0 overflow-hidden rounded-md border">
                     <Image
-                      src={imageSrc}
+                      src={product.imageUrl}
                       alt={product.name}
                       fill
                       className="object-cover"
