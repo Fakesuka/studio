@@ -22,6 +22,8 @@ export default function CartPage() {
   const subtotal = cart.reduce((sum, item) => {
     const normalizedItem = item as typeof item & { product?: typeof item };
     const product = normalizedItem.product ?? item;
+    const price = Number(product?.price ?? 0);
+    return sum + price * item.quantity;
     return sum + product.price * item.quantity;
   }, 0);
   const shipping = cart.length > 0 ? 500 : 0;
@@ -62,6 +64,8 @@ export default function CartPage() {
                     };
                     const product = normalizedItem.product ?? item;
                     const productId = normalizedItem.product?.id ?? item.id;
+                    const imageSrc = product?.imageUrl || '/logo.svg';
+                    const price = Number(product?.price ?? 0);
                     const imageSrc = product.imageUrl || '/logo.svg';
 
                     return (
@@ -76,6 +80,11 @@ export default function CartPage() {
                           />
                         </div>
                         <div className="flex-1">
+                          <h3 className="font-semibold">
+                            {product?.name || 'Товар'}
+                          </h3>
+                          <p className="text-sm text-muted-foreground">
+                            {price.toLocaleString('ru-RU', {
                           <h3 className="font-semibold">{product.name}</h3>
                           <p className="text-sm text-muted-foreground">
                             {product.price.toLocaleString('ru-RU', {
@@ -121,6 +130,7 @@ export default function CartPage() {
                         </div>
                         <div className="flex flex-col items-end gap-2">
                           <p className="text-right font-semibold">
+                            {(price * item.quantity).toLocaleString(
                             {(product.price * item.quantity).toLocaleString(
                               'ru-RU',
                               { style: 'currency', currency: 'RUB' }

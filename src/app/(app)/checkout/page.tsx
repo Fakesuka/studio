@@ -57,6 +57,8 @@ export default function CheckoutPage() {
   const subtotal = cart.reduce((sum, item) => {
     const normalizedItem = item as typeof item & { product?: typeof item };
     const product = normalizedItem.product ?? item;
+    const price = Number(product?.price ?? 0);
+    return sum + price * item.quantity;
     return sum + product.price * item.quantity;
   }, 0);
   const shipping = cart.length > 0 ? 500 : 0; // Assuming a fixed shipping cost for simplicity
@@ -191,10 +193,14 @@ export default function CheckoutPage() {
                 const normalizedItem = item as typeof item & { product?: typeof item };
                 const product = normalizedItem.product ?? item;
                 const productId = normalizedItem.product?.id ?? item.id;
+                const imageSrc = product?.imageUrl || '/logo.svg';
+                const price = Number(product?.price ?? 0);
                 return (
                 <div key={productId} className="flex items-start gap-3">
                   <div className="relative h-16 w-16 flex-shrink-0 overflow-hidden rounded-md border">
                     <Image
+                      src={imageSrc}
+                      alt={product?.name || 'Товар'}
                       src={product.imageUrl}
                       alt={product.name}
                       fill
@@ -203,6 +209,15 @@ export default function CheckoutPage() {
                     />
                   </div>
                   <div className="flex-1">
+                    <p className="font-medium leading-tight">
+                      {product?.name || 'Товар'}
+                    </p>
+                    <p className="text-sm text-muted-foreground">
+                      {item.quantity} x {price.toLocaleString('ru-RU')} ₽
+                    </p>
+                  </div>
+                  <p className="font-semibold">
+                    {(price * item.quantity).toLocaleString('ru-RU')} ₽
                     <p className="font-medium leading-tight">{product.name}</p>
                     <p className="text-sm text-muted-foreground">
                       {item.quantity} x {product.price.toLocaleString('ru-RU')} ₽

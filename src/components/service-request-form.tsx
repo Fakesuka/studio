@@ -50,9 +50,6 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import {
   Dialog,
   DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
 } from '@/components/ui/dialog';
 import {
   diagnoseProblem,
@@ -239,11 +236,13 @@ export function ServiceRequestForm() {
   const reverseGeocode = async ([lat, lng]: [number, number]) => {
     try {
       setIsGeocoding(true);
+      const url = `https://catalog.api.2gis.com/3.0/items/geocode?lat=${lat}&lon=${lng}&key=${GIS_API_KEY}&fields=items.full_name,items.address_name,items.name`;
       const url = `https://catalog.api.2gis.com/3.0/items/geocode?lat=${lat}&lon=${lng}&key=${GIS_API_KEY}`;
       const response = await fetch(url);
       if (!response.ok) return '';
       const data = await response.json();
       const address =
+        data?.result?.items?.[0]?.full_name ||
         data?.result?.items?.[0]?.address_name ||
         data?.result?.items?.[0]?.name ||
         '';
@@ -476,6 +475,51 @@ export function ServiceRequestForm() {
           </div>
           <div className="border-t bg-background px-6 py-4">
             <div className="flex flex-col gap-3 text-sm text-muted-foreground">
+              <div className="flex items-center gap-2 rounded-full border bg-background px-3 py-2">
+                <Input
+                  value={manualAddress || selectedAddress}
+                  onChange={(event) => setManualAddress(event.target.value)}
+                  placeholder="Введите адрес"
+                  className="h-8 border-0 px-0 text-sm shadow-none focus-visible:ring-0"
+                />
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  className="h-9 w-9 rounded-full border"
+                  onClick={() => {
+                    if (!navigator.geolocation) return;
+                    navigator.geolocation.getCurrentPosition(async (position) => {
+                      const coords: [number, number] = [
+                        position.coords.latitude,
+                        position.coords.longitude,
+                      ];
+                      setMapCenter(coords);
+                      setSelectedCoords(coords);
+                      const address = await reverseGeocode(coords);
+                      if (address) {
+                        setSelectedAddress(address);
+                        setManualAddress(address);
+                      }
+                    });
+                  }}
+                  aria-label="Определить по геолокации"
+                >
+                  <LocateFixed className="h-4 w-4" />
+                </Button>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  className="h-9 w-9 rounded-full border"
+                  disabled={!selectedCoords && !manualAddress}
+                  onClick={() => {
+                    const coords = selectedCoords ?? mapCenter;
+                    const [lat, lng] = coords;
+                    const addressValue =
+                      manualAddress ||
+                      selectedAddress ||
+                      `${lat.toFixed(6)}, ${lng.toFixed(6)}`;
               {selectedCoords ? (
                 <div className="rounded-lg border px-3 py-2">
                   <div className="text-xs uppercase tracking-wide text-muted-foreground">
@@ -512,6 +556,12 @@ export function ServiceRequestForm() {
                     setValue('longitude', lng);
                     setIsMapOpen(false);
                   }}
+                  aria-label="Подтвердить адрес"
+                >
+                  <Check className="h-4 w-4" />
+                </Button>
+              </div>
+            </div>
                 >
                   Использовать точку
                 </Button>
