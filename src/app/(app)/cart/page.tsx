@@ -55,80 +55,89 @@ export default function CartPage() {
             <CardContent className="p-0">
               <div className="divide-y divide-border">
                 {cart.length > 0 ? (
-                  cart.map(item => (
-                    <div key={item.id} className="flex items-start gap-4 p-4">
-                      <div className="relative h-24 w-24 flex-shrink-0 overflow-hidden rounded-md border">
-                        <Image
-                          src={item.imageUrl}
-                          alt={item.name}
-                          fill
-                          className="object-cover"
-                          data-ai-hint={item.imageHint}
-                        />
-                      </div>
-                      <div className="flex-1">
-                        <h3 className="font-semibold">{item.name}</h3>
-                        <p className="text-sm text-muted-foreground">
-                          {item.price.toLocaleString('ru-RU', {
-                            style: 'currency',
-                            currency: 'RUB',
-                          })}
-                        </p>
-                        <div className="mt-4 flex items-center gap-2">
-                          <Button
-                            variant="outline"
-                            size="icon"
-                            className="h-8 w-8"
-                            onClick={() =>
-                              updateCartItemQuantity(
-                                item.id,
-                                item.quantity - 1
-                              )
-                            }
-                            disabled={item.quantity <= 1}
-                          >
-                            <Minus className="h-4 w-4" />
-                          </Button>
-                          <Input
-                            type="number"
-                            value={item.quantity}
-                            readOnly
-                            className="h-8 w-14 rounded-md border text-center"
+                  cart.map(item => {
+                    const normalizedItem = item as typeof item & {
+                      product?: typeof item;
+                    };
+                    const product = normalizedItem.product ?? item;
+                    const productId = normalizedItem.product?.id ?? item.id;
+                    const imageSrc = product.imageUrl || '/logo.svg';
+
+                    return (
+                      <div key={productId} className="flex items-start gap-4 p-4">
+                        <div className="relative h-24 w-24 flex-shrink-0 overflow-hidden rounded-md border bg-muted/30">
+                          <Image
+                            src={imageSrc}
+                            alt={product.name || 'Товар'}
+                            fill
+                            className="object-cover"
+                            data-ai-hint={product.imageHint}
                           />
+                        </div>
+                        <div className="flex-1">
+                          <h3 className="font-semibold">{product.name}</h3>
+                          <p className="text-sm text-muted-foreground">
+                            {product.price.toLocaleString('ru-RU', {
+                              style: 'currency',
+                              currency: 'RUB',
+                            })}
+                          </p>
+                          <div className="mt-4 flex items-center gap-2">
+                            <Button
+                              variant="outline"
+                              size="icon"
+                              className="h-8 w-8"
+                              onClick={() =>
+                                updateCartItemQuantity(
+                                  productId,
+                                  item.quantity - 1
+                                )
+                              }
+                              disabled={item.quantity <= 1}
+                            >
+                              <Minus className="h-4 w-4" />
+                            </Button>
+                            <Input
+                              type="number"
+                              value={item.quantity}
+                              readOnly
+                              className="h-8 w-14 rounded-md border text-center"
+                            />
+                            <Button
+                              variant="outline"
+                              size="icon"
+                              className="h-8 w-8"
+                              onClick={() =>
+                                updateCartItemQuantity(
+                                  productId,
+                                  item.quantity + 1
+                                )
+                              }
+                            >
+                              <Plus className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        </div>
+                        <div className="flex flex-col items-end gap-2">
+                          <p className="text-right font-semibold">
+                            {(product.price * item.quantity).toLocaleString(
+                              'ru-RU',
+                              { style: 'currency', currency: 'RUB' }
+                            )}
+                          </p>
                           <Button
-                            variant="outline"
+                            variant="ghost"
                             size="icon"
-                            className="h-8 w-8"
-                            onClick={() =>
-                              updateCartItemQuantity(
-                                item.id,
-                                item.quantity + 1
-                              )
-                            }
+                            className="h-8 w-8 text-muted-foreground hover:text-destructive"
+                            onClick={() => removeFromCart(productId)}
                           >
-                            <Plus className="h-4 w-4" />
+                            <Trash2 className="h-4 w-4" />
+                            <span className="sr-only">Удалить</span>
                           </Button>
                         </div>
                       </div>
-                      <div className="flex flex-col items-end gap-2">
-                        <p className="text-right font-semibold">
-                          {(item.price * item.quantity).toLocaleString(
-                            'ru-RU',
-                            { style: 'currency', currency: 'RUB' }
-                          )}
-                        </p>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="h-8 w-8 text-muted-foreground hover:text-destructive"
-                          onClick={() => removeFromCart(item.id)}
-                        >
-                          <Trash2 className="h-4 w-4" />
-                          <span className="sr-only">Удалить</span>
-                        </Button>
-                      </div>
-                    </div>
-                  ))
+                    );
+                  })
                 ) : (
                   <p className="p-6 text-center text-muted-foreground">
                     Ваша корзина пуста.
