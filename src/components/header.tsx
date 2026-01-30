@@ -13,7 +13,7 @@ export function Header() {
   const isDriverRole = currentRole === 'driver';
 
   return (
-    <header className="flex h-14 items-center gap-2 sm:gap-4 border-b bg-card px-3 sm:px-4 lg:h-[60px] lg:px-6">
+    <header className="flex min-h-[56px] items-center gap-2 border-b bg-card px-3 pt-[env(safe-area-inset-top)] sm:gap-4 sm:px-4 lg:min-h-[60px] lg:px-6">
       <Link href="/dashboard" className="flex items-center gap-2 font-semibold">
         <Image src="/logo.svg" alt="YakGo" width={92} height={32} priority />
       </Link>

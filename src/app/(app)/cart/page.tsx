@@ -19,10 +19,11 @@ export default function CartPage() {
   const { cart, updateCartItemQuantity, removeFromCart, isContextLoading } =
     useAppContext();
 
-  const subtotal = cart.reduce(
-    (sum, item) => sum + item.price * item.quantity,
-    0
-  );
+  const subtotal = cart.reduce((sum, item) => {
+    const normalizedItem = item as typeof item & { product?: typeof item };
+    const product = normalizedItem.product ?? item;
+    return sum + product.price * item.quantity;
+  }, 0);
   const shipping = cart.length > 0 ? 500 : 0;
   const total = subtotal + shipping;
 

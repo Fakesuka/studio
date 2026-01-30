@@ -13,6 +13,8 @@ import {
   Sparkles,
   Snowflake,
   MapPinned,
+  LocateFixed,
+  Check,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
