@@ -58,11 +58,16 @@ export function RoleSwitcher({ currentRole, onRoleChange, isDriver, className }:
   return (
     <Popover open={showHint} onOpenChange={setShowHint}>
       <PopoverTrigger asChild>
-        <div className={cn("inline-flex items-center rounded-full bg-muted p-0.5 shrink-0 cursor-pointer", className)}>
+        <div
+          className={cn(
+            "inline-flex items-center rounded-full bg-muted p-1 shrink-0 cursor-pointer shadow-sm",
+            className
+          )}
+        >
       <button
         onClick={() => handleRoleChange('client')}
         className={cn(
-          "flex items-center gap-0.5 sm:gap-1 px-1.5 sm:px-2 py-0.5 sm:py-1 rounded-full text-[10px] sm:text-xs font-medium transition-all whitespace-nowrap",
+          "flex items-center gap-1 px-2.5 py-1.5 rounded-full text-xs sm:text-sm font-medium transition-all whitespace-nowrap",
           currentRole === 'client'
             ? "bg-primary text-primary-foreground shadow-sm"
             : "text-muted-foreground hover:text-foreground"
@@ -70,13 +75,13 @@ export function RoleSwitcher({ currentRole, onRoleChange, isDriver, className }:
         aria-label="Режим клиента"
         title="Режим клиента"
       >
-        <User className="h-3 w-3 shrink-0" />
+        <User className="h-4 w-4 shrink-0" />
         <span className="hidden md:inline">Клиент</span>
       </button>
       <button
         onClick={() => handleRoleChange('driver')}
         className={cn(
-          "flex items-center gap-0.5 sm:gap-1 px-1.5 sm:px-2 py-0.5 sm:py-1 rounded-full text-[10px] sm:text-xs font-medium transition-all whitespace-nowrap",
+          "flex items-center gap-1 px-2.5 py-1.5 rounded-full text-xs sm:text-sm font-medium transition-all whitespace-nowrap",
           currentRole === 'driver'
             ? "bg-primary text-primary-foreground shadow-sm"
             : "text-muted-foreground hover:text-foreground"
@@ -84,7 +89,7 @@ export function RoleSwitcher({ currentRole, onRoleChange, isDriver, className }:
         aria-label="Режим водителя"
         title="Режим водителя"
       >
-        <Car className="h-3 w-3 shrink-0" />
+        <Car className="h-4 w-4 shrink-0" />
         <span className="hidden md:inline">Водитель</span>
       </button>
         </div>
