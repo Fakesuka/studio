@@ -17,7 +17,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useState, useEffect } from 'react';
 import { api } from '@/lib/api';
-import { getTelegramUser } from '@/lib/telegram';
+import { getTelegramPhoneNumber, getTelegramUser } from '@/lib/telegram';
 import {
   Form,
   FormControl,
@@ -176,9 +176,10 @@ export default function ProfilePage() {
           setUsername(usernameStr);
 
           // Get phone number from Telegram if available
-          if (telegramUser.phone_number && !profile.phone) {
-            console.log('[Profile] Using Telegram phone:', telegramUser.phone_number);
-            setPhone(telegramUser.phone_number);
+          const telegramPhone = telegramUser.phone_number || getTelegramPhoneNumber();
+          if (telegramPhone && !profile.phone) {
+            console.log('[Profile] Using Telegram phone:', telegramPhone);
+            setPhone(telegramPhone);
           }
         }
         console.log('[Profile] User data loaded successfully');
@@ -328,9 +329,10 @@ export default function ProfilePage() {
         const updatedUser = webApp.initDataUnsafe?.user;
         console.log('[Profile] Updated user data:', JSON.stringify(updatedUser, null, 2));
 
-        if (updatedUser?.phone_number) {
-          console.log('[Profile] Phone now available:', updatedUser.phone_number);
-          setPhone(updatedUser.phone_number);
+        const newPhone = updatedUser?.phone_number || getTelegramPhoneNumber();
+        if (newPhone) {
+          console.log('[Profile] Phone now available:', newPhone);
+          setPhone(newPhone);
           toast({
             title: 'Номер получен',
             description: 'Номер телефона из вашего профиля Telegram',
