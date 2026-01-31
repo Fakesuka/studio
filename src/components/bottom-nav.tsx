@@ -9,7 +9,7 @@ export function BottomNav() {
   const pathname = usePathname();
 
   return (
-    <nav className="fixed bottom-4 left-0 right-0 z-50 md:hidden">
+    <nav className="fixed bottom-[calc(1rem+env(safe-area-inset-bottom))] left-0 right-0 z-50 md:hidden">
       <div className="mx-auto flex h-14 w-[min(420px,calc(100%-2rem))] items-center justify-between rounded-full border border-white/70 bg-white/85 p-2 shadow-lg backdrop-blur dark:border-white/10 dark:bg-slate-900/70">
         {bottomMenuItems.map((item) => {
           const isActive = pathname.startsWith(item.href);

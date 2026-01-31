@@ -50,6 +50,9 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import {
   Dialog,
   DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
 } from '@/components/ui/dialog';
 import {
   diagnoseProblem,
@@ -237,7 +240,6 @@ export function ServiceRequestForm() {
     try {
       setIsGeocoding(true);
       const url = `https://catalog.api.2gis.com/3.0/items/geocode?lat=${lat}&lon=${lng}&key=${GIS_API_KEY}&fields=items.full_name,items.address_name,items.name`;
-      const url = `https://catalog.api.2gis.com/3.0/items/geocode?lat=${lat}&lon=${lng}&key=${GIS_API_KEY}`;
       const response = await fetch(url);
       if (!response.ok) return '';
       const data = await response.json();
@@ -447,14 +449,12 @@ export function ServiceRequestForm() {
       </Form>
       <Dialog open={isMapOpen} onOpenChange={setIsMapOpen}>
         <DialogContent className="flex h-[100dvh] w-screen max-w-none flex-col gap-0 p-0">
-          <div className="border-b px-6 py-4">
-            <DialogHeader>
-              <DialogTitle>Выберите точку на карте</DialogTitle>
-              <DialogDescription>
-                Нажмите на карту, чтобы поставить маркер. Адрес подставится автоматически.
-              </DialogDescription>
-            </DialogHeader>
-          </div>
+          <DialogHeader className="sr-only">
+            <DialogTitle>Выбор местоположения</DialogTitle>
+            <DialogDescription>
+              Выберите точку на карте или введите адрес
+            </DialogDescription>
+          </DialogHeader>
           <div className="flex-1 overflow-hidden">
             <Map2GIS
               center={mapCenter}
@@ -466,137 +466,68 @@ export function ServiceRequestForm() {
                 const address = await reverseGeocode(coords);
                 if (address) {
                   setSelectedAddress(address);
-                  if (!manualAddress) {
-                    setManualAddress(address);
-                  }
+                  setManualAddress(address);
                 }
               }}
             />
           </div>
-          <div className="border-t bg-background px-6 py-4">
-            <div className="flex flex-col gap-3 text-sm text-muted-foreground">
-              <div className="flex items-center gap-2 rounded-full border bg-background px-3 py-2">
-                <Input
-                  value={manualAddress || selectedAddress}
-                  onChange={(event) => setManualAddress(event.target.value)}
-                  placeholder="Введите адрес"
-                  className="h-8 border-0 px-0 text-sm shadow-none focus-visible:ring-0"
-                />
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="icon"
-                  className="h-9 w-9 rounded-full border"
-                  onClick={() => {
-                    if (!navigator.geolocation) return;
-                    navigator.geolocation.getCurrentPosition(async (position) => {
-                      const coords: [number, number] = [
-                        position.coords.latitude,
-                        position.coords.longitude,
-                      ];
-                      setMapCenter(coords);
-                      setSelectedCoords(coords);
-                      const address = await reverseGeocode(coords);
-                      if (address) {
-                        setSelectedAddress(address);
-                        setManualAddress(address);
-                      }
-                    });
-                  }}
-                  aria-label="Определить по геолокации"
-                >
-                  <LocateFixed className="h-4 w-4" />
-                </Button>
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="icon"
-                  className="h-9 w-9 rounded-full border"
-                  disabled={!selectedCoords && !manualAddress}
-                  onClick={() => {
-                    const coords = selectedCoords ?? mapCenter;
-                    const [lat, lng] = coords;
-                    const addressValue =
-                      manualAddress ||
-                      selectedAddress ||
-                      `${lat.toFixed(6)}, ${lng.toFixed(6)}`;
-              {selectedCoords ? (
-                <div className="rounded-lg border px-3 py-2">
-                  <div className="text-xs uppercase tracking-wide text-muted-foreground">
-                    Адрес
-                  </div>
-                  <div className="text-sm text-foreground">
-                    {manualAddress || selectedAddress || (isGeocoding ? 'Определяем адрес...' : 'Адрес не найден')}
-                  </div>
-                </div>
-              ) : (
-                <span>Точка не выбрана</span>
-              )}
-              <div className="flex flex-wrap gap-2">
-                <Button
-                  type="button"
-                  variant="outline"
-                  disabled={!selectedCoords}
-                  onClick={() => setIsAddressDialogOpen(true)}
-                >
-                  Указать адрес
-                </Button>
-                <Button
-                  type="button"
-                  disabled={!selectedCoords}
-                  onClick={() => {
-                    if (!selectedCoords) return;
-                    const [lat, lng] = selectedCoords;
-                    const addressValue =
-                      manualAddress || selectedAddress || `${lat.toFixed(6)}, ${lng.toFixed(6)}`;
-                    setValue('location', addressValue, {
-                      shouldValidate: true,
-                    });
-                    setValue('latitude', lat);
-                    setValue('longitude', lng);
-                    setIsMapOpen(false);
-                  }}
-                  aria-label="Подтвердить адрес"
-                >
-                  <Check className="h-4 w-4" />
-                </Button>
-              </div>
+          <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-background via-background to-transparent pb-[calc(1rem+env(safe-area-inset-bottom))] pt-8 px-4">
+            <div className="flex items-center gap-2 rounded-full border bg-background/95 px-4 py-2 shadow-lg backdrop-blur">
+              <Input
+                value={manualAddress || selectedAddress || ''}
+                onChange={(event) => setManualAddress(event.target.value)}
+                placeholder={isGeocoding ? 'Определяем адрес...' : 'Введите адрес'}
+                className="h-10 flex-1 border-0 bg-transparent px-0 text-sm shadow-none focus-visible:ring-0"
+              />
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon"
+                className="h-10 w-10 shrink-0 rounded-full border bg-background"
+                onClick={() => {
+                  if (!navigator.geolocation) return;
+                  navigator.geolocation.getCurrentPosition(async (position) => {
+                    const coords: [number, number] = [
+                      position.coords.latitude,
+                      position.coords.longitude,
+                    ];
+                    setMapCenter(coords);
+                    setSelectedCoords(coords);
+                    const address = await reverseGeocode(coords);
+                    if (address) {
+                      setSelectedAddress(address);
+                      setManualAddress(address);
+                    }
+                  });
+                }}
+                aria-label="Определить по геолокации"
+              >
+                <LocateFixed className="h-5 w-5" />
+              </Button>
+              <Button
+                type="button"
+                size="icon"
+                className="h-10 w-10 shrink-0 rounded-full"
+                disabled={!selectedCoords && !manualAddress}
+                onClick={() => {
+                  const coords = selectedCoords ?? mapCenter;
+                  const [lat, lng] = coords;
+                  const addressValue =
+                    manualAddress ||
+                    selectedAddress ||
+                    `${lat.toFixed(6)}, ${lng.toFixed(6)}`;
+                  setValue('location', addressValue, {
+                    shouldValidate: true,
+                  });
+                  setValue('latitude', lat);
+                  setValue('longitude', lng);
+                  setIsMapOpen(false);
+                }}
+                aria-label="Подтвердить адрес"
+              >
+                <Check className="h-5 w-5" />
+              </Button>
             </div>
-                >
-                  Использовать точку
-                </Button>
-              </div>
-            </div>
-          </div>
-        </DialogContent>
-      </Dialog>
-      <Dialog open={isAddressDialogOpen} onOpenChange={setIsAddressDialogOpen}>
-        <DialogContent className="sm:max-w-[420px]">
-          <DialogHeader>
-            <DialogTitle>Уточните адрес</DialogTitle>
-            <DialogDescription>
-              Вы можете отредактировать адрес перед сохранением.
-            </DialogDescription>
-          </DialogHeader>
-          <Input
-            value={manualAddress || selectedAddress}
-            onChange={(event) => setManualAddress(event.target.value)}
-            placeholder={`Например, г. ${userCity}, ул. Ленина, д. 1`}
-          />
-          <div className="flex justify-end gap-2">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => setIsAddressDialogOpen(false)}
-            >
-              Отмена
-            </Button>
-            <Button
-              type="button"
-              onClick={() => setIsAddressDialogOpen(false)}
-            >
-              Сохранить
-            </Button>
           </div>
         </DialogContent>
       </Dialog>
