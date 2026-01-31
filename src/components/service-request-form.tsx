@@ -15,6 +15,7 @@ import {
   MapPinned,
   LocateFixed,
   Check,
+  X,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
@@ -448,14 +449,25 @@ export function ServiceRequestForm() {
         </form>
       </Form>
       <Dialog open={isMapOpen} onOpenChange={setIsMapOpen}>
-        <DialogContent className="h-[100dvh] w-screen max-w-none p-0 border-0 rounded-none">
+        <DialogContent className="h-[100dvh] w-screen max-w-none p-0 border-0 rounded-none bg-slate-100 dark:bg-slate-900 md:h-[85vh] md:max-h-[800px] md:w-[90vw] md:max-w-[1200px] md:rounded-2xl md:border [&>button:last-child]:hidden">
           <DialogHeader className="sr-only">
             <DialogTitle>Выбор местоположения</DialogTitle>
             <DialogDescription>
               Выберите точку на карте или введите адрес
             </DialogDescription>
           </DialogHeader>
-          <div className="absolute inset-0">
+          {/* Custom close button */}
+          <Button
+            type="button"
+            variant="outline"
+            size="icon"
+            className="absolute right-4 top-[calc(env(safe-area-inset-top)+56px)] z-[60] h-10 w-10 rounded-full border-slate-200 bg-white/95 shadow-lg backdrop-blur-xl dark:border-white/10 dark:bg-slate-900/95 md:right-4 md:top-4"
+            onClick={() => setIsMapOpen(false)}
+            aria-label="Закрыть карту"
+          >
+            <X className="h-5 w-5" />
+          </Button>
+          <div className="absolute inset-0 overflow-hidden md:rounded-2xl">
             <Map2GIS
               center={mapCenter}
               zoom={13}
@@ -472,8 +484,8 @@ export function ServiceRequestForm() {
               }}
             />
           </div>
-          <div className="pointer-events-none absolute bottom-[calc(1rem+env(safe-area-inset-bottom))] left-4 right-4">
-            <div className="pointer-events-auto flex items-center gap-2 rounded-full border border-slate-200 bg-white/95 px-4 py-2 shadow-[0_4px_20px_rgba(0,0,0,0.15)] backdrop-blur-xl dark:border-white/10 dark:bg-slate-900/95">
+          <div className="pointer-events-none absolute bottom-[calc(1rem+env(safe-area-inset-bottom))] left-4 right-4 z-[60] md:bottom-6 md:left-1/2 md:right-auto md:w-full md:max-w-md md:-translate-x-1/2">
+            <div className="pointer-events-auto flex items-center gap-2 rounded-full border border-slate-200 bg-white px-4 py-2 shadow-[0_4px_20px_rgba(0,0,0,0.15)] dark:border-white/10 dark:bg-slate-900">
               <Input
                 value={manualAddress || selectedAddress || ''}
                 onChange={(event) => setManualAddress(event.target.value)}

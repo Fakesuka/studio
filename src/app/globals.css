@@ -78,9 +78,15 @@
   }
 }
 
-/* 2GIS Map controls positioning - match header height */
+/* 2GIS Map controls positioning - match header height on mobile */
 .leaflet-top {
   top: calc(env(safe-area-inset-top) + 56px) !important;
+}
+
+@media (min-width: 768px) {
+  .leaflet-top {
+    top: 16px !important;
+  }
 }
 
 .leaflet-control-zoom {
@@ -89,10 +95,4 @@
 
 .leaflet-top .leaflet-control {
   margin-top: 12px;
-}
-
-/* Dialog close button positioning */
-[data-radix-dialog-content] > button[class*="absolute"][class*="right-4"][class*="top-4"] {
-  top: calc(env(safe-area-inset-top) + 56px) !important;
-  right: 16px !important;
 }
