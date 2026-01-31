@@ -449,7 +449,9 @@ export function ServiceRequestForm() {
         </form>
       </Form>
       <Dialog open={isMapOpen} onOpenChange={setIsMapOpen}>
-        <DialogContent className="h-[100dvh] w-screen max-w-none p-0 border-0 rounded-none bg-slate-100 dark:bg-slate-900 md:h-[85vh] md:max-h-[800px] md:w-[90vw] md:max-w-[1200px] md:rounded-2xl md:border [&>button:last-child]:hidden">
+        <DialogContent className="fixed inset-0 z-50 h-[100dvh] w-screen max-w-none translate-x-0 translate-y-0 border-0 p-0 data-[state=closed]:slide-out-to-bottom data-[state=open]:slide-in-from-bottom md:left-1/2 md:top-1/2 md:h-[85vh] md:max-h-[800px] md:w-[90vw] md:max-w-[1200px] md:-translate-x-1/2 md:-translate-y-1/2 md:rounded-2xl md:border md:data-[state=closed]:slide-out-to-bottom-0 md:data-[state=open]:slide-in-from-bottom-0 [&>button:last-child]:hidden">
+          {/* Solid background to prevent seeing app interface */}
+          <div className="absolute inset-0 bg-slate-200 dark:bg-slate-950 md:rounded-2xl" />
           <DialogHeader className="sr-only">
             <DialogTitle>Выбор местоположения</DialogTitle>
             <DialogDescription>
@@ -461,7 +463,7 @@ export function ServiceRequestForm() {
             type="button"
             variant="outline"
             size="icon"
-            className="absolute right-4 top-[calc(env(safe-area-inset-top)+56px)] z-[60] h-10 w-10 rounded-full border-slate-200 bg-white/95 shadow-lg backdrop-blur-xl dark:border-white/10 dark:bg-slate-900/95 md:right-4 md:top-4"
+            className="absolute right-4 top-[calc(env(safe-area-inset-top)+56px)] z-[60] h-10 w-10 rounded-full border-slate-200 bg-white shadow-lg dark:border-white/10 dark:bg-slate-900 md:right-4 md:top-4"
             onClick={() => setIsMapOpen(false)}
             aria-label="Закрыть карту"
           >
@@ -485,18 +487,20 @@ export function ServiceRequestForm() {
             />
           </div>
           <div className="pointer-events-none absolute bottom-[calc(1rem+env(safe-area-inset-bottom))] left-4 right-4 z-[60] md:bottom-6 md:left-1/2 md:right-auto md:w-full md:max-w-md md:-translate-x-1/2">
-            <div className="pointer-events-auto flex items-center gap-2 rounded-full border border-slate-200 bg-white px-4 py-2 shadow-[0_4px_20px_rgba(0,0,0,0.15)] dark:border-white/10 dark:bg-slate-900">
-              <Input
-                value={manualAddress || selectedAddress || ''}
-                onChange={(event) => setManualAddress(event.target.value)}
-                placeholder={isGeocoding ? 'Определяем адрес...' : 'Введите адрес'}
-                className="h-10 flex-1 border-0 bg-transparent px-0 text-sm shadow-none focus-visible:ring-0"
-              />
+            <div className="pointer-events-auto flex items-center gap-2 rounded-full border border-slate-300 bg-white px-2 py-1.5 shadow-[0_4px_20px_rgba(0,0,0,0.15)] dark:border-slate-700 dark:bg-slate-900">
+              <div className="flex-1 rounded-full bg-slate-100 px-4 py-2 dark:bg-slate-800">
+                <Input
+                  value={manualAddress || selectedAddress || ''}
+                  onChange={(event) => setManualAddress(event.target.value)}
+                  placeholder={isGeocoding ? 'Определяем адрес...' : 'Введите адрес или выберите на карте'}
+                  className="h-6 w-full border-0 bg-transparent p-0 text-sm text-slate-900 placeholder:text-slate-500 focus-visible:ring-0 dark:text-white dark:placeholder:text-slate-400"
+                />
+              </div>
               <Button
                 type="button"
                 variant="ghost"
                 size="icon"
-                className="h-10 w-10 shrink-0 rounded-full border bg-white dark:bg-slate-800"
+                className="h-10 w-10 shrink-0 rounded-full border border-slate-200 bg-white hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-800 dark:hover:bg-slate-700"
                 onClick={() => {
                   if (!navigator.geolocation) return;
                   navigator.geolocation.getCurrentPosition(async (position) => {
