@@ -37,7 +37,7 @@ export function MainSidebar() {
     <Sidebar>
       <SidebarHeader>
         <Link href="/dashboard" className="flex items-center gap-2 font-semibold">
-          <Image src="/logo.svg" alt="YakGo" width={120} height={36} priority />
+          <Image src="/logo.png" alt="YakGo" width={120} height={36} priority />
         </Link>
       </SidebarHeader>
       <SidebarContent className="p-2">

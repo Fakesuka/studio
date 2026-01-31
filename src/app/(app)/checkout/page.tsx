@@ -192,7 +192,7 @@ export default function CheckoutPage() {
                 const normalizedItem = item as typeof item & { product?: typeof item };
                 const product = normalizedItem.product ?? item;
                 const productId = normalizedItem.product?.id ?? item.id;
-                const imageSrc = product?.imageUrl || '/logo.svg';
+                const imageSrc = product?.imageUrl || '/logo.png';
                 const price = Number(product?.price ?? 0);
                 return (
                   <div key={productId} className="flex items-start gap-3">
