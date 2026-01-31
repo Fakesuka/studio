@@ -22,6 +22,7 @@ interface Map2GISProps {
   interactive?: boolean;
   onClick?: (coords: [number, number]) => void;
   className?: string;
+  preserveZoom?: boolean;
 }
 
 const Map2GIS: React.FC<Map2GISProps> = ({
@@ -32,6 +33,7 @@ const Map2GIS: React.FC<Map2GISProps> = ({
   interactive = false,
   onClick,
   className,
+  preserveZoom = false,
 }) => {
   const mapRef = useRef<any>(null);
   const mapContainerRef = useRef<HTMLDivElement>(null);
@@ -137,11 +139,12 @@ const Map2GIS: React.FC<Map2GISProps> = ({
             console.error("Could not fit bounds: ", e);
         }
     } else if (markers.length === 1) {
-      map.setView(markers[0].coords, zoom);
-    } else {
+      const currentZoom = preserveZoom ? map.getZoom() : zoom;
+      map.setView(markers[0].coords, currentZoom);
+    } else if (!preserveZoom) {
       map.setView(center, zoom);
     }
-  }, [markers, center, zoom]);
+  }, [markers, center, zoom, preserveZoom]);
 
   useEffect(() => {
     const map = mapRef.current;

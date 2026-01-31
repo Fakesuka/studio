@@ -461,6 +461,7 @@ export function ServiceRequestForm() {
               zoom={13}
               markers={mapMarkers}
               interactive
+              preserveZoom
               onClick={async (coords) => {
                 setSelectedCoords(coords);
                 const address = await reverseGeocode(coords);
