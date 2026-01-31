@@ -448,14 +448,14 @@ export function ServiceRequestForm() {
         </form>
       </Form>
       <Dialog open={isMapOpen} onOpenChange={setIsMapOpen}>
-        <DialogContent className="flex h-[100dvh] w-screen max-w-none flex-col gap-0 p-0">
+        <DialogContent className="h-[100dvh] w-screen max-w-none p-0 border-0 rounded-none">
           <DialogHeader className="sr-only">
             <DialogTitle>Выбор местоположения</DialogTitle>
             <DialogDescription>
               Выберите точку на карте или введите адрес
             </DialogDescription>
           </DialogHeader>
-          <div className="flex-1 overflow-hidden">
+          <div className="absolute inset-0">
             <Map2GIS
               center={mapCenter}
               zoom={13}
@@ -472,8 +472,8 @@ export function ServiceRequestForm() {
               }}
             />
           </div>
-          <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-background via-background to-transparent pb-[calc(1rem+env(safe-area-inset-bottom))] pt-8 px-4">
-            <div className="flex items-center gap-2 rounded-full border bg-background/95 px-4 py-2 shadow-lg backdrop-blur">
+          <div className="pointer-events-none absolute bottom-[calc(1rem+env(safe-area-inset-bottom))] left-4 right-4">
+            <div className="pointer-events-auto flex items-center gap-2 rounded-full border border-slate-200 bg-white/95 px-4 py-2 shadow-[0_4px_20px_rgba(0,0,0,0.15)] backdrop-blur-xl dark:border-white/10 dark:bg-slate-900/95">
               <Input
                 value={manualAddress || selectedAddress || ''}
                 onChange={(event) => setManualAddress(event.target.value)}
@@ -484,7 +484,7 @@ export function ServiceRequestForm() {
                 type="button"
                 variant="ghost"
                 size="icon"
-                className="h-10 w-10 shrink-0 rounded-full border bg-background"
+                className="h-10 w-10 shrink-0 rounded-full border bg-white dark:bg-slate-800"
                 onClick={() => {
                   if (!navigator.geolocation) return;
                   navigator.geolocation.getCurrentPosition(async (position) => {
