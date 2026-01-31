@@ -10,7 +10,7 @@ export function BottomNav() {
 
   return (
     <nav className="fixed bottom-[calc(1rem+env(safe-area-inset-bottom))] left-0 right-0 z-50 md:hidden">
-      <div className="mx-auto flex h-14 w-[min(420px,calc(100%-2rem))] items-center justify-between rounded-full border border-white/70 bg-white/85 p-2 shadow-lg backdrop-blur dark:border-white/10 dark:bg-slate-900/70">
+      <div className="mx-auto flex h-14 w-[min(420px,calc(100%-2rem))] items-center justify-between rounded-full border border-slate-200 bg-white/90 p-2 shadow-[0_4px_20px_rgba(0,0,0,0.08)] backdrop-blur-xl dark:border-white/10 dark:bg-slate-900/70 dark:shadow-[0_4px_20px_rgba(0,0,0,0.3)]">
         {bottomMenuItems.map((item) => {
           const isActive = pathname.startsWith(item.href);
           return (
