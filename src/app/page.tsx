@@ -54,7 +54,7 @@ export default function WelcomePage() {
         <div className="relative z-10 w-full max-w-md px-6">
           <div className="flex flex-col items-center gap-4 rounded-[32px] border border-white/60 bg-white/70 px-6 py-10 text-center text-slate-800 shadow-[0_20px_60px_rgba(15,23,42,0.15)] backdrop-blur-xl dark:border-white/10 dark:bg-slate-950/40 dark:text-white dark:shadow-[0_0_45px_rgba(34,211,238,0.15)]">
             <Image
-              src="/logo.svg"
+              src="/logo.png"
               alt="YakGo"
               width={160}
               height={56}
@@ -92,7 +92,7 @@ export default function WelcomePage() {
       <div className="relative z-10 w-full max-w-xl px-6">
         <div className="flex flex-col items-center gap-5 rounded-[32px] border border-white/60 bg-white/70 px-6 py-12 text-center text-slate-800 shadow-[0_20px_60px_rgba(15,23,42,0.15)] backdrop-blur-xl dark:border-white/10 dark:bg-slate-950/40 dark:text-white dark:shadow-[0_0_45px_rgba(34,211,238,0.15)]">
           <Image
-            src="/logo.svg"
+            src="/logo.png"
             alt="YakGo"
             width={200}
             height={64}

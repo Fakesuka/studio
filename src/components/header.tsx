@@ -15,7 +15,7 @@ export function Header() {
   return (
     <header className="fixed left-0 right-0 top-0 z-40 flex min-h-[56px] items-center gap-2 border-b bg-gradient-to-b from-slate-100 to-white px-3 pb-3 pt-[calc(env(safe-area-inset-top)+48px)] dark:from-slate-900 dark:to-slate-950 sm:gap-4 sm:px-4 md:pb-4 md:pt-4 lg:min-h-[60px] lg:px-6">
       <Link href="/dashboard" className="flex items-center gap-2 font-semibold">
-        <Image src="/logo.svg" alt="YakGo" width={92} height={32} priority />
+        <Image src="/logo.png" alt="YakGo" width={92} height={32} priority />
       </Link>
       <div className="flex-1" />
       <RoleSwitcher

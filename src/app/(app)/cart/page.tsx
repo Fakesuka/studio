@@ -63,7 +63,7 @@ export default function CartPage() {
                     };
                     const product = normalizedItem.product ?? item;
                     const productId = normalizedItem.product?.id ?? item.id;
-                    const imageSrc = product?.imageUrl || '/logo.svg';
+                    const imageSrc = product?.imageUrl || '/logo.png';
                     const price = Number(product?.price ?? 0);
 
                     return (
