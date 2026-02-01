@@ -8,14 +8,14 @@ import { AlertCircle } from 'lucide-react';
 export function TelegramGuard({ children }: { children: React.ReactNode }) {
   const [isChecking, setIsChecking] = useState(true);
   const [isTelegram, setIsTelegram] = useState(false);
-  const [devMode, setDevMode] = useState(false);
+  const [devMode, setDevMode] = useState(true);
 
   useEffect(() => {
     // Check for dev mode parameter in URL
     const urlParams = new URLSearchParams(window.location.search);
     const isDevMode = urlParams.get('devMode') === 'true' ||
-                      localStorage.getItem('devMode') === 'true' ||
-                      process.env.NODE_ENV === 'development';
+      localStorage.getItem('devMode') === 'true' ||
+      process.env.NODE_ENV === 'development';
 
     if (isDevMode) {
       localStorage.setItem('devMode', 'true');

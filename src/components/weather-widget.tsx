@@ -140,8 +140,8 @@ export function WeatherWidget() {
   return (
     <Card>
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-        <CardTitle className="text-sm font-medium">Погода</CardTitle>
-        <Snowflake className="h-4 w-4 text-muted-foreground" />
+        <CardTitle className="text-sm font-medium text-white">Погода</CardTitle>
+        <Snowflake className="h-4 w-4 text-neon-cyan" />
       </CardHeader>
       <CardContent className="flex min-h-[124px] flex-col justify-center">
         {weather.status === 'idle' && (

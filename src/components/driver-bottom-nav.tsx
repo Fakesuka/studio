@@ -9,8 +9,8 @@ export function DriverBottomNav() {
   const pathname = usePathname();
 
   return (
-    <nav className="fixed bottom-[calc(1rem+env(safe-area-inset-bottom))] left-0 right-0 z-50 md:hidden">
-      <div className="mx-auto flex h-14 w-[min(420px,calc(100%-2rem))] items-center justify-between rounded-full border border-slate-200 bg-white/90 p-2 shadow-[0_4px_20px_rgba(0,0,0,0.08)] backdrop-blur-xl dark:border-white/10 dark:bg-slate-900/70 dark:shadow-[0_4px_20px_rgba(0,0,0,0.3)]">
+    <nav className="fixed bottom-6 left-1/2 z-50 -translate-x-1/2 transform">
+      <div className="flex items-center gap-1 rounded-full border border-white/10 bg-black/40 p-1.5 shadow-2xl shadow-neon-purple/5 backdrop-blur-xl">
         {driverBottomMenuItems.map((item) => {
           const isActive = pathname.startsWith(item.href);
           return (
@@ -18,13 +18,16 @@ export function DriverBottomNav() {
               key={item.href}
               href={item.href}
               className={cn(
-                'flex h-10 flex-1 items-center justify-center rounded-full transition-all',
+                'relative flex h-12 w-12 items-center justify-center rounded-full transition-all duration-300',
                 isActive
-                  ? 'text-primary drop-shadow-[0_0_10px_rgba(37,99,235,0.35)]'
-                  : 'text-muted-foreground hover:text-foreground'
+                  ? 'bg-gradient-to-tr from-neon-purple/20 to-neon-pink/20 text-white'
+                  : 'text-gray-400 hover:bg-white/5 hover:text-white'
               )}
             >
-              <item.icon className="h-5 w-5" />
+              {isActive && (
+                <span className="absolute inset-0 rounded-full shadow-[0_0_15px_rgba(168,85,247,0.3)]" />
+              )}
+              <item.icon className={cn("h-5 w-5 z-10", isActive && "text-neon-purple")} />
               <span className="sr-only">{item.label}</span>
             </Link>
           );

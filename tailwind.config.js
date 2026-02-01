@@ -9,9 +9,9 @@ module.exports = {
   theme: {
     extend: {
       fontFamily: {
-        body: ['system-ui', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'sans-serif'],
-        headline: ['system-ui', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'sans-serif'],
-        code: ['Consolas', 'Monaco', 'Courier New', 'monospace'],
+        // Modern geometric sans-serif
+        sans: ['var(--font-jakarta)', 'system-ui', 'sans-serif'],
+        display: ['var(--font-outfit)', 'system-ui', 'sans-serif'],
       },
       colors: {
         background: 'hsl(var(--background))',
@@ -47,23 +47,12 @@ module.exports = {
         border: 'hsl(var(--border))',
         input: 'hsl(var(--input))',
         ring: 'hsl(var(--ring))',
-        chart: {
-          '1': 'hsl(var(--chart-1))',
-          '2': 'hsl(var(--chart-2))',
-          '3': 'hsl(var(--chart-3))',
-          '4': 'hsl(var(--chart-4))',
-          '5': 'hsl(var(--chart-5))',
-        },
-        sidebar: {
-          DEFAULT: 'hsl(var(--sidebar-background))',
-          foreground: 'hsl(var(--sidebar-foreground))',
-          primary: 'hsl(var(--sidebar-primary))',
-          'primary-foreground': 'hsl(var(--sidebar-primary-foreground))',
-          accent: 'hsl(var(--sidebar-accent))',
-          'accent-foreground': 'hsl(var(--sidebar-accent-foreground))',
-          border: 'hsl(var(--sidebar-border))',
-          ring: 'hsl(var(--sidebar-ring))',
-        },
+        neon: {
+          cyan: '#22D3EE',
+          purple: '#A855F7',
+          pink: '#EC4899',
+          orange: '#FF6400', // Fire accent
+        }
       },
       borderRadius: {
         lg: 'var(--radius)',
@@ -71,27 +60,47 @@ module.exports = {
         sm: 'calc(var(--radius) - 4px)',
       },
       keyframes: {
-        'accordion-down': {
-          from: {
-            height: '0',
-          },
-          to: {
-            height: 'var(--radix-accordion-content-height)',
-          },
+        "accordion-down": {
+          from: { height: "0" },
+          to: { height: "var(--radix-accordion-content-height)" },
         },
-        'accordion-up': {
-          from: {
-            height: 'var(--radix-accordion-content-height)',
-          },
-          to: {
-            height: '0',
-          },
+        "accordion-up": {
+          from: { height: "var(--radix-accordion-content-height)" },
+          to: { height: "0" },
         },
+        "aurora-flow": {
+          "0%": { backgroundPosition: "0% 50%" },
+          "50%": { backgroundPosition: "100% 50%" },
+          "100%": { backgroundPosition: "0% 50%" },
+        },
+        "pulse-glow": {
+          "0%, 100%": { opacity: "1", boxShadow: "0 0 15px var(--primary)" },
+          "50%": { opacity: "0.6", boxShadow: "0 0 30px var(--primary)" },
+        },
+        "ice-shine": {
+          "0%": { backgroundPosition: "200% center" },
+          "100%": { backgroundPosition: "-200% center" },
+        },
+        "radar-blip": {
+          "0%": { opacity: "0", transform: "scale(0)" },
+          "50%": { opacity: "1", transform: "scale(1)" },
+          "100%": { opacity: "0", transform: "scale(0)" },
+        }
       },
       animation: {
-        'accordion-down': 'accordion-down 0.2s ease-out',
-        'accordion-up': 'accordion-up 0.2s ease-out',
+        "accordion-down": "accordion-down 0.2s ease-out",
+        "accordion-up": "accordion-up 0.2s ease-out",
+        "aurora": "aurora-flow 15s ease infinite",
+        "pulse-glow": "pulse-glow 3s cubic-bezier(0.4, 0, 0.6, 1) infinite",
+        "ice-shine": "ice-shine 3s linear infinite",
+        "radar-blip": "radar-blip 4s ease-in-out forwards",
       },
+      backgroundImage: {
+        'aurora-gradient': 'linear-gradient(to right bottom, #0F1115, #1A1024, #121826)',
+        'glass-gradient': 'linear-gradient(145deg, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0.01) 100%)',
+        'neon-gradient': 'linear-gradient(to right, #22D3EE, #818CF8, #A855F7)',
+        'fire-ice-gradient': 'linear-gradient(to bottom right, #22D3EE 0%, #0F172A 50%, #FF6400 100%)',
+      }
     },
   },
   plugins: [require('tailwindcss-animate')],

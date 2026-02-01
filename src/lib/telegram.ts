@@ -149,11 +149,15 @@ export const initTelegramWebApp = () => {
     webApp.expand();
     const requestFullscreen =
       (webApp as any).requestFullscreen || (webApp as any).web_app_request_fullscreen;
-    if (requestFullscreen) {
-      requestFullscreen.call(webApp);
+    if (typeof requestFullscreen === 'function') {
+      try {
+        requestFullscreen.call(webApp);
+      } catch (e) {
+        console.warn('[Telegram] Failed to request fullscreen:', e);
+      }
     }
-    if (typeof window !== 'undefined' && window.screen?.orientation?.lock) {
-      window.screen.orientation.lock('portrait').catch(() => null);
+    if (typeof window !== 'undefined' && (window.screen?.orientation as any)?.lock) {
+      (window.screen.orientation as any).lock('portrait').catch(() => null);
     }
   }
 };
