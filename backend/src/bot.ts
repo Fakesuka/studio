@@ -1,5 +1,6 @@
 import TelegramBot from 'node-telegram-bot-api';
 import dotenv from 'dotenv';
+import prisma from './utils/prisma';
 
 dotenv.config();
 
@@ -116,10 +117,68 @@ export function startBot() {
       });
     });
 
+    // Handle contact sharing (when user shares phone number)
+    bot.on('contact', async (msg) => {
+      const chatId = msg.chat.id;
+      const contact = msg.contact;
+      const fromId = msg.from?.id;
+
+      console.log(`📱 Contact received from user ${fromId}:`, contact);
+
+      if (!contact || !fromId) {
+        console.error('No contact or fromId in message');
+        return;
+      }
+
+      // Only process if user is sharing their own contact
+      if (contact.user_id !== fromId) {
+        console.log('Contact is not from the sender, ignoring');
+        return;
+      }
+
+      const phoneNumber = contact.phone_number;
+      console.log(`📞 Phone number: ${phoneNumber}`);
+
+      try {
+        // Find user by telegramId and update phone
+        const user = await prisma.user.findUnique({
+          where: { telegramId: String(fromId) },
+        });
+
+        if (user) {
+          await prisma.user.update({
+            where: { telegramId: String(fromId) },
+            data: { phone: phoneNumber },
+          });
+
+          console.log(`✅ Phone number saved for user ${user.id}`);
+
+          bot!.sendMessage(chatId, '✅ Номер телефона успешно сохранен! Вернитесь в приложение.', {
+            reply_markup: {
+              inline_keyboard: [
+                [
+                  {
+                    text: '📱 Открыть YakGo',
+                    web_app: { url: MINI_APP_URL },
+                  },
+                ],
+              ],
+            },
+          });
+        } else {
+          console.log(`User with telegramId ${fromId} not found, will be created on first app visit`);
+          bot!.sendMessage(chatId, '📱 Пожалуйста, сначала откройте приложение YakGo, а затем попробуйте снова.');
+        }
+      } catch (error) {
+        console.error('Error saving phone number:', error);
+        bot!.sendMessage(chatId, '❌ Произошла ошибка при сохранении номера. Попробуйте позже.');
+      }
+    });
+
     // Handle any text message (for debugging)
     bot.on('message', (msg) => {
-      // Skip if it's a command
-      if (msg.text?.startsWith('/')) {
+      // Skip if it's a command or contact
+      if (msg.text?.startsWith('/') || msg.contact) {
         return;
       }
 
