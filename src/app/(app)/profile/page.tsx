@@ -416,7 +416,7 @@ export default function ProfilePage() {
       </div>
 
       <div className="flex items-center justify-between px-2">
-        <h1 className="text-3xl font-display font-bold text-white tracking-tight">Profile</h1>
+        <h1 className="text-3xl font-display font-bold text-white tracking-tight">Профиль</h1>
         <FrostButton variant="ghost" size="icon" className="rounded-full">
           <Settings className="h-5 w-5 text-gray-400" />
         </FrostButton>
@@ -441,18 +441,17 @@ export default function ProfilePage() {
           )}
         </div>
         <h2 className="text-2xl font-bold text-white flex items-center gap-2">
-          User {userId.slice(0, 4)}
-          <Badge variant="secondary" className="bg-white/10 text-neon-cyan border-neon-cyan/20 backdrop-blur-md">PRO</Badge>
+          {name}
         </h2>
-        <p className="text-gray-400 text-sm">Yakutsk, Russia</p>
+        <p className="text-gray-400 text-sm">{city === 'Другой' ? customCity : city}</p>
       </div>
 
       {/* Stats Row */}
       <div className="grid grid-cols-3 gap-3">
         {[
-          { label: 'Rating', value: '4.98', icon: Star, color: 'text-yellow-400' },
-          { label: 'Orders', value: '124', icon: Snowflake, color: 'text-neon-cyan' },
-          { label: 'Days', value: '365', icon: Clock, color: 'text-neon-purple' },
+          { label: 'Рейтинг', value: '4.98', icon: Star, color: 'text-yellow-400' },
+          { label: 'Заказы', value: '124', icon: Snowflake, color: 'text-neon-cyan' },
+          { label: 'Дней', value: '365', icon: Clock, color: 'text-neon-purple' },
         ].map((stat, i) => (
           <div key={i} className="flex flex-col items-center justify-center p-3 rounded-2xl bg-white/5 border border-white/5 backdrop-blur-sm">
             <stat.icon className={`h-5 w-5 ${stat.color} mb-1`} />
@@ -468,7 +467,7 @@ export default function ProfilePage() {
 
         <div className="flex items-start justify-between relative z-10">
           <div>
-            <p className="text-blue-200/60 text-sm font-medium mb-1">Total Balance</p>
+            <p className="text-blue-200/60 text-sm font-medium mb-1">Кошелёк</p>
             <h3 className="text-4xl font-mono font-bold text-white tracking-tighter shadow-neon-cyan drop-shadow-lg">
               {balance.toLocaleString('ru-RU', { maximumFractionDigits: 0 })} <span className="text-2xl text-neon-cyan">₽</span>
             </h3>
@@ -480,7 +479,7 @@ export default function ProfilePage() {
 
         <div className="flex gap-3 mt-4 relative z-10">
           <FrostButton size="sm" variant="primary" className="flex-1 shadow-neon-cyan/20" onClick={() => setShowTopUp(true)}>
-            <Plus className="h-4 w-4 mr-2" /> Top Up
+            <Plus className="h-4 w-4 mr-2" /> Пополнить
           </FrostButton>
           <FrostButton size="sm" variant="default" className="flex-1 bg-white/10 hover:bg-white/20">
             <MoreHorizontal className="h-4 w-4" />
@@ -491,33 +490,93 @@ export default function ProfilePage() {
       {/* Settings Groups */}
       <div className="space-y-6">
 
-        {/* Account */}
+        {/* Личные данные */}
         <div className="space-y-3">
-          <h3 className="text-xs uppercase text-gray-500 font-bold tracking-widest px-2">Account</h3>
-          <IceCard className="flex flex-col divide-y divide-white/5">
-            {[
-              { icon: User, label: 'Personal Information' },
-              { icon: ShieldCheck, label: 'Login & Security' },
-              { icon: MapPin, label: 'Saved Addresses' },
-            ].map((item, i) => (
-              <div key={i} className="flex items-center justify-between p-4 cursor-pointer hover:bg-white/5 transition-colors group">
-                <div className="flex items-center gap-4">
-                  <div className="h-8 w-8 rounded-full bg-black/40 flex items-center justify-center text-gray-400 group-hover:text-neon-cyan transition-colors">
-                    <item.icon className="h-4 w-4" />
-                  </div>
-                  <span className="text-gray-200 text-sm font-medium">{item.label}</span>
-                </div>
-                <ChevronRight className="h-4 w-4 text-gray-600 group-hover:text-white transition-colors" />
+          <h3 className="text-xs uppercase text-gray-500 font-bold tracking-widest px-2">Личные данные</h3>
+          <IceCard className="flex flex-col divide-y divide-white/5 p-4 gap-4">
+            {/* Имя */}
+            <div className="flex flex-col gap-2">
+              <label className="text-xs text-gray-400 flex items-center gap-2">
+                <User className="h-3 w-3" /> Имя
+              </label>
+              <Input
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                placeholder="Ваше имя"
+                className="bg-white/5 border-white/10 text-white"
+              />
+              <p className="text-[10px] text-gray-500">Берётся из Telegram, можно изменить</p>
+            </div>
+
+            {/* Телефон */}
+            <div className="flex flex-col gap-2 pt-4">
+              <label className="text-xs text-gray-400 flex items-center gap-2">
+                <Shield className="h-3 w-3" /> Номер телефона
+              </label>
+              <div className="flex gap-2">
+                <Input
+                  value={phone}
+                  readOnly
+                  placeholder="Не указан"
+                  className="bg-white/5 border-white/10 text-white flex-1"
+                />
+                <FrostButton
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  onClick={requestPhoneNumber}
+                  className="text-neon-cyan"
+                >
+                  Получить
+                </FrostButton>
               </div>
-            ))}
+              <p className="text-[10px] text-gray-500">Получается только через Telegram бота</p>
+            </div>
+
+            {/* Город */}
+            <div className="flex flex-col gap-2 pt-4">
+              <label className="text-xs text-gray-400 flex items-center gap-2">
+                <MapPin className="h-3 w-3" /> Город
+              </label>
+              <select
+                value={city}
+                onChange={(e) => setCity(e.target.value as YakutiaCity)}
+                className="bg-white/5 border border-white/10 text-white rounded-md p-2 text-sm"
+              >
+                {YAKUTIA_CITIES.map((c) => (
+                  <option key={c} value={c} className="bg-black text-white">
+                    {c}
+                  </option>
+                ))}
+              </select>
+              {city === 'Другой' && (
+                <Input
+                  value={customCity}
+                  onChange={(e) => setCustomCity(e.target.value)}
+                  placeholder="Введите название города"
+                  className="bg-white/5 border-white/10 text-white mt-2"
+                />
+              )}
+            </div>
+
+            {/* Кнопка сохранения */}
+            <div className="pt-4">
+              <FrostButton
+                variant="primary"
+                className="w-full"
+                onClick={handleSaveProfile}
+              >
+                Сохранить
+              </FrostButton>
+            </div>
           </IceCard>
         </div>
 
-        {/* Roles */}
+        {/* Роли */}
         <div className="space-y-3">
-          <h3 className="text-xs uppercase text-gray-500 font-bold tracking-widest px-2">Roles</h3>
+          <h3 className="text-xs uppercase text-gray-500 font-bold tracking-widest px-2">Роли</h3>
 
-          {/* Seller Status */}
+          {/* Статус продавца */}
           {isSeller ? (
             <Link href="/my-store" className="block">
               <IceCard variant="hot" className="p-4 flex items-center justify-between hover:border-neon-orange/60 transition-all cursor-pointer">
@@ -526,8 +585,8 @@ export default function ProfilePage() {
                     <Store className="h-5 w-5" />
                   </div>
                   <div>
-                    <h4 className="text-white font-medium text-sm">Seller Dashboard</h4>
-                    <p className="text-xs text-orange-400/80">Manage your shop</p>
+                    <h4 className="text-white font-medium text-sm">Продавец</h4>
+                    <p className="text-xs text-green-400">Статус активен</p>
                   </div>
                 </div>
                 <ChevronRight className="h-5 w-5 text-orange-500/50" />
@@ -539,15 +598,15 @@ export default function ProfilePage() {
                 <div className="h-8 w-8 rounded-full bg-gray-800 flex items-center justify-center text-gray-400">
                   <Store className="h-4 w-4" />
                 </div>
-                <span className="text-gray-400 text-sm">Become a Seller</span>
+                <span className="text-gray-400 text-sm">Стать продавцом</span>
               </div>
-              <FrostButton size="sm" variant="ghost" className="text-xs text-neon-cyan h-8" onClick={() => document.getElementById('seller-trigger')?.click()}>
-                Apply
+              <FrostButton size="sm" variant="ghost" className="text-xs text-neon-cyan h-8" onClick={() => setShowSellerForm(true)}>
+                Подать заявку
               </FrostButton>
             </IceCard>
           )}
 
-          {/* Driver Status */}
+          {/* Статус водителя */}
           {isDriver ? (
             <Link href="/driver/dashboard" className="block mt-2">
               <IceCard variant="crystal" className="p-4 flex items-center justify-between hover:border-blue-500/60 transition-all cursor-pointer">
@@ -556,8 +615,8 @@ export default function ProfilePage() {
                     <Car className="h-5 w-5" />
                   </div>
                   <div>
-                    <h4 className="text-white font-medium text-sm">Driver Mode</h4>
-                    <p className="text-xs text-blue-400/80">Switch to Driver App</p>
+                    <h4 className="text-white font-medium text-sm">Водитель</h4>
+                    <p className="text-xs text-green-400">Статус активен</p>
                   </div>
                 </div>
                 <ChevronRight className="h-5 w-5 text-blue-500/50" />
@@ -569,25 +628,25 @@ export default function ProfilePage() {
                 <div className="h-8 w-8 rounded-full bg-gray-800 flex items-center justify-center text-gray-400">
                   <Car className="h-4 w-4" />
                 </div>
-                <span className="text-gray-400 text-sm">Become a Driver</span>
+                <span className="text-gray-400 text-sm">Стать водителем</span>
               </div>
               <FrostButton size="sm" variant="ghost" className="text-xs text-blue-400 h-8" onClick={() => setShowDriverForm(true)}>
-                Apply
+                Подать заявку
               </FrostButton>
             </IceCard>
           )}
         </div>
 
-        {/* App Settings */}
+        {/* Настройки */}
         <div className="space-y-3">
-          <h3 className="text-xs uppercase text-gray-500 font-bold tracking-widest px-2">App Settings</h3>
+          <h3 className="text-xs uppercase text-gray-500 font-bold tracking-widest px-2">Настройки</h3>
           <IceCard className="overflow-hidden">
             <div className="flex items-center justify-between p-4 border-b border-white/5">
               <div className="flex items-center gap-4">
                 <div className="h-8 w-8 rounded-full bg-black/40 flex items-center justify-center text-gray-400">
                   <Paintbrush className="h-4 w-4" />
                 </div>
-                <span className="text-gray-200 text-sm font-medium">Dark Mode Only</span>
+                <span className="text-gray-200 text-sm font-medium">Только тёмная тема</span>
               </div>
               <Switch checked={true} disabled />
             </div>
@@ -596,7 +655,7 @@ export default function ProfilePage() {
                 <div className="h-8 w-8 rounded-full bg-red-500/10 flex items-center justify-center text-red-500 group-hover:bg-red-500 group-hover:text-white transition-all">
                   <LogOut className="h-4 w-4" />
                 </div>
-                <span className="text-red-500 group-hover:text-red-400 transition-colors text-sm font-medium">Log Out</span>
+                <span className="text-red-500 group-hover:text-red-400 transition-colors text-sm font-medium">Выйти</span>
               </div>
             </div>
           </IceCard>
@@ -607,9 +666,9 @@ export default function ProfilePage() {
       <Dialog open={showDriverForm} onOpenChange={setShowDriverForm}>
         <DialogContent className="max-w-lg bg-black/90 backdrop-blur-3xl border-white/10 max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>Become a Driver</DialogTitle>
+            <DialogTitle>Стать водителем</DialogTitle>
             <DialogDescription>
-              Join our fleet and start earning money.
+              Присоединяйтесь к нашей команде и начните зарабатывать.
             </DialogDescription>
           </DialogHeader>
           <Form {...driverForm}>
@@ -619,9 +678,9 @@ export default function ProfilePage() {
                 name="name"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Your Name</FormLabel>
+                    <FormLabel>Ваше имя</FormLabel>
                     <FormControl>
-                      <Input placeholder="John Doe" {...field} className="bg-white/5 border-white/10" />
+                      <Input placeholder="Иван Иванов" {...field} className="bg-white/5 border-white/10" />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -632,7 +691,7 @@ export default function ProfilePage() {
                 name="vehicle"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Vehicle Model</FormLabel>
+                    <FormLabel>Модель автомобиля</FormLabel>
                     <FormControl>
                       <Input placeholder="Toyota Camry" {...field} className="bg-white/5 border-white/10" />
                     </FormControl>
@@ -640,13 +699,12 @@ export default function ProfilePage() {
                   </FormItem>
                 )}
               />
-              {/* ... (Rest of the form logic is fine, just needs minor styling for inputs if not global) */}
               <FormField
                 control={driverForm.control}
                 name="legalStatus"
                 render={({ field }) => (
                   <FormItem className="space-y-3">
-                    <FormLabel>Legal Status</FormLabel>
+                    <FormLabel>Юридический статус</FormLabel>
                     <FormControl>
                       <RadioGroup
                         onValueChange={field.onChange}
@@ -658,7 +716,7 @@ export default function ProfilePage() {
                             <RadioGroupItem value="Самозанятый" className="border-white/20 text-neon-cyan" />
                           </FormControl>
                           <FormLabel className="font-normal text-gray-300">
-                            Self-employed
+                            Самозанятый
                           </FormLabel>
                         </FormItem>
                         <FormItem className="flex items-center space-x-3 space-y-0">
@@ -666,7 +724,7 @@ export default function ProfilePage() {
                             <RadioGroupItem value="ИП" className="border-white/20 text-neon-cyan" />
                           </FormControl>
                           <FormLabel className="font-normal text-gray-300">
-                            Individual Entrepreneur (IP)
+                            Индивидуальный предприниматель (ИП)
                           </FormLabel>
                         </FormItem>
                       </RadioGroup>
@@ -682,9 +740,9 @@ export default function ProfilePage() {
                 render={() => (
                   <FormItem>
                     <div className="mb-4">
-                      <FormLabel className="text-base">Services</FormLabel>
+                      <FormLabel className="text-base">Услуги</FormLabel>
                       <FormDescription>
-                        Select the services you provide.
+                        Выберите услуги, которые вы предоставляете.
                       </FormDescription>
                     </div>
                     <div className="grid grid-cols-2 gap-2">
@@ -742,7 +800,7 @@ export default function ProfilePage() {
                     </FormControl>
                     <div className="space-y-1 leading-none">
                       <FormLabel className="text-gray-300">
-                        I agree to the terms
+                        Я принимаю условия использования
                       </FormLabel>
                       <FormMessage />
                     </div>
@@ -751,7 +809,142 @@ export default function ProfilePage() {
               />
 
               <FrostButton type="submit" className="w-full" variant="primary" disabled={driverForm.formState.isSubmitting}>
-                Register as Driver
+                Зарегистрироваться
+              </FrostButton>
+            </form>
+          </Form>
+        </DialogContent>
+      </Dialog>
+
+      {/* Dialog for Seller Registration */}
+      <Dialog open={showSellerForm} onOpenChange={setShowSellerForm}>
+        <DialogContent className="max-w-lg bg-black/90 backdrop-blur-3xl border-white/10 max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Стать продавцом</DialogTitle>
+            <DialogDescription>
+              Заполните форму для регистрации в качестве продавца.
+            </DialogDescription>
+          </DialogHeader>
+          <Form {...sellerForm}>
+            <form onSubmit={sellerForm.handleSubmit(onSellerSubmit)} className="space-y-4">
+              <FormField
+                control={sellerForm.control}
+                name="type"
+                render={({ field }) => (
+                  <FormItem className="space-y-3">
+                    <FormLabel>Тип продавца</FormLabel>
+                    <FormControl>
+                      <RadioGroup
+                        onValueChange={field.onChange}
+                        defaultValue={field.value}
+                        className="flex flex-col space-y-1"
+                      >
+                        <FormItem className="flex items-center space-x-3 space-y-0">
+                          <FormControl>
+                            <RadioGroupItem value="person" className="border-white/20 text-neon-cyan" />
+                          </FormControl>
+                          <FormLabel className="font-normal text-gray-300">
+                            Физическое лицо
+                          </FormLabel>
+                        </FormItem>
+                        <FormItem className="flex items-center space-x-3 space-y-0">
+                          <FormControl>
+                            <RadioGroupItem value="store" className="border-white/20 text-neon-cyan" />
+                          </FormControl>
+                          <FormLabel className="font-normal text-gray-300">
+                            Магазин
+                          </FormLabel>
+                        </FormItem>
+                      </RadioGroup>
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={sellerForm.control}
+                name="storeName"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Название</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Название магазина или ваше имя" {...field} className="bg-white/5 border-white/10" />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={sellerForm.control}
+                name="storeDescription"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Описание</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Опишите вашу деятельность" {...field} className="bg-white/5 border-white/10" />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              {sellerType === 'store' && (
+                <>
+                  <FormField
+                    control={sellerForm.control}
+                    name="address"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Адрес</FormLabel>
+                        <FormControl>
+                          <Input placeholder="Адрес магазина" {...field} className="bg-white/5 border-white/10" />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={sellerForm.control}
+                    name="workingHours"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Время работы</FormLabel>
+                        <FormControl>
+                          <Input placeholder="09:00 - 18:00" {...field} className="bg-white/5 border-white/10" />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </>
+              )}
+
+              <FormField
+                control={sellerForm.control}
+                name="agreement"
+                render={({ field }) => (
+                  <FormItem className="flex flex-row items-start space-x-3 space-y-0">
+                    <FormControl>
+                      <Checkbox
+                        checked={field.value}
+                        onCheckedChange={field.onChange}
+                        className="border-white/20 data-[state=checked]:bg-neon-cyan data-[state=checked]:text-black"
+                      />
+                    </FormControl>
+                    <div className="space-y-1 leading-none">
+                      <FormLabel className="text-gray-300">
+                        Я принимаю правила для продавцов
+                      </FormLabel>
+                      <FormMessage />
+                    </div>
+                  </FormItem>
+                )}
+              />
+
+              <FrostButton type="submit" className="w-full" variant="primary" disabled={sellerForm.formState.isSubmitting}>
+                Зарегистрироваться
               </FrostButton>
             </form>
           </Form>
@@ -762,9 +955,9 @@ export default function ProfilePage() {
       <Dialog open={showTopUp} onOpenChange={setShowTopUp}>
         <DialogContent className="max-w-md bg-black/90 backdrop-blur-3xl border-white/10">
           <DialogHeader>
-            <DialogTitle>Top Up Balance</DialogTitle>
+            <DialogTitle>Пополнить баланс</DialogTitle>
             <DialogDescription>
-              Select amount to top up.
+              Выберите сумму для пополнения.
             </DialogDescription>
           </DialogHeader>
           <TopUpBalance onSuccess={handleTopUpSuccess} />
