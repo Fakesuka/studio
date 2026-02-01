@@ -1,6 +1,6 @@
 'use client';
 
-import { Wrench, Flame, Fuel, Zap, MapPin, Navigation, Snowflake } from 'lucide-react';
+import { Wrench, Flame, Fuel, Zap, MapPin, Navigation, Snowflake, CloudSun } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { FrostButton } from '@/components/ui/frost-button';
 import { IceCard } from '@/components/ui/ice-card';
@@ -8,10 +8,16 @@ import type { MarketplaceOrderStatus, OrderStatus } from '@/lib/types';
 import Link from 'next/link';
 import { useAppContext } from '@/context/AppContext';
 import { Skeleton } from '@/components/ui/skeleton';
-import { WeatherWidget } from '@/components/weather-widget';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { getCurrentUserId } from '@/lib/user-utils';
 import { useState, useEffect } from 'react';
+
+const WEATHER_PERMISSION_KEY = 'yakgo_weather_permission';
+
+type WeatherData = {
+  city: string;
+  temperature: number;
+} | null;
 
 const getServiceStatusVariant = (status: OrderStatus) => {
   switch (status) {
@@ -59,24 +65,84 @@ export default function Dashboard() {
   const { orders, marketplaceOrders, isContextLoading, activeClientOrder } = useAppContext();
   const userId = getCurrentUserId();
   const [radarBlips, setRadarBlips] = useState<{ id: number; top: string; left: string; size: string; delay: string; opacity: number; color: string }[]>([]);
+  const [weather, setWeather] = useState<WeatherData>(null);
+  const [weatherLoading, setWeatherLoading] = useState(true);
+
+  // Fetch weather with geolocation
+  useEffect(() => {
+    const fetchWeather = async () => {
+      // Check if permission was granted before or request it
+      const hasPermission = localStorage.getItem(WEATHER_PERMISSION_KEY) === 'true';
+
+      if (!navigator.geolocation) {
+        setWeatherLoading(false);
+        return;
+      }
+
+      navigator.geolocation.getCurrentPosition(
+        async (position) => {
+          try {
+            const { latitude, longitude } = position.coords;
+
+            // Get city name
+            let city = 'Якутия';
+            try {
+              const geoRes = await fetch(
+                `https://geocoding-api.open-meteo.com/v1/search?latitude=${latitude}&longitude=${longitude}&count=1&language=ru&format=json`
+              );
+              if (geoRes.ok) {
+                const geoData = await geoRes.json();
+                const result = geoData?.results?.[0];
+                if (result) {
+                  city = result.name || result.admin1 || city;
+                }
+              }
+            } catch (e) {
+              console.error('Geocoding error:', e);
+            }
+
+            // Get weather
+            const weatherRes = await fetch(
+              `https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&current=temperature_2m&timezone=auto`
+            );
+            if (weatherRes.ok) {
+              const weatherData = await weatherRes.json();
+              const temperature = Math.round(weatherData.current.temperature_2m);
+              setWeather({ city, temperature });
+              localStorage.setItem(WEATHER_PERMISSION_KEY, 'true');
+            }
+          } catch (error) {
+            console.error('Weather fetch error:', error);
+          } finally {
+            setWeatherLoading(false);
+          }
+        },
+        (error) => {
+          console.error('Geolocation error:', error);
+          setWeatherLoading(false);
+        },
+        { enableHighAccuracy: false, timeout: 10000, maximumAge: 300000 }
+      );
+    };
+
+    fetchWeather();
+  }, []);
 
   useEffect(() => {
     const generateBlips = () => {
       return Array.from({ length: 8 }).map((_, i) => ({
-        id: Date.now() + i, // Unique ID for key consistency
+        id: Date.now() + i,
         top: `${Math.random() * 80 + 10}%`,
         left: `${Math.random() * 80 + 10}%`,
         size: `${Math.random() * 6 + 4}px`,
-        delay: `${Math.random() * 0.5}s`, // Shorter delay for immediate appearance
+        delay: `${Math.random() * 0.5}s`,
         opacity: Math.random() * 0.5 + 0.3,
         color: Math.random() > 0.85 ? 'bg-neon-orange text-neon-orange shadow-[0_0_15px_currentColor]' : (Math.random() > 0.8 ? 'bg-white text-white shadow-[0_0_10px_currentColor]' : 'bg-neon-cyan text-neon-cyan shadow-[0_0_10px_currentColor]'),
       }));
     };
 
-    // Initial generation
     setRadarBlips(generateBlips());
 
-    // Regenerate every 3.8 seconds to match the animation cycle with a tiny overlap
     const interval = setInterval(() => {
       setRadarBlips(generateBlips());
     }, 3800);
@@ -127,25 +193,29 @@ export default function Dashboard() {
 
       {/* Hero: Ice Command Hub */}
       <section className="relative w-full">
-        <div className="flex flex-col gap-2 mb-6">
+        <div className="flex flex-col gap-2 mb-4">
           <h1 className="text-4xl font-display font-bold text-transparent bg-clip-text bg-gradient-to-r from-white via-blue-100 to-white drop-shadow-[0_0_10px_rgba(255,255,255,0.3)]">
             Центр Управления
           </h1>
-          <p className="text-blue-200/60 text-sm font-light tracking-wide">
-            Якутия • <span className="text-neon-cyan">-42°C</span> • Ясно
+          <p className="text-blue-200/60 text-sm font-light tracking-wide flex items-center gap-2">
+            {weatherLoading ? (
+              <span className="animate-pulse">Определение погоды...</span>
+            ) : weather ? (
+              <>
+                {weather.city} • <span className="text-neon-cyan">{weather.temperature > 0 ? '+' : ''}{weather.temperature}°C</span>
+              </>
+            ) : (
+              <>Якутия • <span className="text-gray-400">Погода недоступна</span></>
+            )}
           </p>
         </div>
 
-        <IceCard className="h-[320px] w-full relative group overflow-hidden border-neon-cyan/20 shadow-[0_0_50px_rgba(6,182,212,0.15)]">
-          {/* Map Texture */}
+        <IceCard className="h-[220px] w-full relative group overflow-hidden border-neon-cyan/20 shadow-[0_0_50px_rgba(6,182,212,0.15)]">
           {/* Atmospheric Background */}
           <div className="absolute inset-0 bg-[url('/images/map_bg.png')] bg-cover bg-center opacity-50 mix-blend-overlay group-hover:opacity-70 group-hover:scale-105 transition-all duration-700" />
-
           <div className="absolute inset-0 bg-gradient-to-t from-background via-background/60 to-transparent" />
 
-          {/* Radar Pulse */}
-          {/* Radar Pulse & Central Button */}
-          {/* Radar Target Blips (Simulated) - Randomly Generated */}
+          {/* Radar Target Blips */}
           <div className="absolute inset-0 z-0 pointer-events-none overflow-hidden">
             {radarBlips.map((blip) => (
               <div
@@ -162,29 +232,24 @@ export default function Dashboard() {
             ))}
           </div>
 
-          {/* Radar Pulse & Central Button */}
+          {/* Central Button */}
           <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-10 flex flex-col items-center justify-center">
-
             {/* Pulsing Radar Waves */}
             <div className="absolute flex items-center justify-center pointer-events-none">
-              <div className="absolute w-[500px] h-[500px] rounded-full border border-neon-cyan/5 animate-[ping_4s_linear_infinite]" />
-              <div className="absolute w-[400px] h-[400px] rounded-full border border-neon-cyan/10 animate-[ping_3s_linear_infinite]" />
-              <div className="absolute w-[300px] h-[300px] rounded-full border border-neon-cyan/20 animate-[ping_2s_linear_infinite]" />
+              <div className="absolute w-[400px] h-[400px] rounded-full border border-neon-cyan/5 animate-[ping_4s_linear_infinite]" />
+              <div className="absolute w-[300px] h-[300px] rounded-full border border-neon-cyan/10 animate-[ping_3s_linear_infinite]" />
+              <div className="absolute w-[200px] h-[200px] rounded-full border border-neon-cyan/20 animate-[ping_2s_linear_infinite]" />
             </div>
 
-            {/* Central Action Button Container */}
+            {/* Action Button */}
             <div className="relative flex flex-col items-center">
               <Link href="/services/new" className="relative group flex items-center justify-center">
-                {/* Glow Effect */}
                 <div className="absolute inset-0 bg-neon-cyan/30 blur-2xl rounded-full group-hover:bg-neon-cyan/50 transition-all duration-500 animate-pulse" />
-
-                {/* The Button */}
-                <div className="relative h-28 w-28 rounded-full bg-black/60 backdrop-blur-xl border border-neon-cyan/50 flex items-center justify-center shadow-[0_0_30px_rgba(6,182,212,0.3)] group-hover:scale-105 group-hover:border-neon-cyan group-hover:shadow-[0_0_60px_rgba(6,182,212,0.6)] transition-all duration-300 z-20">
-                  <Wrench className="h-10 w-10 text-neon-cyan drop-shadow-[0_0_15px_rgba(6,182,212,1)]" />
+                <div className="relative h-20 w-20 rounded-full bg-black/60 backdrop-blur-xl border border-neon-cyan/50 flex items-center justify-center shadow-[0_0_30px_rgba(6,182,212,0.3)] group-hover:scale-105 group-hover:border-neon-cyan group-hover:shadow-[0_0_60px_rgba(6,182,212,0.6)] transition-all duration-300 z-20">
+                  <Wrench className="h-8 w-8 text-neon-cyan drop-shadow-[0_0_15px_rgba(6,182,212,1)]" />
                 </div>
               </Link>
-
-              <h2 className="absolute top-full mt-6 text-xl font-bold text-white tracking-wide uppercase drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)] whitespace-nowrap">
+              <h2 className="absolute top-full mt-4 text-base font-bold text-white tracking-wide uppercase drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)] whitespace-nowrap">
                 Новая Заявка
               </h2>
             </div>

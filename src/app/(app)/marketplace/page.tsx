@@ -20,10 +20,8 @@ import {
   Package,
   Store,
   Snowflake,
-  Flame
 } from 'lucide-react';
 import { useAppContext } from '@/context/AppContext';
-import { Badge } from '@/components/ui/badge';
 import { useState } from 'react';
 import { Input } from '@/components/ui/input';
 
@@ -32,6 +30,7 @@ export default function MarketplacePage() {
   const {
     products,
     shops,
+    cart,
     addToCart,
     updateCartItemQuantity,
     getCartItemQuantity,
@@ -89,18 +88,30 @@ export default function MarketplacePage() {
             Маркет
           </h1>
         </div>
-        {isSeller ? (
-          <Link href="/my-store" passHref>
-            <FrostButton variant="primary" className="shadow-neon-cyan/20">
-              <Store className="mr-2 h-4 w-4" />
-              Управление
+        <div className="flex items-center gap-2">
+          {isSeller ? (
+            <Link href="/my-store" passHref>
+              <FrostButton variant="primary" className="shadow-neon-cyan/20">
+                <Store className="mr-2 h-4 w-4" />
+                Управление
+              </FrostButton>
+            </Link>
+          ) : (
+            <Link href="/profile" passHref>
+              <FrostButton variant="ghost" className="text-cyan-200">Стать продавцом</FrostButton>
+            </Link>
+          )}
+          <Link href="/cart" passHref>
+            <FrostButton variant="default" size="icon" className="relative rounded-full bg-white/10 hover:bg-white/20">
+              <ShoppingCart className="h-5 w-5" />
+              {cart.length > 0 && (
+                <span className="absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full bg-neon-cyan text-xs font-bold text-black">
+                  {cart.reduce((sum, item) => sum + item.quantity, 0)}
+                </span>
+              )}
             </FrostButton>
           </Link>
-        ) : (
-          <Link href="/profile" passHref>
-            <FrostButton variant="ghost" className="text-cyan-200">Стать продавцом</FrostButton>
-          </Link>
-        )}
+        </div>
       </div>
 
       <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between p-1">
@@ -187,13 +198,11 @@ export default function MarketplacePage() {
 
       {filteredProducts.length > 0 ? (
         <div className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-4">
-          {filteredProducts.map((product, idx) => {
-            // Simulator logic: Mark every 3rd item as "Hot" for demo
-            const isHot = idx % 3 === 0;
+          {filteredProducts.map((product) => {
             return (
               <IceCard
                 key={product.id}
-                variant={isHot ? "hot" : "crystal"}
+                variant="crystal"
                 className="flex flex-col h-full group"
               >
                 <div className="relative aspect-square w-full overflow-hidden rounded-t-xl bg-black/20">
@@ -204,13 +213,6 @@ export default function MarketplacePage() {
                     className="object-cover transition-transform duration-500 group-hover:scale-110"
                     sizes="(max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
                   />
-                  {isHot && (
-                    <div className="absolute top-2 right-2">
-                      <Badge variant="destructive" className="bg-neon-orange/80 border-neon-orange text-white shadow-[0_0_10px_rgba(255,100,0,0.5)] animate-pulse">
-                        <Flame className="h-3 w-3 mr-1 fill-white" /> HOT
-                      </Badge>
-                    </div>
-                  )}
                 </div>
 
                 <div className="flex-1 p-4 flex flex-col gap-2">
@@ -221,17 +223,16 @@ export default function MarketplacePage() {
 
                   <div className="mt-auto pt-2 border-t border-white/5 flex flex-col gap-3">
                     <div className="flex items-center justify-between">
-                      <p className={`text-lg font-bold font-mono ${isHot ? 'text-neon-orange' : 'text-neon-cyan'}`}>
+                      <p className="text-lg font-bold font-mono text-neon-cyan">
                         {product.price.toLocaleString('ru-RU')} ₽
                       </p>
-                      {/* Delivery Badge Mini */}
                       {product.delivery && <Truck className="h-3 w-3 text-gray-500" />}
                     </div>
 
                     {quantityInCart(product.id) === 0 ? (
                       <FrostButton
                         size="sm"
-                        variant={isHot ? "fire" : "primary"}
+                        variant="primary"
                         onClick={() => handleAddToCart(product.id, product.name)}
                         className="w-full text-xs h-9"
                       >

@@ -28,6 +28,7 @@ import { Switch } from '@/components/ui/switch';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useAppContext } from '@/context/AppContext';
+import { RoleSwitcher } from '@/components/role-switcher';
 import Link from 'next/link';
 import { getCurrentUserId } from '@/lib/user-utils';
 import { useToast } from '@/hooks/use-toast';
@@ -126,6 +127,8 @@ export default function ProfilePage() {
     registerAsDriver,
     refreshData,
     balance,
+    currentRole,
+    setCurrentRole,
   } = useAppContext();
   const { toast } = useToast();
   const [showTopUp, setShowTopUp] = useState(false);
@@ -417,9 +420,16 @@ export default function ProfilePage() {
 
       <div className="flex items-center justify-between px-2">
         <h1 className="text-3xl font-display font-bold text-white tracking-tight">Профиль</h1>
-        <FrostButton variant="ghost" size="icon" className="rounded-full">
-          <Settings className="h-5 w-5 text-gray-400" />
-        </FrostButton>
+        <div className="flex items-center gap-2">
+          <RoleSwitcher
+            currentRole={currentRole}
+            onRoleChange={setCurrentRole}
+            isDriver={isDriver}
+          />
+          <FrostButton variant="ghost" size="icon" className="rounded-full">
+            <Settings className="h-5 w-5 text-gray-400" />
+          </FrostButton>
+        </div>
       </div>
 
       {/* Avatar Hub (Ice Version) */}
@@ -578,20 +588,17 @@ export default function ProfilePage() {
 
           {/* Статус продавца */}
           {isSeller ? (
-            <Link href="/my-store" className="block">
-              <IceCard variant="hot" className="p-4 flex items-center justify-between hover:border-neon-orange/60 transition-all cursor-pointer">
-                <div className="flex items-center gap-4">
-                  <div className="h-10 w-10 rounded-full bg-neon-orange/10 flex items-center justify-center text-neon-orange shadow-[0_0_10px_rgba(255,100,0,0.3)]">
-                    <Store className="h-5 w-5" />
-                  </div>
-                  <div>
-                    <h4 className="text-white font-medium text-sm">Продавец</h4>
-                    <p className="text-xs text-green-400">Статус активен</p>
-                  </div>
+            <IceCard variant="hot" className="p-4 flex items-center">
+              <div className="flex items-center gap-4">
+                <div className="h-10 w-10 rounded-full bg-neon-orange/10 flex items-center justify-center text-neon-orange shadow-[0_0_10px_rgba(255,100,0,0.3)]">
+                  <Store className="h-5 w-5" />
                 </div>
-                <ChevronRight className="h-5 w-5 text-orange-500/50" />
-              </IceCard>
-            </Link>
+                <div>
+                  <h4 className="text-white font-medium text-sm">Продавец</h4>
+                  <p className="text-xs text-green-400">Статус активен</p>
+                </div>
+              </div>
+            </IceCard>
           ) : (
             <IceCard className="p-4 flex items-center justify-between">
               <div className="flex items-center gap-4">
@@ -608,20 +615,17 @@ export default function ProfilePage() {
 
           {/* Статус водителя */}
           {isDriver ? (
-            <Link href="/driver/dashboard" className="block mt-2">
-              <IceCard variant="crystal" className="p-4 flex items-center justify-between hover:border-blue-500/60 transition-all cursor-pointer">
-                <div className="flex items-center gap-4">
-                  <div className="h-10 w-10 rounded-full bg-blue-500/10 flex items-center justify-center text-blue-400 shadow-[0_0_10px_rgba(59,130,246,0.3)]">
-                    <Car className="h-5 w-5" />
-                  </div>
-                  <div>
-                    <h4 className="text-white font-medium text-sm">Водитель</h4>
-                    <p className="text-xs text-green-400">Статус активен</p>
-                  </div>
+            <IceCard variant="crystal" className="p-4 flex items-center mt-2">
+              <div className="flex items-center gap-4">
+                <div className="h-10 w-10 rounded-full bg-blue-500/10 flex items-center justify-center text-blue-400 shadow-[0_0_10px_rgba(59,130,246,0.3)]">
+                  <Car className="h-5 w-5" />
                 </div>
-                <ChevronRight className="h-5 w-5 text-blue-500/50" />
-              </IceCard>
-            </Link>
+                <div>
+                  <h4 className="text-white font-medium text-sm">Водитель</h4>
+                  <p className="text-xs text-green-400">Статус активен</p>
+                </div>
+              </div>
+            </IceCard>
           ) : (
             <IceCard className="p-4 flex items-center justify-between mt-2">
               <div className="flex items-center gap-4">
@@ -653,9 +657,9 @@ export default function ProfilePage() {
             <div className="flex items-center justify-between p-4 cursor-pointer hover:bg-red-500/10 transition-colors group">
               <div className="flex items-center gap-4">
                 <div className="h-8 w-8 rounded-full bg-red-500/10 flex items-center justify-center text-red-500 group-hover:bg-red-500 group-hover:text-white transition-all">
-                  <LogOut className="h-4 w-4" />
+                  <User className="h-4 w-4" />
                 </div>
-                <span className="text-red-500 group-hover:text-red-400 transition-colors text-sm font-medium">Выйти</span>
+                <span className="text-red-500 group-hover:text-red-400 transition-colors text-sm font-medium">Удалить мой профиль</span>
               </div>
             </div>
           </IceCard>
