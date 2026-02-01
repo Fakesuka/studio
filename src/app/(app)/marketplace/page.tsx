@@ -49,7 +49,7 @@ export default function MarketplacePage() {
   const handleAddToCart = (productId: string, productName: string) => {
     addToCart(productId);
     toast({
-      title: `${productName} added to frosty cart`,
+      title: `${productName} добавлен в корзину`,
       duration: 2000,
     });
   };
@@ -86,22 +86,19 @@ export default function MarketplacePage() {
       <div className="mb-8 flex flex-wrap items-center justify-between gap-4 relative z-10">
         <div>
           <h1 className="text-4xl font-display font-bold text-transparent bg-clip-text bg-gradient-to-r from-white via-cyan-100 to-white drop-shadow-[0_0_10px_rgba(34,211,238,0.5)]">
-            Ice Market
+            Маркет
           </h1>
-          <p className="text-blue-200/60 font-light">
-            Essential supplies for the frozen roads.
-          </p>
         </div>
         {isSeller ? (
           <Link href="/my-store" passHref>
             <FrostButton variant="primary" className="shadow-neon-cyan/20">
               <Store className="mr-2 h-4 w-4" />
-              Manage Store
+              Управление
             </FrostButton>
           </Link>
         ) : (
           <Link href="/profile" passHref>
-            <FrostButton variant="ghost" className="text-cyan-200">Become a Seller</FrostButton>
+            <FrostButton variant="ghost" className="text-cyan-200">Стать продавцом</FrostButton>
           </Link>
         )}
       </div>
@@ -110,7 +107,7 @@ export default function MarketplacePage() {
         <div className="relative w-full sm:max-w-xs group">
           <div className="absolute inset-0 bg-neon-cyan/20 blur-xl opacity-0 group-focus-within:opacity-100 transition-opacity rounded-xl" />
           <Input
-            placeholder="Search products..."
+            placeholder="Поиск товаров..."
             value={searchTerm}
             onChange={e => setSearchTerm(e.target.value)}
             className="w-full bg-white/5 border-white/10 text-white placeholder:text-blue-200/30 rounded-xl focus:border-neon-cyan/50 focus:ring-neon-cyan/20 backdrop-blur-md transition-all pl-10 h-11"
@@ -129,7 +126,7 @@ export default function MarketplacePage() {
             }
           >
             <Truck className="mr-2 h-4 w-4" />
-            Delivery
+            Доставка
           </FrostButton>
           <FrostButton
             variant={filters.pickup ? 'primary' : 'default'}
@@ -139,7 +136,7 @@ export default function MarketplacePage() {
             }
           >
             <Package className="mr-2 h-4 w-4" />
-            Pickup
+            Самовывоз
           </FrostButton>
         </div>
       </div>
@@ -147,7 +144,7 @@ export default function MarketplacePage() {
       <div className="mb-10">
         <h2 className="mb-4 text-xl font-bold text-white flex items-center gap-2">
           <span className="w-1 h-6 bg-neon-cyan rounded-full shadow-[0_0_10px_rgba(34,211,238,0.8)]" />
-          Frozen Shops
+          Магазины
         </h2>
         <Carousel
           opts={{
@@ -185,7 +182,7 @@ export default function MarketplacePage() {
 
       <h2 className="mb-4 text-xl font-bold text-white flex items-center gap-2">
         <span className="w-1 h-6 bg-neon-orange rounded-full shadow-[0_0_10px_rgba(255,100,0,0.8)]" />
-        Ice Cube Products
+        Товары
       </h2>
 
       {filteredProducts.length > 0 ? (
@@ -238,7 +235,7 @@ export default function MarketplacePage() {
                         onClick={() => handleAddToCart(product.id, product.name)}
                         className="w-full text-xs h-9"
                       >
-                        <ShoppingCart className="mr-2 h-3 w-3" /> Add
+                        <ShoppingCart className="mr-2 h-3 w-3" /> В корзину
                       </FrostButton>
                     ) : (
                       <div className="flex items-center justify-between bg-black/20 rounded-lg p-1 border border-white/10">
@@ -275,7 +272,7 @@ export default function MarketplacePage() {
             <Snowflake className="h-8 w-8 text-gray-500" />
           </div>
           <p className="text-gray-500">
-            No frozen goods found.<br />Check back later.
+            Товары не найдены.<br />Попробуйте позже.
           </p>
         </div>
       )}

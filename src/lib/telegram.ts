@@ -68,16 +68,9 @@ declare global {
 }
 
 // Check if we're in development mode
+// Dev mode is disabled for production - app works only inside Telegram
 export const isDevMode = (): boolean => {
-  if (typeof window === 'undefined') return false;
-
-  // Check localStorage flag OR hostname OR NODE_ENV
-  return (
-    localStorage.getItem('devMode') === 'true' ||
-    window.location.hostname === 'localhost' ||
-    window.location.hostname === '127.0.0.1' ||
-    process.env.NODE_ENV === 'development'
-  );
+  return false;
 };
 
 // Mock Telegram user for development
