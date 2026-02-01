@@ -71,9 +71,6 @@ export default function Dashboard() {
   // Fetch weather with geolocation
   useEffect(() => {
     const fetchWeather = async () => {
-      // Check if permission was granted before or request it
-      const hasPermission = localStorage.getItem(WEATHER_PERMISSION_KEY) === 'true';
-
       if (!navigator.geolocation) {
         setWeatherLoading(false);
         return;
@@ -84,18 +81,21 @@ export default function Dashboard() {
           try {
             const { latitude, longitude } = position.coords;
 
-            // Get city name
-            let city = 'Якутия';
+            // Get city name using reverse geocoding (Nominatim)
+            let city = 'Ваш город';
             try {
               const geoRes = await fetch(
-                `https://geocoding-api.open-meteo.com/v1/search?latitude=${latitude}&longitude=${longitude}&count=1&language=ru&format=json`
+                `https://nominatim.openstreetmap.org/reverse?lat=${latitude}&lon=${longitude}&format=json&accept-language=ru`
               );
               if (geoRes.ok) {
                 const geoData = await geoRes.json();
-                const result = geoData?.results?.[0];
-                if (result) {
-                  city = result.name || result.admin1 || city;
-                }
+                // Try to get city name from address
+                city = geoData?.address?.city ||
+                       geoData?.address?.town ||
+                       geoData?.address?.village ||
+                       geoData?.address?.municipality ||
+                       geoData?.address?.state ||
+                       city;
               }
             } catch (e) {
               console.error('Geocoding error:', e);
@@ -210,7 +210,7 @@ export default function Dashboard() {
           </p>
         </div>
 
-        <IceCard className="h-[220px] w-full relative group overflow-hidden border-neon-cyan/20 shadow-[0_0_50px_rgba(6,182,212,0.15)]">
+        <IceCard className="h-[160px] w-full relative group overflow-hidden border-neon-cyan/20 shadow-[0_0_50px_rgba(6,182,212,0.15)]">
           {/* Atmospheric Background */}
           <div className="absolute inset-0 bg-[url('/images/map_bg.png')] bg-cover bg-center opacity-50 mix-blend-overlay group-hover:opacity-70 group-hover:scale-105 transition-all duration-700" />
           <div className="absolute inset-0 bg-gradient-to-t from-background via-background/60 to-transparent" />
@@ -233,23 +233,23 @@ export default function Dashboard() {
           </div>
 
           {/* Central Button */}
-          <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-10 flex flex-col items-center justify-center">
+          <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-[60%] z-10 flex flex-col items-center justify-center">
             {/* Pulsing Radar Waves */}
             <div className="absolute flex items-center justify-center pointer-events-none">
-              <div className="absolute w-[400px] h-[400px] rounded-full border border-neon-cyan/5 animate-[ping_4s_linear_infinite]" />
-              <div className="absolute w-[300px] h-[300px] rounded-full border border-neon-cyan/10 animate-[ping_3s_linear_infinite]" />
-              <div className="absolute w-[200px] h-[200px] rounded-full border border-neon-cyan/20 animate-[ping_2s_linear_infinite]" />
+              <div className="absolute w-[300px] h-[300px] rounded-full border border-neon-cyan/5 animate-[ping_4s_linear_infinite]" />
+              <div className="absolute w-[220px] h-[220px] rounded-full border border-neon-cyan/10 animate-[ping_3s_linear_infinite]" />
+              <div className="absolute w-[140px] h-[140px] rounded-full border border-neon-cyan/20 animate-[ping_2s_linear_infinite]" />
             </div>
 
             {/* Action Button */}
             <div className="relative flex flex-col items-center">
               <Link href="/services/new" className="relative group flex items-center justify-center">
                 <div className="absolute inset-0 bg-neon-cyan/30 blur-2xl rounded-full group-hover:bg-neon-cyan/50 transition-all duration-500 animate-pulse" />
-                <div className="relative h-20 w-20 rounded-full bg-black/60 backdrop-blur-xl border border-neon-cyan/50 flex items-center justify-center shadow-[0_0_30px_rgba(6,182,212,0.3)] group-hover:scale-105 group-hover:border-neon-cyan group-hover:shadow-[0_0_60px_rgba(6,182,212,0.6)] transition-all duration-300 z-20">
-                  <Wrench className="h-8 w-8 text-neon-cyan drop-shadow-[0_0_15px_rgba(6,182,212,1)]" />
+                <div className="relative h-16 w-16 rounded-full bg-black/60 backdrop-blur-xl border border-neon-cyan/50 flex items-center justify-center shadow-[0_0_30px_rgba(6,182,212,0.3)] group-hover:scale-105 group-hover:border-neon-cyan group-hover:shadow-[0_0_60px_rgba(6,182,212,0.6)] transition-all duration-300 z-20">
+                  <Wrench className="h-7 w-7 text-neon-cyan drop-shadow-[0_0_15px_rgba(6,182,212,1)]" />
                 </div>
               </Link>
-              <h2 className="absolute top-full mt-4 text-base font-bold text-white tracking-wide uppercase drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)] whitespace-nowrap">
+              <h2 className="absolute top-full mt-3 text-sm font-bold text-white tracking-wide uppercase drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)] whitespace-nowrap">
                 Новая Заявка
               </h2>
             </div>
