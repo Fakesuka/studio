@@ -289,6 +289,123 @@ export default function ProfilePage() {
     });
   };
 
+  const requestPhoneNumber = () => {
+    console.log('[Profile] Requesting phone number from Telegram');
+    const webApp = getTelegramWebApp();
+
+    if (!webApp) {
+      console.error('[Profile] WebApp not available');
+      toast({
+        title: 'Недоступно',
+        description: 'Функция доступна только в Telegram',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    console.log('[Profile] WebApp available, checking user data');
+    const user = webApp.initDataUnsafe?.user;
+    console.log('[Profile] User object:', JSON.stringify(user, null, 2));
+
+    // Try to get phone directly from user data
+    if (user?.phone_number) {
+      console.log('[Profile] Phone found in user data:', user.phone_number);
+      setPhone(user.phone_number);
+      toast({
+        title: 'Номер получен',
+        description: 'Номер телефона из вашего профиля Telegram',
+      });
+      return;
+    }
+
+    console.log('[Profile] Phone not in user data, requesting via requestContact');
+    // If not available, request it
+    webApp.requestContact(async (contactShared) => {
+      console.log('[Profile] Contact shared:', contactShared);
+      if (contactShared) {
+        // Contact was shared and sent to bot
+        // Wait a moment for the bot to process and save to database
+        toast({
+          title: 'Обработка...',
+          description: 'Получаем номер телефона из Telegram',
+        });
+
+        // Give bot time to process the contact message
+        await new Promise(resolve => setTimeout(resolve, 2000));
+
+        try {
+          // Fetch updated profile from API (bot saves phone to database)
+          console.log('[Profile] Fetching updated profile from API');
+          const updatedProfile = await api.getProfile() as any;
+          console.log('[Profile] Updated profile:', updatedProfile);
+
+          if (updatedProfile.phone) {
+            console.log('[Profile] Phone now available from API:', updatedProfile.phone);
+            setPhone(updatedProfile.phone);
+            toast({
+              title: 'Номер получен',
+              description: 'Номер телефона успешно сохранен',
+            });
+          } else {
+            // Try once more after additional delay
+            console.log('[Profile] Phone not yet in DB, retrying...');
+            await new Promise(resolve => setTimeout(resolve, 2000));
+            const retryProfile = await api.getProfile() as any;
+
+            if (retryProfile.phone) {
+              setPhone(retryProfile.phone);
+              toast({
+                title: 'Номер получен',
+                description: 'Номер телефона успешно сохранен',
+              });
+            } else {
+              console.warn('[Profile] Phone still not available after retry');
+              toast({
+                title: 'Номер отправлен',
+                description: 'Обновите страницу через несколько секунд',
+              });
+            }
+          }
+        } catch (error) {
+          logError('[Profile] Error fetching updated profile:', error);
+          toast({
+            title: 'Номер отправлен',
+            description: 'Перезагрузите страницу для обновления данных',
+          });
+        }
+      } else {
+        console.log('[Profile] User cancelled contact sharing');
+        toast({
+          title: 'Отменено',
+          description: 'Запрос номера отменен',
+          variant: 'destructive',
+        });
+      }
+    });
+  };
+
+  const handleSaveProfile = async () => {
+    try {
+      const selectedCity = city === 'Другой' ? customCity : city;
+      const profileData = { name, phone, city: selectedCity };
+      console.log('Saving profile data:', profileData);
+
+      await api.updateProfile(profileData);
+      await refreshData();
+
+      toast({
+        title: 'Профиль обновлен',
+        description: 'Ваши данные успешно сохранены.',
+      });
+    } catch (error) {
+      logError('[Profile] Save error:', error);
+      toast({
+        title: 'Ошибка',
+        description: getErrorMessage(error, 'Не удалось сохранить профиль.'),
+        variant: 'destructive',
+      });
+    }
+  };
 
   return (
     <div className="flex flex-col gap-6 relative pb-24">
