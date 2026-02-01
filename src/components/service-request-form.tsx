@@ -61,15 +61,12 @@ import {
 } from '@/ai/qwen';
 import { api } from '@/lib/api';
 import dynamic from 'next/dynamic';
-import type { MapMarker } from '@/components/map-2gis';
+import type { MapMarker } from '@/components/map-osm';
 
-const Map2GIS = dynamic(() => import('@/components/map-2gis'), {
+const MapOSM = dynamic(() => import('@/components/map-osm'), {
   ssr: false,
   loading: () => <div className="h-full w-full animate-pulse rounded-lg bg-muted" />,
 });
-
-const GIS_API_KEY =
-  process.env.NEXT_PUBLIC_2GIS_API_KEY || '1e0bb99c-b88d-4624-974a-63ab8c556c19';
 
 const formSchema = z.object({
   serviceType: z.string({
@@ -240,16 +237,22 @@ export function ServiceRequestForm() {
   const reverseGeocode = async ([lat, lng]: [number, number]) => {
     try {
       setIsGeocoding(true);
-      const url = `https://catalog.api.2gis.com/3.0/items/geocode?lat=${lat}&lon=${lng}&key=${GIS_API_KEY}&fields=items.full_name,items.address_name,items.name`;
+      const url = `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json&accept-language=ru`;
       const response = await fetch(url);
       if (!response.ok) return '';
       const data = await response.json();
-      const address =
-        data?.result?.items?.[0]?.full_name ||
-        data?.result?.items?.[0]?.address_name ||
-        data?.result?.items?.[0]?.name ||
-        '';
-      return address;
+      // Build address from Nominatim response
+      const addressParts = [];
+      if (data?.address?.city || data?.address?.town || data?.address?.village) {
+        addressParts.push(data?.address?.city || data?.address?.town || data?.address?.village);
+      }
+      if (data?.address?.road) {
+        addressParts.push(data.address.road);
+      }
+      if (data?.address?.house_number) {
+        addressParts.push(`д. ${data.address.house_number}`);
+      }
+      return addressParts.length > 0 ? addressParts.join(', ') : (data?.display_name || '');
     } catch (error) {
       console.error('Reverse geocode failed:', error);
       return '';
@@ -470,7 +473,7 @@ export function ServiceRequestForm() {
             <X className="h-5 w-5" />
           </Button>
           <div className="absolute inset-0 overflow-hidden md:rounded-2xl">
-            <Map2GIS
+            <MapOSM
               center={mapCenter}
               zoom={13}
               markers={mapMarkers}
