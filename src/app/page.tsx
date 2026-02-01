@@ -2,7 +2,7 @@
 
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
-import { ArrowRight } from 'lucide-react';
+import { ArrowRight, Sparkles } from 'lucide-react';
 import { getTelegramUser } from '@/lib/telegram';
 import { useEffect, useState } from 'react';
 import Image from 'next/image';
@@ -28,7 +28,7 @@ export default function WelcomePage() {
         setIsReturningUser(true);
         setTimeout(() => {
           router.push('/dashboard');
-        }, 1500);
+        }, 2000); // Slightly longer delay to enjoy the animation
       }
     }
   }, [router]);
@@ -39,93 +39,79 @@ export default function WelcomePage() {
     router.push('/dashboard');
   };
 
-  // Show welcome back message for returning users
-  if (isReturningUser && userName) {
-    return (
-      <div className="relative flex min-h-screen w-screen flex-col items-center justify-center overflow-hidden">
-        <div className="absolute inset-0 z-0 bg-gradient-to-br from-[#F7F3EE] via-[#F1F6FF] to-[#E8F0FF] dark:from-[#0F1115] dark:via-[#1A1024] dark:to-[#121826]">
-          <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,_var(--tw-gradient-stops))] from-[#6B7CFF]/15 via-transparent to-transparent dark:from-[#22D3EE]/20" />
-          <div className="absolute inset-0 opacity-70 dark:opacity-60">
-            <div className="absolute left-10 top-20 h-72 w-72 rounded-full bg-white/70 blur-3xl dark:bg-[#22D3EE]/15" />
-            <div className="absolute bottom-10 right-16 h-80 w-80 rounded-full bg-[#BFD6FF]/60 blur-[140px] dark:bg-[#3B82F6]/20" />
-          </div>
-        </div>
-
-        <div className="relative z-10 w-full max-w-md px-6">
-          <div className="flex flex-col items-center gap-4 rounded-[32px] border border-white/60 bg-white/70 px-6 py-10 text-center text-slate-800 shadow-[0_20px_60px_rgba(15,23,42,0.15)] backdrop-blur-xl dark:border-white/10 dark:bg-slate-950/40 dark:text-white dark:shadow-[0_0_45px_rgba(34,211,238,0.15)]">
-            <Image
-              src="/logo.png"
-              alt="YakGo"
-              width={160}
-              height={56}
-              className="drop-shadow-lg"
-            />
-            <div>
-              <h1 className="text-3xl font-semibold tracking-tight sm:text-4xl">
-                С возвращением,
-              </h1>
-              <p className="mt-2 text-2xl font-semibold text-slate-700 dark:text-cyan-100 sm:text-3xl">
-                {userName}!
-              </p>
-            </div>
-            <div className="mt-4 flex items-center gap-2 text-sm text-slate-600 dark:text-cyan-200">
-              <div className="h-2 w-2 rounded-full bg-[#4658E5] animate-pulse dark:bg-[#22D3EE]" />
-              <p>Перенаправление...</p>
-            </div>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  // Show first-time welcome screen
   return (
-    <div className="relative flex min-h-screen w-screen flex-col items-center justify-center overflow-hidden">
-      <div className="absolute inset-0 z-0 bg-gradient-to-br from-[#F7F3EE] via-[#F1F6FF] to-[#E8F0FF] dark:from-[#0F1115] dark:via-[#1A1024] dark:to-[#121826]">
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,_var(--tw-gradient-stops))] from-[#6B7CFF]/15 via-transparent to-transparent dark:from-[#22D3EE]/20" />
-        <div className="absolute inset-0 opacity-70 dark:opacity-60">
-          <div className="absolute left-10 top-20 h-72 w-72 rounded-full bg-white/70 blur-3xl dark:bg-[#22D3EE]/15" />
-          <div className="absolute bottom-10 right-16 h-80 w-80 rounded-full bg-[#BFD6FF]/60 blur-[140px] dark:bg-[#3B82F6]/20" />
-        </div>
+    <div className="relative flex min-h-screen w-screen flex-col items-center justify-center overflow-hidden bg-aurora-gradient text-white">
+      {/* Animated Aurora Background Effects */}
+      <div className="absolute inset-0 z-0">
+        <div className="absolute -top-[20%] -left-[10%] h-[70vh] w-[70vw] rounded-full bg-neon-cyan/20 blur-[120px] animate-pulse-glow" />
+        <div className="absolute top-[40%] -right-[20%] h-[60vh] w-[60vw] rounded-full bg-neon-purple/20 blur-[100px] animate-aurora" />
+        <div className="absolute -bottom-[10%] left-[20%] h-[50vh] w-[50vw] rounded-full bg-neon-pink/10 blur-[80px]" />
       </div>
 
-      <div className="relative z-10 w-full max-w-xl px-6">
-        <div className="flex flex-col items-center gap-5 rounded-[32px] border border-white/60 bg-white/70 px-6 py-12 text-center text-slate-800 shadow-[0_20px_60px_rgba(15,23,42,0.15)] backdrop-blur-xl dark:border-white/10 dark:bg-slate-950/40 dark:text-white dark:shadow-[0_0_45px_rgba(34,211,238,0.15)]">
-          <Image
-            src="/logo.png"
-            alt="YakGo"
-            width={200}
-            height={64}
-            className="drop-shadow-lg"
-          />
-          <div>
-            <p className="text-base font-medium uppercase tracking-[0.2em] text-slate-500 dark:text-cyan-200/80">
-              YakGo
-            </p>
-            <h1 className="mt-3 text-3xl font-semibold tracking-tight sm:text-4xl">
-              Ваш надежный помощник
-            </h1>
-            <p className="mt-2 text-base text-slate-600 sm:text-lg dark:text-cyan-100/90">
-              На дорогах Якутии и по маршрутам в вашем городе.
-            </p>
-          </div>
-          {userName && (
-            <p className="text-lg font-semibold text-slate-700 dark:text-white/90">
-              Добро пожаловать, {userName}!
-            </p>
-          )}
+      {/* Grid Pattern Overlay */}
+      <div className="absolute inset-0 z-0 bg-[linear-gradient(rgba(255,255,255,0.03)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.03)_1px,transparent_1px)] bg-[size:40px_40px] [mask-image:radial-gradient(ellipse_at_center,black_40%,transparent_80%)]" />
 
-          <div className="mt-4 flex w-full max-w-xs flex-col gap-4">
-            <Button
-              size="lg"
-              className="h-12 w-full bg-gradient-to-b from-white to-[#E9EEFF] text-lg text-[#1F2A44] shadow-[inset_0_1px_0_rgba(255,255,255,0.6),0_12px_24px_rgba(31,42,68,0.15)] hover:from-white hover:to-[#DCE5FF] dark:from-[#22D3EE] dark:to-[#10B981] dark:text-slate-900 dark:shadow-[0_0_30px_rgba(34,211,238,0.35)] dark:hover:from-[#2DE4F5] dark:hover:to-[#22D3EE]"
-              onClick={handleEnter}
-            >
-              Начать работу
-              <ArrowRight className="ml-2 h-5 w-5" />
-            </Button>
+      <div className="relative z-10 flex w-full max-w-sm flex-col items-center px-6">
+        {/* Glass Card Container */}
+        <div className="w-full rounded-3xl border border-white/10 bg-white/5 backdrop-blur-2xl p-8 shadow-2xl shadow-black/40 animate-in fade-in zoom-in duration-700">
+
+          {/* Logo Section */}
+          <div className="mb-8 flex flex-col items-center">
+            <div className="relative mb-4 h-20 w-20 rounded-2xl bg-gradient-to-br from-neon-cyan to-neon-purple p-0.5 shadow-lg shadow-neon-cyan/30">
+              <div className="flex h-full w-full items-center justify-center rounded-2xl bg-black/40 backdrop-blur-md">
+                <Sparkles className="h-10 w-10 text-white" />
+              </div>
+            </div>
+            <h1 className="text-center font-display text-4xl font-bold tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-neon-cyan via-white to-neon-purple drop-shadow-sm">
+              YakGo
+            </h1>
           </div>
+
+          <div className="mb-8 text-center">
+            {isReturningUser ? (
+              <div className="space-y-2">
+                <h2 className="text-2xl font-medium text-white">С возвращением!</h2>
+                <p className="font-display text-xl text-neon-cyan">{userName}</p>
+                <div className="mt-4 flex items-center justify-center gap-2 text-sm text-gray-400">
+                  <div className="h-2 w-2 rounded-full bg-neon-cyan animate-pulse" />
+                  <span>Загрузка профиля...</span>
+                </div>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                <h2 className="text-2xl font-medium leading-snug text-white">
+                  Ваш надежный помощник на дорогах
+                </h2>
+                <p className="text-sm text-gray-400">
+                  Помощь на дopoгах, эвакуация, доставка топлива и многое другое — в один клик.
+                </p>
+                {userName && (
+                  <p className="rounded-full bg-white/5 px-3 py-1 text-xs text-neon-cyan w-fit mx-auto border border-white/10">
+                    Привет, {userName}
+                  </p>
+                )}
+              </div>
+            )}
+          </div>
+
+          {!isReturningUser && (
+            <div className="space-y-3">
+              <Button
+                size="lg"
+                variant="neon"
+                className="w-full text-base font-bold tracking-wide"
+                onClick={handleEnter}
+              >
+                Начать
+                <ArrowRight className="ml-2 h-5 w-5" />
+              </Button>
+            </div>
+          )}
         </div>
+
+        <p className="mt-8 text-xs text-gray-500">
+          version 2.1.0 • Aurora Edition
+        </p>
       </div>
     </div>
   );

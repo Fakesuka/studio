@@ -45,18 +45,17 @@ function LayoutContent({ children }: { children: React.ReactNode }) {
   }, [currentRole, isContextLoading, pathname, router]);
 
   return (
-    <div className="relative flex min-h-screen w-screen flex-col overflow-hidden">
-      <div className="absolute inset-0 z-0 bg-gradient-to-br from-[#F7F3EE] via-[#F1F6FF] to-[#E8F0FF] dark:from-[#0F1115] dark:via-[#1A1024] dark:to-[#121826]">
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,_var(--tw-gradient-stops))] from-[#6B7CFF]/10 via-transparent to-transparent dark:from-[#22D3EE]/15" />
-        <div className="absolute inset-0 opacity-70 dark:opacity-60">
-          <div className="absolute left-10 top-12 h-72 w-72 rounded-full bg-white/70 blur-3xl dark:bg-[#22D3EE]/10" />
-          <div className="absolute bottom-10 right-10 h-80 w-80 rounded-full bg-[#BFD6FF]/60 blur-[140px] dark:bg-[#3B82F6]/15" />
-        </div>
+    <div className="relative flex min-h-screen w-screen flex-col overflow-hidden bg-aurora-gradient text-white">
+      {/* Global Background Effects */}
+      <div className="fixed inset-0 z-0 pointer-events-none">
+        <div className="absolute top-0 left-0 h-[50vh] w-[50vw] bg-neon-cyan/10 blur-[100px] animate-pulse-glow" />
+        <div className="absolute bottom-0 right-0 h-[50vh] w-[50vw] bg-neon-purple/10 blur-[120px] animate-aurora" />
+        <div className="absolute inset-0 bg-[url('/grid.svg')] bg-[size:40px_40px] opacity-[0.03]" />
       </div>
 
       <div className="relative z-10 flex min-h-screen w-full flex-col">
         <Header />
-        <main className="mt-[calc(env(safe-area-inset-top)+104px)] flex flex-1 flex-col bg-white/70 p-4 pb-[calc(7rem+env(safe-area-inset-bottom))] backdrop-blur-xl dark:bg-slate-950/40 md:mt-[104px] md:gap-8 md:p-8 md:pb-8 lg:px-12 xl:px-16">
+        <main className="mt-[calc(env(safe-area-inset-top)+104px)] flex flex-1 flex-col p-4 pb-[calc(7rem+env(safe-area-inset-bottom))] md:mt-[104px] md:gap-8 md:p-8 md:pb-8 lg:px-12 xl:px-16">
           {children}
         </main>
         {showDriverNav ? <DriverBottomNav /> : <BottomNav />}
