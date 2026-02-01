@@ -322,24 +322,58 @@ export default function ProfilePage() {
 
     console.log('[Profile] Phone not in user data, requesting via requestContact');
     // If not available, request it
-    webApp.requestContact((contactShared) => {
+    webApp.requestContact(async (contactShared) => {
       console.log('[Profile] Contact shared:', contactShared);
       if (contactShared) {
-        // Check again after share
-        const updatedUser = webApp.initDataUnsafe?.user;
-        console.log('[Profile] Updated user data:', JSON.stringify(updatedUser, null, 2));
+        // Contact was shared and sent to bot
+        // Wait a moment for the bot to process and save to database
+        toast({
+          title: 'Обработка...',
+          description: 'Получаем номер телефона из Telegram',
+        });
 
-        const newPhone = updatedUser?.phone_number || getTelegramPhoneNumber();
-        if (newPhone) {
-          console.log('[Profile] Phone now available:', newPhone);
-          setPhone(newPhone);
+        // Give bot time to process the contact message
+        await new Promise(resolve => setTimeout(resolve, 2000));
+
+        try {
+          // Fetch updated profile from API (bot saves phone to database)
+          console.log('[Profile] Fetching updated profile from API');
+          const updatedProfile = await api.getProfile() as any;
+          console.log('[Profile] Updated profile:', updatedProfile);
+
+          if (updatedProfile.phone) {
+            console.log('[Profile] Phone now available from API:', updatedProfile.phone);
+            setPhone(updatedProfile.phone);
+            toast({
+              title: 'Номер получен',
+              description: 'Номер телефона успешно сохранен',
+            });
+          } else {
+            // Try once more after additional delay
+            console.log('[Profile] Phone not yet in DB, retrying...');
+            await new Promise(resolve => setTimeout(resolve, 2000));
+            const retryProfile = await api.getProfile() as any;
+
+            if (retryProfile.phone) {
+              setPhone(retryProfile.phone);
+              toast({
+                title: 'Номер получен',
+                description: 'Номер телефона успешно сохранен',
+              });
+            } else {
+              console.warn('[Profile] Phone still not available after retry');
+              toast({
+                title: 'Номер отправлен',
+                description: 'Обновите страницу через несколько секунд',
+              });
+            }
+          }
+        } catch (error) {
+          logError('[Profile] Error fetching updated profile:', error);
           toast({
-            title: 'Номер получен',
-            description: 'Номер телефона из вашего профиля Telegram',
+            title: 'Номер отправлен',
+            description: 'Перезагрузите страницу для обновления данных',
           });
-        } else {
-          console.warn('[Profile] Phone still not available after share');
-          webApp.showAlert('Чтобы получить номер телефона, пожалуйста, добавьте его в настройки Telegram');
         }
       } else {
         console.log('[Profile] User cancelled contact sharing');
