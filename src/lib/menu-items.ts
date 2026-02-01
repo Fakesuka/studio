@@ -15,5 +15,5 @@ export const bottomMenuItems = [
 export const driverBottomMenuItems = [
   { href: '/driver/history', label: 'История', icon: ListChecks },
   { href: '/driver/dashboard', label: 'Новые', icon: Bell },
-  { href: '/driver/profile', label: 'Профиль', icon: User },
+  { href: '/profile', label: 'Профиль', icon: User },
 ];
