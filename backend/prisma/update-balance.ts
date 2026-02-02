@@ -3,22 +3,24 @@ import { PrismaClient } from '@prisma/client';
 const prisma = new PrismaClient();
 
 async function updateUserBalance() {
-  console.log('💰 Updating balance for user pllotnikvv...');
+  const targetName = 'Vasiliy';
+  const amount = 5000;
+  console.log(`💰 Updating balance for user ${targetName}...`);
 
   try {
     // Find user by username or name
     const user = await prisma.user.findFirst({
       where: {
         OR: [
-          { name: { contains: 'pllotnikvv', mode: 'insensitive' } },
-          { phone: { contains: 'pllotnikvv', mode: 'insensitive' } },
-          { telegramId: { contains: 'pllotnikvv', mode: 'insensitive' } },
+          { name: { contains: targetName, mode: 'insensitive' } },
+          { phone: { contains: targetName, mode: 'insensitive' } },
+          { telegramId: { contains: targetName, mode: 'insensitive' } },
         ],
       },
     });
 
     if (!user) {
-      console.log('❌ User pllotnikvv not found. Listing all users...');
+      console.log(`❌ User ${targetName} not found. Listing all users...`);
 
       const allUsers = await prisma.user.findMany({
         select: {
@@ -32,14 +34,14 @@ async function updateUserBalance() {
 
       console.log('\n📋 Available users:');
       console.table(allUsers);
-      console.log('\n⚠️  User pllotnikvv not found in database');
+      console.log(`\n⚠️  User ${targetName} not found in database`);
       return;
     }
 
-    // Add 10000 to current balance
+    // Add amount to current balance
     const updatedUser = await prisma.user.update({
       where: { id: user.id },
-      data: { balance: { increment: 10000 } },
+      data: { balance: { increment: amount } },
     });
 
     // Create transaction record
@@ -47,15 +49,15 @@ async function updateUserBalance() {
       data: {
         userId: user.id,
         type: 'topup',
-        amount: 10000,
-        description: 'Пополнение баланса администратором',
+        amount,
+        description: `Пополнение баланса администратором (${targetName})`,
       },
     });
 
     console.log(`✅ Updated balance for ${user.name} (ID: ${user.id})`);
     console.log(`   Old balance: ${user.balance.toFixed(2)} RUB`);
     console.log(`   New balance: ${updatedUser.balance.toFixed(2)} RUB`);
-    console.log(`   Added: 10000 RUB`)
+    console.log(`   Added: ${amount} RUB`);
 
   } catch (error) {
     console.error('❌ Error updating balance:', error);
