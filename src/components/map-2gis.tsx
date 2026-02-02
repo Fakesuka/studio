@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { cn } from '@/lib/utils';
 
 declare const DG: any;
@@ -39,8 +39,35 @@ const Map2GIS: React.FC<Map2GISProps> = ({
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const markersRef = useRef<Map<string, any>>(new Map());
   const routesRef = useRef<any[]>([]);
+  const [isScriptReady, setIsScriptReady] = useState(false);
+  const apiKey = process.env.NEXT_PUBLIC_2GIS_API_KEY
+    || '1e0bb99c-b88d-4624-974a-63ab8c556c19';
 
   // Effect for initializing the map
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    if (typeof DG !== 'undefined' && DG.map) {
+      setIsScriptReady(true);
+      return;
+    }
+    if (!apiKey) return;
+
+    const existingScript = document.querySelector<HTMLScriptElement>(
+      'script[data-2gis-loader="true"]'
+    );
+    if (existingScript) {
+      existingScript.addEventListener('load', () => setIsScriptReady(true));
+      return;
+    }
+
+    const script = document.createElement('script');
+    script.src = `https://maps.api.2gis.ru/2.0/loader.js?pkg=full&key=${apiKey}`;
+    script.async = true;
+    script.dataset['2gisLoader'] = 'true';
+    script.onload = () => setIsScriptReady(true);
+    document.head.appendChild(script);
+  }, [apiKey]);
+
   useEffect(() => {
     let map: any;
 
@@ -86,7 +113,7 @@ const Map2GIS: React.FC<Map2GISProps> = ({
       }
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []); // Run only once on mount
+  }, [isScriptReady]); // Run when script is ready
 
   // Effect for updating markers and view
   useEffect(() => {
@@ -163,6 +190,19 @@ const Map2GIS: React.FC<Map2GISProps> = ({
       routesRef.current.push(polyline);
     });
   }, [routes]);
+
+  if (!apiKey) {
+    return (
+      <div
+        className={cn(
+          'flex h-full w-full items-center justify-center rounded-lg bg-slate-900 text-sm text-slate-200',
+          className
+        )}
+      >
+        Укажите ключ 2GIS для отображения карты.
+      </div>
+    );
+  }
 
   return <div ref={mapContainerRef} className={cn('h-full w-full', className)} />;
 };

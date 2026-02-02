@@ -4,18 +4,21 @@ const prisma = new PrismaClient();
 
 async function addBalanceToUser() {
   try {
+    const targetName = 'Vasiliy';
+    const amount = 5000;
+
     // Ищем пользователя по имени или telegramId
     const user = await prisma.user.findFirst({
       where: {
         OR: [
-          { name: { contains: 'pllotnikvv', mode: 'insensitive' } },
-          { telegramId: 'pllotnikvv' }
+          { name: { contains: targetName, mode: 'insensitive' } },
+          { telegramId: targetName }
         ]
       }
     });
 
     if (!user) {
-      console.log('Пользователь pllotnikvv не найден');
+      console.log(`Пользователь ${targetName} не найден`);
       console.log('Доступные пользователи:');
       const allUsers = await prisma.user.findMany({
         select: {
@@ -36,7 +39,7 @@ async function addBalanceToUser() {
     const updatedUser = await prisma.user.update({
       where: { id: user.id },
       data: {
-        balance: user.balance + 10000
+        balance: user.balance + amount
       }
     });
 
@@ -45,8 +48,8 @@ async function addBalanceToUser() {
       data: {
         userId: user.id,
         type: 'topup',
-        amount: 10000,
-        description: 'Пополнение баланса администратором'
+        amount,
+        description: `Пополнение баланса администратором (${targetName})`
       }
     });
 
