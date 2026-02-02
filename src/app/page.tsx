@@ -57,14 +57,10 @@ export default function WelcomePage() {
 
           {/* Logo Section */}
           <div className="mb-8 flex flex-col items-center">
-            <div className="relative mb-4 h-20 w-20">
-              <Image
-                src="/images/logo.png"
-                alt="YakGo"
-                fill
-                priority
-                className="object-contain"
-              />
+            <div className="relative mb-4 h-20 w-20 rounded-2xl bg-gradient-to-br from-neon-cyan to-neon-purple p-0.5 shadow-lg shadow-neon-cyan/30">
+              <div className="flex h-full w-full items-center justify-center rounded-2xl bg-black/40 backdrop-blur-md">
+                <Image src="/logo.svg" alt="YakGo" width={44} height={44} priority />
+              </div>
             </div>
             <h1 className="text-center font-display text-4xl font-bold tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-neon-cyan via-white to-neon-purple drop-shadow-sm">
               YakGo
