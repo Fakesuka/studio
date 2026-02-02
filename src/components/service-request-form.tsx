@@ -409,8 +409,7 @@ export function ServiceRequestForm() {
                         onClick={() => setIsMapOpen(true)}
                         className="shrink-0"
                       >
-                        <MapPinned className="mr-2 h-4 w-4" />
-                        Карта
+                        <MapPinned className="h-4 w-4" />
                       </Button>
                     </div>
                   </FormControl>

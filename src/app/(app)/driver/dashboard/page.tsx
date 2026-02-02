@@ -350,6 +350,9 @@ export default function DriverDashboard() {
 
   const handleWorkingToggle = (checked: boolean) => {
     setIsWorking(checked);
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new Event('driver-working-change'));
+    }
     toast({
       title: checked ? 'Вы на линии' : 'Вы не на линии',
       description: checked
@@ -401,11 +404,7 @@ export default function DriverDashboard() {
               : 'Включите режим работы для получения заказов'}
           </p>
         </div>
-        <div className="flex items-center gap-3 rounded-full border border-white/10 bg-black/40 px-4 py-2 backdrop-blur-xl">
-          <Power className={`h-4 w-4 ${isWorking ? 'text-green-400' : 'text-gray-400'}`} />
-          <span className={`text-sm font-medium ${isWorking ? 'text-green-400' : 'text-gray-400'}`}>
-            {isWorking ? 'На линии' : 'Не на линии'}
-          </span>
+        <div className="flex items-center rounded-full border border-white/10 bg-black/40 px-4 py-2 backdrop-blur-xl">
           <Switch
             checked={isWorking}
             onCheckedChange={handleWorkingToggle}
