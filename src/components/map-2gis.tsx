@@ -40,7 +40,8 @@ const Map2GIS: React.FC<Map2GISProps> = ({
   const markersRef = useRef<Map<string, any>>(new Map());
   const routesRef = useRef<any[]>([]);
   const [isScriptReady, setIsScriptReady] = useState(false);
-  const apiKey = process.env.NEXT_PUBLIC_2GIS_API_KEY;
+  const apiKey = process.env.NEXT_PUBLIC_2GIS_API_KEY
+    || '1e0bb99c-b88d-4624-974a-63ab8c556c19';
 
   // Effect for initializing the map
   useEffect(() => {

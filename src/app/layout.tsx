@@ -31,7 +31,8 @@ export const viewport: Viewport = {
   viewportFit: 'cover',
 };
 
-const mapApiKey = process.env.NEXT_PUBLIC_2GIS_API_KEY;
+const mapApiKey = process.env.NEXT_PUBLIC_2GIS_API_KEY
+  || '1e0bb99c-b88d-4624-974a-63ab8c556c19';
 
 export default function RootLayout({
   children,
