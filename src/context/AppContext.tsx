@@ -79,6 +79,10 @@ interface AppContextType {
   products: Product[];
   shops: Shop[];
   addProduct: (productData: Omit<Product, 'id' | 'shopId'>) => Promise<void>;
+  updateProduct: (
+    productId: string,
+    productData: Partial<Omit<Product, 'id' | 'shopId'>>
+  ) => Promise<void>;
   deleteProduct: (productId: string) => Promise<void>;
   updateShop: (shopId: string, data: Partial<Shop>) => Promise<void>;
   isDriver: boolean;
@@ -392,6 +396,21 @@ export function AppProvider({ children }: { children: ReactNode }) {
     }
   };
 
+  const updateProduct = async (
+    productId: string,
+    productData: Partial<Omit<Product, 'id' | 'shopId'>>
+  ) => {
+    try {
+      const updatedProduct = await api.updateProduct(productId, productData);
+      setProducts((prev) =>
+        prev.map((product) => (product.id === productId ? updatedProduct : product))
+      );
+    } catch (error) {
+      console.error('Error updating product:', error);
+      throw error;
+    }
+  };
+
   const deleteProduct = async (productId: string) => {
     try {
       await api.deleteProduct(productId);
@@ -491,6 +510,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         products,
         shops,
         addProduct,
+        updateProduct,
         deleteProduct,
         updateShop,
         isDriver,

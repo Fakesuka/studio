@@ -72,7 +72,7 @@ export default function WelcomePage() {
                     alt="YakGo"
                     fill
                     priority
-                    className="relative object-contain p-6"
+                    className="relative object-cover"
                   />
                 </div>
                 <span className="text-4xl font-display font-bold text-transparent bg-clip-text bg-gradient-to-r from-emerald-300 via-cyan-300 to-blue-400 drop-shadow-[0_0_12px_rgba(56,189,248,0.35)]">

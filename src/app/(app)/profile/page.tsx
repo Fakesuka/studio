@@ -224,6 +224,8 @@ export default function ProfilePage() {
   const [phone, setPhone] = useState('');
   const [city, setCity] = useState<YakutiaCity | ''>('');
   const [customCity, setCustomCity] = useState('');
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
+  const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
   const [isProfileLoading, setIsProfileLoading] = useState(true);
   const [isReviewsOpen, setIsReviewsOpen] = useState(false);
   const [reviews, setReviews] = useState<Review[]>([]);
@@ -248,6 +250,11 @@ export default function ProfilePage() {
         if (profile.city) {
           console.log('[Profile] Setting city from API:', profile.city);
           setCity(profile.city as YakutiaCity);
+        }
+        if (profile.avatarUrl) {
+          console.log('[Profile] Setting avatar from API:', profile.avatarUrl);
+          setAvatarUrl(profile.avatarUrl);
+          setAvatarPreview(profile.avatarUrl);
         }
 
         // Get data from Telegram WebApp
@@ -522,7 +529,13 @@ export default function ProfilePage() {
   const handleSaveProfile = async () => {
     try {
       const selectedCity = city === 'Другой' ? customCity : city;
-      const profileData = { name, phone, city: selectedCity };
+      const avatarToSave = avatarPreview || avatarUrl;
+      const profileData = {
+        name,
+        phone,
+        city: selectedCity,
+        ...(avatarToSave ? { avatarUrl: avatarToSave } : {}),
+      };
       console.log('Saving profile data:', profileData);
 
       await api.updateProfile(profileData);
@@ -539,6 +552,26 @@ export default function ProfilePage() {
         description: getErrorMessage(error, 'Не удалось сохранить профиль.'),
         variant: 'destructive',
       });
+    }
+  };
+
+  const fileToDataUri = (file: File): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result as string);
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
+  };
+
+  const handleAvatarChange = async (
+    event: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      const dataUri = await fileToDataUri(file);
+      setAvatarPreview(dataUri);
+      setAvatarUrl(dataUri);
     }
   };
 
@@ -566,7 +599,13 @@ export default function ProfilePage() {
           <div className="relative h-28 w-28 p-[3px] rounded-full bg-gradient-to-br from-neon-cyan via-white/50 to-neon-purple">
             <div className="h-full w-full rounded-full border-4 border-black overflow-hidden relative">
               <Avatar className="h-full w-full">
-                <AvatarImage src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${userId}`} />
+                <AvatarImage
+                  src={
+                    avatarPreview ||
+                    avatarUrl ||
+                    `https://api.dicebear.com/7.x/avataaars/svg?seed=${userId}`
+                  }
+                />
                 <AvatarFallback>YG</AvatarFallback>
               </Avatar>
             </div>
@@ -583,6 +622,21 @@ export default function ProfilePage() {
           {name}
         </h2>
         <p className="text-gray-400 text-sm">{city === 'Другой' ? customCity : city}</p>
+        <div className="mt-3">
+          <label
+            htmlFor="avatar-upload"
+            className="cursor-pointer rounded-full border border-white/10 bg-white/5 px-4 py-1 text-xs text-neon-cyan hover:bg-white/10"
+          >
+            Загрузить фото
+          </label>
+          <Input
+            id="avatar-upload"
+            type="file"
+            accept="image/*"
+            className="hidden"
+            onChange={handleAvatarChange}
+          />
+        </div>
       </div>
 
       {/* Stats Row */}
