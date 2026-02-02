@@ -35,6 +35,7 @@ export default function MarketplacePage() {
     updateCartItemQuantity,
     getCartItemQuantity,
     isSeller,
+    marketplaceOrders,
   } = useAppContext();
 
   const [searchTerm, setSearchTerm] = useState('');
@@ -44,6 +45,14 @@ export default function MarketplacePage() {
       pickup: false,
     }
   );
+
+  const marketplaceStatusLabels: Record<string, string> = {
+    Новый: 'Новый',
+    'В обработке': 'Подтвержден',
+    Доставляется: 'Доставляется',
+    Завершен: 'Доставлен',
+    Отменен: 'Отменен',
+  };
 
   const handleAddToCart = (productId: string, productName: string) => {
     addToCart(productId);
@@ -150,6 +159,41 @@ export default function MarketplacePage() {
             Самовывоз
           </FrostButton>
         </div>
+      </div>
+
+      <div className="mb-10">
+        <h2 className="mb-4 text-xl font-bold text-white flex items-center gap-2">
+          <span className="w-1 h-6 bg-neon-purple rounded-full shadow-[0_0_10px_rgba(168,85,247,0.8)]" />
+          Мои покупки
+        </h2>
+        {marketplaceOrders.length > 0 ? (
+          <div className="grid gap-4 md:grid-cols-2">
+            {marketplaceOrders.map((order, index) => (
+              <IceCard key={order.id} variant="crystal" className="p-4">
+                <div className="flex items-start justify-between gap-4">
+                  <div>
+                    <p className="text-sm text-blue-200/70">
+                      Заказ №{index + 1}
+                    </p>
+                    <p className="mt-1 text-xs text-gray-400">
+                      {new Date(order.date).toLocaleDateString('ru-RU')}
+                    </p>
+                    <p className="mt-3 text-sm text-white">
+                      {order.items.length} товар(а) · {order.total.toLocaleString('ru-RU')} ₽
+                    </p>
+                  </div>
+                  <span className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs text-neon-purple">
+                    {marketplaceStatusLabels[order.status] ?? order.status}
+                  </span>
+                </div>
+              </IceCard>
+            ))}
+          </div>
+        ) : (
+          <IceCard variant="crystal" className="p-6 text-center text-sm text-gray-400">
+            У вас пока нет покупок.
+          </IceCard>
+        )}
       </div>
 
       <div className="mb-10">
@@ -280,4 +324,3 @@ export default function MarketplacePage() {
     </div>
   );
 }
-
