@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { useEffect, useState } from 'react';
 import { cn } from '@/lib/utils';
 import { driverBottomMenuItems } from '@/lib/menu-items';
 import { useAppContext } from '@/context/AppContext';
@@ -9,9 +10,35 @@ import { useAppContext } from '@/context/AppContext';
 export function DriverBottomNav() {
   const pathname = usePathname();
   const { orders } = useAppContext();
+  const [isWorking, setIsWorking] = useState(false);
+
+  useEffect(() => {
+    const syncWorkingState = () => {
+      const stored = localStorage.getItem('driverIsWorking');
+      setIsWorking(stored === 'true');
+    };
+
+    syncWorkingState();
+
+    const handleStorage = (event: StorageEvent) => {
+      if (event.key === 'driverIsWorking') {
+        syncWorkingState();
+      }
+    };
+
+    window.addEventListener('storage', handleStorage);
+    window.addEventListener('driver-working-change', syncWorkingState);
+
+    return () => {
+      window.removeEventListener('storage', handleStorage);
+      window.removeEventListener('driver-working-change', syncWorkingState);
+    };
+  }, []);
 
   // Check if there are new available orders
-  const availableOrders = (orders || []).filter(o => o.status === 'Ищет исполнителя');
+  const availableOrders = isWorking
+    ? (orders || []).filter(o => o.status === 'Ищет исполнителя')
+    : [];
   const hasNewOrders = availableOrders.length > 0;
 
   // Split menu items into 3 groups: left, center (wider), right
@@ -22,7 +49,7 @@ export function DriverBottomNav() {
   const renderCapsule = (item: typeof driverBottomMenuItems[0], isCenter: boolean = false) => {
     const isActive = pathname.startsWith(item.href);
     const isDashboard = item.href === '/driver/dashboard';
-    const shouldPulse = isDashboard && hasNewOrders && !isActive;
+    const shouldPulse = isDashboard && hasNewOrders && isWorking && !isActive;
 
     return (
       <Link
@@ -34,22 +61,19 @@ export function DriverBottomNav() {
           isActive
             ? 'bg-gradient-to-tr from-neon-purple/20 to-neon-pink/20 border-neon-purple/30'
             : 'hover:bg-white/5 hover:border-white/20',
-          shouldPulse && 'animate-pulse border-neon-cyan/50'
+          shouldPulse && 'border-neon-purple/60'
         )}
       >
         {isActive && (
           <span className="absolute inset-0 rounded-full shadow-[0_0_15px_rgba(168,85,247,0.3)]" />
         )}
         {shouldPulse && (
-          <>
-            <span className="absolute inset-0 rounded-full animate-ping bg-neon-cyan/20" />
-            <span className="absolute -top-1 -right-1 h-3 w-3 rounded-full bg-neon-cyan animate-pulse" />
-          </>
+          <span className="absolute inset-0 rounded-full shadow-[0_0_14px_rgba(168,85,247,0.45)] animate-pulse" />
         )}
         <item.icon className={cn(
           "h-5 w-5 z-10",
           isActive ? "text-neon-purple" : "text-gray-400",
-          shouldPulse && "text-neon-cyan"
+          shouldPulse && "text-neon-purple"
         )} />
         <span className="sr-only">{item.label}</span>
       </Link>

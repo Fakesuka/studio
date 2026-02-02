@@ -31,6 +31,9 @@ export const viewport: Viewport = {
   viewportFit: 'cover',
 };
 
+const mapApiKey = process.env.NEXT_PUBLIC_2GIS_API_KEY
+  || '1e0bb99c-b88d-4624-974a-63ab8c556c19';
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -43,6 +46,12 @@ export default function RootLayout({
           src="https://telegram.org/js/telegram-web-app.js"
           strategy="beforeInteractive"
         />
+        {mapApiKey && (
+          <Script
+            src={`https://maps.api.2gis.ru/2.0/loader.js?pkg=full&key=${mapApiKey}`}
+            strategy="beforeInteractive"
+          />
+        )}
         <RootProviders>
           {children}
           <Toaster />

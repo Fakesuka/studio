@@ -363,6 +363,15 @@ export default function ProfilePage() {
       return;
     }
 
+    if (typeof webApp.requestContact !== 'function') {
+      toast({
+        title: 'Недоступно',
+        description: 'Telegram не поддерживает запрос контакта в этой версии.',
+        variant: 'destructive',
+      });
+      return;
+    }
+
     console.log('[Profile] Phone not in user data, requesting via requestContact');
     // If not available, request it
     webApp.requestContact(async (contactShared) => {
@@ -564,7 +573,14 @@ export default function ProfilePage() {
                   onClick={requestPhoneNumber}
                   className="text-neon-cyan"
                 >
-                  Получить
+                  <svg
+                    viewBox="0 0 24 24"
+                    aria-hidden="true"
+                    className="h-4 w-4"
+                    fill="currentColor"
+                  >
+                    <path d="M21.9 4.2c.2.1.3.4.2.6l-3.4 16c0 .2-.2.3-.4.3-.1 0-.2 0-.3-.1l-4.9-3.4-2.5 2.4c-.1.1-.2.1-.3.1h-.1c-.2 0-.3-.2-.3-.4l.2-3.4L18.3 7c.1-.1.1-.3 0-.4-.1-.1-.3-.1-.4 0L7.9 13.1l-4.8-1.5c-.2 0-.3-.2-.3-.4 0-.2.1-.4.3-.4L21.4 4c.2-.1.4 0 .5.2Z" />
+                  </svg>
                 </FrostButton>
               </div>
               <p className="text-[10px] text-gray-500">Получается только через Telegram бота</p>

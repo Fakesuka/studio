@@ -2,7 +2,7 @@
 
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
-import { ArrowRight, Sparkles } from 'lucide-react';
+import { ArrowRight } from 'lucide-react';
 import { getTelegramUser } from '@/lib/telegram';
 import { useEffect, useState } from 'react';
 import Image from 'next/image';
@@ -57,25 +57,19 @@ export default function WelcomePage() {
 
           {/* Logo Section */}
           <div className="mb-8 flex flex-col items-center">
-            <div className="relative mb-4 h-20 w-20 rounded-2xl bg-gradient-to-br from-neon-cyan to-neon-purple p-0.5 shadow-lg shadow-neon-cyan/30">
-              <div className="flex h-full w-full items-center justify-center rounded-2xl bg-black/40 backdrop-blur-md">
-                <Sparkles className="h-10 w-10 text-white" />
-              </div>
-            </div>
-            <h1 className="text-center font-display text-4xl font-bold tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-neon-cyan via-white to-neon-purple drop-shadow-sm">
-              YakGo
-            </h1>
+            <Image src="/logo.png" alt="YakGo" width={96} height={96} priority />
           </div>
 
           <div className="mb-8 text-center">
             {isReturningUser ? (
-              <div className="space-y-2">
-                <h2 className="text-2xl font-medium text-white">С возвращением!</h2>
-                <p className="font-display text-xl text-neon-cyan">{userName}</p>
-                <div className="mt-4 flex items-center justify-center gap-2 text-sm text-gray-400">
-                  <div className="h-2 w-2 rounded-full bg-neon-cyan animate-pulse" />
-                  <span>Загрузка профиля...</span>
+              <div className="flex flex-col items-center gap-5">
+                <div className="relative h-24 w-24">
+                  <div className="absolute inset-0 rounded-full bg-neon-cyan/20 blur-xl animate-pulse-glow" />
+                  <div className="absolute inset-2 rounded-full border border-neon-cyan/50 shadow-[0_0_20px_rgba(34,211,238,0.5)] animate-pulse" />
                 </div>
+                <p className="text-lg font-medium text-neon-cyan">
+                  С возвращением{userName ? `, ${userName}` : ''}!
+                </p>
               </div>
             ) : (
               <div className="space-y-4">
