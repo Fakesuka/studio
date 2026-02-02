@@ -219,11 +219,11 @@ export default function OrdersPage() {
             </div>
           ) : userMarketplaceOrders.length > 0 ? (
             <div className="space-y-4">
-              {userMarketplaceOrders.map(order => (
+              {userMarketplaceOrders.map((order, index) => (
                 <div key={order.id} className="relative overflow-hidden rounded-xl border border-white/5 bg-white/5 p-5 transition-all hover:bg-white/10 hover:border-white/10">
                   <div className="flex items-start justify-between mb-4">
                     <div>
-                      <h3 className="font-bold text-lg text-white">Заказ #{order.id.slice(0, 8)}</h3>
+                      <h3 className="font-bold text-lg text-white">Заказ #{index + 1}</h3>
                       <p className="text-sm text-gray-400 mt-1">{order.items.length} товара</p>
                     </div>
                     <Badge variant={getMarketplaceStatusVariant(order.status)}>

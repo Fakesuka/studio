@@ -168,12 +168,12 @@ export default function MarketplacePage() {
         </h2>
         {marketplaceOrders.length > 0 ? (
           <div className="grid gap-4 md:grid-cols-2">
-            {marketplaceOrders.map(order => (
+            {marketplaceOrders.map((order, index) => (
               <IceCard key={order.id} variant="crystal" className="p-4">
                 <div className="flex items-start justify-between gap-4">
                   <div>
                     <p className="text-sm text-blue-200/70">
-                      Заказ №{order.id}
+                      Заказ №{index + 1}
                     </p>
                     <p className="mt-1 text-xs text-gray-400">
                       {new Date(order.date).toLocaleDateString('ru-RU')}

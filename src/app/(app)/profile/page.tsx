@@ -63,8 +63,29 @@ import { YAKUTIA_CITIES, type YakutiaCity } from '@/lib/cities';
 import { serviceTypesList, type ServiceType, type LegalStatus, type DriverProfile } from '@/lib/types';
 import type { UserRole } from '@/components/role-switcher';
 
+interface Review {
+  id: string;
+  rating: number;
+  comment?: string;
+  createdAt: string;
+  fromUser?: {
+    name?: string;
+    avatarUrl?: string;
+  };
+}
+
 // Profile stats component
-function ProfileStats({ currentRole, driverProfile }: { currentRole: UserRole; driverProfile: DriverProfile | null }) {
+function ProfileStats({
+  currentRole,
+  driverProfile,
+  canOpenReviews,
+  onRatingClick,
+}: {
+  currentRole: UserRole;
+  driverProfile: DriverProfile | null;
+  canOpenReviews: boolean;
+  onRatingClick?: () => void;
+}) {
   const { orders } = useAppContext();
 
   // Calculate completed orders count
@@ -93,13 +114,35 @@ function ProfileStats({ currentRole, driverProfile }: { currentRole: UserRole; d
 
   return (
     <div className="grid grid-cols-3 gap-3">
-      {stats.map((stat, i) => (
-        <div key={i} className="flex flex-col items-center justify-center p-3 rounded-2xl bg-white/5 border border-white/5 backdrop-blur-sm">
-          <stat.icon className={`h-5 w-5 ${stat.color} mb-1`} />
-          <span className="text-lg font-bold text-white">{stat.value}</span>
-          <span className="text-[10px] uppercase tracking-wider text-gray-500">{stat.label}</span>
-        </div>
-      ))}
+      {stats.map((stat, i) => {
+        const isRating = stat.label === 'Рейтинг';
+        const content = (
+          <>
+            <stat.icon className={`h-5 w-5 ${stat.color} mb-1`} />
+            <span className="text-lg font-bold text-white">{stat.value}</span>
+            <span className="text-[10px] uppercase tracking-wider text-gray-500">{stat.label}</span>
+          </>
+        );
+
+        if (isRating && canOpenReviews) {
+          return (
+            <button
+              key={i}
+              type="button"
+              onClick={onRatingClick}
+              className="flex flex-col items-center justify-center p-3 rounded-2xl bg-white/5 border border-white/5 backdrop-blur-sm transition hover:bg-white/10"
+            >
+              {content}
+            </button>
+          );
+        }
+
+        return (
+          <div key={i} className="flex flex-col items-center justify-center p-3 rounded-2xl bg-white/5 border border-white/5 backdrop-blur-sm">
+            {content}
+          </div>
+        );
+      })}
     </div>
   );
 }
@@ -176,11 +219,15 @@ export default function ProfilePage() {
   const [showTopUp, setShowTopUp] = useState(false);
   const [showSellerForm, setShowSellerForm] = useState(false);
   const [showDriverForm, setShowDriverForm] = useState(false);
-  const [name, setName] = useState('Загрузка...');
+  const [name, setName] = useState('');
   const [username, setUsername] = useState('');
   const [phone, setPhone] = useState('');
-  const [city, setCity] = useState<YakutiaCity>('Якутск');
+  const [city, setCity] = useState<YakutiaCity | ''>('');
   const [customCity, setCustomCity] = useState('');
+  const [isProfileLoading, setIsProfileLoading] = useState(true);
+  const [isReviewsOpen, setIsReviewsOpen] = useState(false);
+  const [reviews, setReviews] = useState<Review[]>([]);
+  const [isReviewsLoading, setIsReviewsLoading] = useState(false);
 
   useEffect(() => {
     const loadUserData = async () => {
@@ -225,6 +272,9 @@ export default function ProfilePage() {
             setPhone(telegramPhone);
           }
         }
+        if (!profile.city) {
+          setCity('Якутск');
+        }
         console.log('[Profile] User data loaded successfully');
       } catch (error) {
         logError('[Profile] Error loading user data:', error);
@@ -238,6 +288,11 @@ export default function ProfilePage() {
           console.log('[Profile] No Telegram data, using default');
           setName('Пользователь');
         }
+        if (!city) {
+          setCity('Якутск');
+        }
+      } finally {
+        setIsProfileLoading(false);
       }
     };
 
@@ -245,6 +300,26 @@ export default function ProfilePage() {
   }, []);
 
   const userShop = (shops || []).find(shop => shop.userId === userId);
+  const canOpenReviews = isSeller || isDriver;
+
+  const handleOpenReviews = async () => {
+    if (!canOpenReviews) return;
+    setIsReviewsOpen(true);
+    setIsReviewsLoading(true);
+    try {
+      const data = await api.getMyReviews() as { reviews?: Review[] };
+      setReviews(data.reviews || []);
+    } catch (error) {
+      logError('[Profile] Error loading reviews:', error);
+      toast({
+        title: 'Ошибка',
+        description: 'Не удалось загрузить отзывы.',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsReviewsLoading(false);
+    }
+  };
 
   const sellerForm = useForm<SellerFormValues>({
     resolver: zodResolver(sellerFormSchema),
@@ -374,9 +449,15 @@ export default function ProfilePage() {
 
     console.log('[Profile] Phone not in user data, requesting via requestContact');
     // If not available, request it
-    webApp.requestContact(async (contactShared) => {
+    webApp.requestContact(async (contactShared: boolean | { phone_number?: string }) => {
       console.log('[Profile] Contact shared:', contactShared);
       if (contactShared) {
+        if (typeof contactShared === 'object' && 'phone_number' in contactShared) {
+          const phoneNumber = (contactShared as { phone_number?: string }).phone_number;
+          if (phoneNumber) {
+            setPhone(phoneNumber);
+          }
+        }
         // Contact was shared and sent to bot
         // Wait a moment for the bot to process and save to database
         toast({
@@ -505,7 +586,12 @@ export default function ProfilePage() {
       </div>
 
       {/* Stats Row */}
-      <ProfileStats currentRole={currentRole} driverProfile={driverProfile} />
+      <ProfileStats
+        currentRole={currentRole}
+        driverProfile={driverProfile}
+        canOpenReviews={canOpenReviews}
+        onRatingClick={handleOpenReviews}
+      />
 
       {/* Wallet Card (3D Ice) */}
       <IceCard variant="crystal" className="relative overflow-hidden min-h-[160px] flex flex-col justify-between p-6 group">
@@ -548,7 +634,8 @@ export default function ProfilePage() {
               <Input
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                placeholder="Ваше имя"
+                placeholder={isProfileLoading ? 'Загрузка...' : 'Ваше имя'}
+                disabled={isProfileLoading}
                 className="bg-white/5 border-white/10 text-white"
               />
               <p className="text-[10px] text-gray-500">Берётся из Telegram, можно изменить</p>
@@ -591,17 +678,23 @@ export default function ProfilePage() {
               <label className="text-xs text-gray-400 flex items-center gap-2">
                 <MapPin className="h-3 w-3" /> Город
               </label>
-              <select
-                value={city}
-                onChange={(e) => setCity(e.target.value as YakutiaCity)}
-                className="bg-white/5 border border-white/10 text-white rounded-md p-2 text-sm"
-              >
-                {YAKUTIA_CITIES.map((c) => (
-                  <option key={c} value={c} className="bg-black text-white">
-                    {c}
-                  </option>
-                ))}
-              </select>
+                <select
+                  value={city}
+                  onChange={(e) => setCity(e.target.value as YakutiaCity)}
+                  className="bg-white/5 border border-white/10 text-white rounded-md p-2 text-sm"
+                  disabled={isProfileLoading}
+                >
+                  {isProfileLoading && (
+                    <option value="" className="bg-black text-white">
+                      Загрузка...
+                    </option>
+                  )}
+                  {YAKUTIA_CITIES.map((c) => (
+                    <option key={c} value={c} className="bg-black text-white">
+                      {c}
+                    </option>
+                  ))}
+                </select>
               {city === 'Другой' && (
                 <Input
                   value={customCity}
@@ -708,6 +801,41 @@ export default function ProfilePage() {
           </IceCard>
         </div>
       </div>
+
+      <Dialog open={isReviewsOpen} onOpenChange={setIsReviewsOpen}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle>Отзывы</DialogTitle>
+            <DialogDescription>
+              Отзывы о вас как исполнителе или продавце.
+            </DialogDescription>
+          </DialogHeader>
+          {isReviewsLoading ? (
+            <div className="flex justify-center py-8">
+              <div className="h-8 w-8 animate-spin rounded-full border-2 border-neon-cyan border-t-transparent" />
+            </div>
+          ) : reviews.length > 0 ? (
+            <div className="space-y-3">
+              {reviews.map((review) => (
+                <div key={review.id} className="rounded-xl border border-white/10 bg-white/5 p-4">
+                  <div className="flex items-center justify-between text-sm text-gray-300">
+                    <span>{review.fromUser?.name || 'Пользователь'}</span>
+                    <span className="text-neon-cyan">{review.rating.toFixed(1)}★</span>
+                  </div>
+                  {review.comment && (
+                    <p className="mt-2 text-sm text-gray-400">{review.comment}</p>
+                  )}
+                  <p className="mt-2 text-xs text-gray-500">
+                    {new Date(review.createdAt).toLocaleDateString('ru-RU')}
+                  </p>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <p className="text-sm text-gray-400">Пока нет отзывов.</p>
+          )}
+        </DialogContent>
+      </Dialog>
 
       {/* Dialog for Driver Registration */}
       <Dialog open={showDriverForm} onOpenChange={setShowDriverForm}>
