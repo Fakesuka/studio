@@ -61,9 +61,9 @@ import {
 } from '@/ai/qwen';
 import { api } from '@/lib/api';
 import dynamic from 'next/dynamic';
-import type { MapMarker } from '@/components/map-osm';
+import type { MapMarker } from '@/components/map-2gis';
 
-const MapOSM = dynamic(() => import('@/components/map-osm'), {
+const Map2GIS = dynamic(() => import('@/components/map-2gis'), {
   ssr: false,
   loading: () => <div className="h-full w-full animate-pulse rounded-lg bg-muted" />,
 });
@@ -472,7 +472,7 @@ export function ServiceRequestForm() {
             <X className="h-5 w-5" />
           </Button>
           <div className="absolute inset-0 overflow-hidden md:rounded-2xl">
-            <MapOSM
+            <Map2GIS
               center={mapCenter}
               zoom={13}
               markers={mapMarkers}

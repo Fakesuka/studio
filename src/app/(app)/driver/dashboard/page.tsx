@@ -15,7 +15,7 @@ import {
   Wallet,
 } from 'lucide-react';
 import dynamic from 'next/dynamic';
-import type { MapMarker } from '@/components/map-osm';
+import type { MapMarker } from '@/components/map-2gis';
 import {
   Card,
   CardContent,
@@ -42,7 +42,7 @@ import {
 import { Switch } from '@/components/ui/switch';
 import { Power } from 'lucide-react';
 
-const MapOSM = dynamic(() => import('@/components/map-osm'), {
+const Map2GIS = dynamic(() => import('@/components/map-2gis'), {
   ssr: false,
   loading: () => <div className="h-full w-full animate-pulse rounded-lg bg-muted" />,
 });
@@ -266,7 +266,7 @@ function ActiveDriverOrderCard({ order }: { order: Order }) {
       <CardContent className="space-y-4">
         <div className="relative aspect-[4/3] w-full overflow-hidden rounded-lg border">
           {customerCoords ? (
-            <MapOSM center={customerCoords} zoom={13} markers={markers} routes={routes} />
+            <Map2GIS center={customerCoords} zoom={13} markers={markers} routes={routes} />
           ) : (
             <div className="flex h-full items-center justify-center text-sm text-muted-foreground">
               Координаты клиента пока недоступны.
