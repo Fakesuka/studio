@@ -56,17 +56,28 @@ export default function WelcomePage() {
         <div className="w-full rounded-3xl border border-white/10 bg-white/5 backdrop-blur-2xl p-8 shadow-2xl shadow-black/40 animate-in fade-in zoom-in duration-700">
 
           {/* Logo Section */}
-          <div className="mb-8 flex flex-col items-center">
-            <Image src="/logo.png" alt="YakGo" width={96} height={96} priority />
-          </div>
+          {!isReturningUser && (
+            <div className="mb-8 flex flex-col items-center">
+              <Image src="/logo.png" alt="YakGo" width={96} height={96} priority />
+            </div>
+          )}
 
           <div className="mb-8 text-center">
             {isReturningUser ? (
-              <div className="flex flex-col items-center gap-5">
-                <div className="relative h-24 w-24">
-                  <div className="absolute inset-0 rounded-full bg-neon-cyan/20 blur-xl animate-pulse-glow" />
-                  <div className="absolute inset-2 rounded-full border border-neon-cyan/50 shadow-[0_0_20px_rgba(34,211,238,0.5)] animate-pulse" />
+              <div className="flex flex-col items-center gap-6">
+                <div className="relative h-40 w-40 rounded-3xl border border-emerald-300/40 bg-emerald-400/10 shadow-[0_0_35px_rgba(16,185,129,0.45)]">
+                  <div className="absolute inset-0 rounded-3xl bg-gradient-to-br from-emerald-300/30 via-cyan-300/10 to-blue-400/20 animate-pulse-glow" />
+                  <Image
+                    src="/logo.png"
+                    alt="YakGo"
+                    fill
+                    priority
+                    className="relative object-contain p-6"
+                  />
                 </div>
+                <span className="text-4xl font-display font-bold text-transparent bg-clip-text bg-gradient-to-r from-emerald-300 via-cyan-300 to-blue-400 drop-shadow-[0_0_12px_rgba(56,189,248,0.35)]">
+                  YakGo
+                </span>
                 <p className="text-lg font-medium text-neon-cyan">
                   С возвращением{userName ? `, ${userName}` : ''}!
                 </p>

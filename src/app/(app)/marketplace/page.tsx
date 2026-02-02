@@ -24,6 +24,8 @@ import {
 import { useAppContext } from '@/context/AppContext';
 import { useState } from 'react';
 import { Input } from '@/components/ui/input';
+import { format } from 'date-fns';
+import { ru } from 'date-fns/locale';
 
 export default function MarketplacePage() {
   const { toast } = useToast();
@@ -45,6 +47,19 @@ export default function MarketplacePage() {
       pickup: false,
     }
   );
+  const formatOrderDate = (value: string) => {
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) return '—';
+    return format(date, 'd MMM yyyy, HH:mm', { locale: ru });
+  };
+
+  const marketplaceStatusLabels: Record<string, string> = {
+    Новый: 'Новый',
+    'В обработке': 'Подтвержден',
+    Доставляется: 'Доставляется',
+    Завершен: 'Доставлен',
+    Отменен: 'Отменен',
+  };
 
   const marketplaceStatusLabels: Record<string, string> = {
     Новый: 'Новый',
@@ -176,7 +191,7 @@ export default function MarketplacePage() {
                       Заказ №{index + 1}
                     </p>
                     <p className="mt-1 text-xs text-gray-400">
-                      {new Date(order.date).toLocaleDateString('ru-RU')}
+                      {formatOrderDate(order.date)}
                     </p>
                     <p className="mt-3 text-sm text-white">
                       {order.items.length} товар(а) · {order.total.toLocaleString('ru-RU')} ₽
