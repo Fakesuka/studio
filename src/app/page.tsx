@@ -2,7 +2,7 @@
 
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
-import { ArrowRight, Sparkles } from 'lucide-react';
+import { ArrowRight } from 'lucide-react';
 import { getTelegramUser } from '@/lib/telegram';
 import { useEffect, useState } from 'react';
 import Image from 'next/image';
@@ -56,26 +56,31 @@ export default function WelcomePage() {
         <div className="w-full rounded-3xl border border-white/10 bg-white/5 backdrop-blur-2xl p-8 shadow-2xl shadow-black/40 animate-in fade-in zoom-in duration-700">
 
           {/* Logo Section */}
-          <div className="mb-8 flex flex-col items-center">
-            <div className="relative mb-4 h-20 w-20 rounded-2xl bg-gradient-to-br from-neon-cyan to-neon-purple p-0.5 shadow-lg shadow-neon-cyan/30">
-              <div className="flex h-full w-full items-center justify-center rounded-2xl bg-black/40 backdrop-blur-md">
-                <Sparkles className="h-10 w-10 text-white" />
-              </div>
+          {!isReturningUser && (
+            <div className="mb-8 flex flex-col items-center">
+              <Image src="/logo.png" alt="YakGo" width={96} height={96} priority />
             </div>
-            <h1 className="text-center font-display text-4xl font-bold tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-neon-cyan via-white to-neon-purple drop-shadow-sm">
-              YakGo
-            </h1>
-          </div>
+          )}
 
           <div className="mb-8 text-center">
             {isReturningUser ? (
-              <div className="space-y-2">
-                <h2 className="text-2xl font-medium text-white">С возвращением!</h2>
-                <p className="font-display text-xl text-neon-cyan">{userName}</p>
-                <div className="mt-4 flex items-center justify-center gap-2 text-sm text-gray-400">
-                  <div className="h-2 w-2 rounded-full bg-neon-cyan animate-pulse" />
-                  <span>Загрузка профиля...</span>
+              <div className="flex flex-col items-center gap-6">
+                <div className="relative h-40 w-40 rounded-3xl border border-emerald-300/40 bg-emerald-400/10 shadow-[0_0_35px_rgba(16,185,129,0.45)]">
+                  <div className="absolute inset-0 rounded-3xl bg-gradient-to-br from-emerald-300/30 via-cyan-300/10 to-blue-400/20 animate-pulse-glow" />
+                  <Image
+                    src="/logo.png"
+                    alt="YakGo"
+                    fill
+                    priority
+                    className="relative object-contain p-6"
+                  />
                 </div>
+                <span className="text-4xl font-display font-bold text-transparent bg-clip-text bg-gradient-to-r from-emerald-300 via-cyan-300 to-blue-400 drop-shadow-[0_0_12px_rgba(56,189,248,0.35)]">
+                  YakGo
+                </span>
+                <p className="text-lg font-medium text-neon-cyan">
+                  С возвращением{userName ? `, ${userName}` : ''}!
+                </p>
               </div>
             ) : (
               <div className="space-y-4">
