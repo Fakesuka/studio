@@ -71,6 +71,11 @@ export default function OrdersPage() {
   const userId = getCurrentUserId();
   const [reviewOrderId, setReviewOrderId] = useState<string | null>(null);
   const [chatOrder, setChatOrder] = useState<{ id: string; driverId: string; driverName: string } | null>(null);
+  const formatOrderDate = (value: string) => {
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) return '—';
+    return format(date, 'd MMM yyyy, HH:mm', { locale: ru });
+  };
 
   const userOrders = (orders || [])
     .filter(o => o.userId === userId)
@@ -153,7 +158,7 @@ export default function OrdersPage() {
                       <span className="block text-xs uppercase tracking-wider text-gray-500 mb-1">Дата и время</span>
                       <div className="text-gray-200 font-medium flex items-center gap-2">
                         <Clock className="h-3.5 w-3.5 text-neon-purple" />
-                        {format(new Date(order.date), 'd MMM, HH:mm', { locale: ru })}
+                        {formatOrderDate(order.date)}
                       </div>
                     </div>
                     <div className="text-right">
@@ -219,11 +224,11 @@ export default function OrdersPage() {
             </div>
           ) : userMarketplaceOrders.length > 0 ? (
             <div className="space-y-4">
-              {userMarketplaceOrders.map(order => (
+              {userMarketplaceOrders.map((order, index) => (
                 <div key={order.id} className="relative overflow-hidden rounded-xl border border-white/5 bg-white/5 p-5 transition-all hover:bg-white/10 hover:border-white/10">
                   <div className="flex items-start justify-between mb-4">
                     <div>
-                      <h3 className="font-bold text-lg text-white">Заказ #{order.id.slice(0, 8)}</h3>
+                      <h3 className="font-bold text-lg text-white">Заказ #{index + 1}</h3>
                       <p className="text-sm text-gray-400 mt-1">{order.items.length} товара</p>
                     </div>
                     <Badge variant={getMarketplaceStatusVariant(order.status)}>
@@ -234,7 +239,7 @@ export default function OrdersPage() {
                   <div className="grid grid-cols-2 gap-4 text-sm text-gray-400">
                     <div>
                       <span className="block text-xs uppercase tracking-wider text-gray-600 mb-1">Дата</span>
-                      {format(new Date(order.date), 'd MMM yyyy, HH:mm', { locale: ru })}
+                      {formatOrderDate(order.date)}
                     </div>
                     <div className="text-right">
                       <span className="block text-xs uppercase tracking-wider text-gray-600 mb-1">Сумма</span>

@@ -79,6 +79,10 @@ interface AppContextType {
   products: Product[];
   shops: Shop[];
   addProduct: (productData: Omit<Product, 'id' | 'shopId'>) => Promise<void>;
+  updateProduct: (
+    productId: string,
+    productData: Partial<Omit<Product, 'id' | 'shopId'>>
+  ) => Promise<void>;
   deleteProduct: (productId: string) => Promise<void>;
   updateShop: (shopId: string, data: Partial<Shop>) => Promise<void>;
   isDriver: boolean;
@@ -328,17 +332,21 @@ export function AppProvider({ children }: { children: ReactNode }) {
       const normalized = normalizeCartData(cartData);
       if (normalized.length > 0) {
         setCart(normalized);
-      } else if (addResult) {
+        return;
+      }
+
+      if (addResult) {
         setCart(prev => {
-          const existing = prev.find(item => getCartItemId(item) === productId);
+          const resultId = getCartItemId(addResult);
+          const existing = prev.find(item => getCartItemId(item) === resultId);
           if (existing) {
             return prev.map(item =>
-              getCartItemId(item) === productId
+              getCartItemId(item) === resultId
                 ? { ...item, quantity: item.quantity + 1 }
                 : item
             );
           }
-          return prev;
+          return [...prev, addResult];
         });
       }
     } catch (error) {
@@ -388,6 +396,21 @@ export function AppProvider({ children }: { children: ReactNode }) {
       setProducts((prev) => [...prev, newProduct]);
     } catch (error) {
       console.error('Error adding product:', error);
+      throw error;
+    }
+  };
+
+  const updateProduct = async (
+    productId: string,
+    productData: Partial<Omit<Product, 'id' | 'shopId'>>
+  ) => {
+    try {
+      const updatedProduct = await api.updateProduct(productId, productData);
+      setProducts((prev) =>
+        prev.map((product) => (product.id === productId ? updatedProduct : product))
+      );
+    } catch (error) {
+      console.error('Error updating product:', error);
       throw error;
     }
   };
@@ -491,6 +514,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         products,
         shops,
         addProduct,
+        updateProduct,
         deleteProduct,
         updateShop,
         isDriver,

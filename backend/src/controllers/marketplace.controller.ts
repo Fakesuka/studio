@@ -161,18 +161,20 @@ export async function updateProduct(req: AuthRequest, res: Response) {
       return res.status(403).json({ error: 'Not authorized to update this product' });
     }
 
+    const updateData: Record<string, unknown> = {};
+    if (name !== undefined) updateData.name = name;
+    if (description !== undefined) updateData.description = description;
+    if (price !== undefined) updateData.price = price;
+    if (imageUrl !== undefined) updateData.imageUrl = imageUrl;
+    if (imageHint !== undefined) updateData.imageHint = imageHint;
+    if (delivery !== undefined) updateData.delivery = delivery;
+    if (delivery === false) updateData.deliveryPrice = null;
+    if (deliveryPrice !== undefined) updateData.deliveryPrice = deliveryPrice;
+    if (pickup !== undefined) updateData.pickup = pickup;
+
     const updatedProduct = await prisma.product.update({
       where: { id: id as string },
-      data: {
-        ...(name && { name }),
-        ...(description && { description }),
-        ...(price !== undefined && { price }),
-        ...(imageUrl && { imageUrl }),
-        ...(imageHint && { imageHint }),
-        ...(delivery !== undefined && { delivery }),
-        ...(deliveryPrice !== undefined && { deliveryPrice }),
-        ...(pickup !== undefined && { pickup }),
-      },
+      data: updateData,
     });
 
     return res.json(updatedProduct);

@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { useEffect, useState } from 'react';
 import { cn } from '@/lib/utils';
 import { driverBottomMenuItems } from '@/lib/menu-items';
 import { useAppContext } from '@/context/AppContext';
@@ -9,9 +10,35 @@ import { useAppContext } from '@/context/AppContext';
 export function DriverBottomNav() {
   const pathname = usePathname();
   const { orders } = useAppContext();
+  const [isWorking, setIsWorking] = useState(false);
+
+  useEffect(() => {
+    const syncWorkingState = () => {
+      const stored = localStorage.getItem('driverIsWorking');
+      setIsWorking(stored === 'true');
+    };
+
+    syncWorkingState();
+
+    const handleStorage = (event: StorageEvent) => {
+      if (event.key === 'driverIsWorking') {
+        syncWorkingState();
+      }
+    };
+
+    window.addEventListener('storage', handleStorage);
+    window.addEventListener('driver-working-change', syncWorkingState);
+
+    return () => {
+      window.removeEventListener('storage', handleStorage);
+      window.removeEventListener('driver-working-change', syncWorkingState);
+    };
+  }, []);
 
   // Check if there are new available orders
-  const availableOrders = (orders || []).filter(o => o.status === 'Ищет исполнителя');
+  const availableOrders = isWorking
+    ? (orders || []).filter(o => o.status === 'Ищет исполнителя')
+    : [];
   const hasNewOrders = availableOrders.length > 0;
 
   // Split menu items into 3 groups: left, center (wider), right
@@ -44,7 +71,7 @@ export function DriverBottomNav() {
         <item.icon className={cn(
           "h-5 w-5 z-10",
           isActive ? "text-neon-purple" : "text-gray-400",
-          shouldPulse && "text-neon-cyan"
+          shouldPulse && "text-neon-purple"
         )} />
         <span className="sr-only">{item.label}</span>
       </Link>

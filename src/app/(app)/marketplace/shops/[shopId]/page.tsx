@@ -6,6 +6,7 @@ import Link from 'next/link';
 import {
   ArrowLeft,
   ShoppingCart,
+  ShoppingBag,
   Minus,
   Plus,
   MapPin,
@@ -31,6 +32,7 @@ export default function ShopPage() {
   const {
     shops,
     products,
+    cart,
     addToCart,
     updateCartItemQuantity,
     getCartItemQuantity,
@@ -43,37 +45,58 @@ export default function ShopPage() {
     notFound();
   }
 
-  const handleAddToCart = (productId: string, productName: string) => {
-    addToCart(productId);
-    toast({
-      title: `${productName} в корзине`,
-      duration: 2000,
-    });
+  const handleAddToCart = async (productId: string, productName: string) => {
+    try {
+      await addToCart(productId);
+      toast({
+        title: `${productName} в корзине`,
+        duration: 2000,
+      });
+    } catch (error) {
+      toast({
+        title: 'Ошибка',
+        description: 'Не удалось добавить товар в корзину.',
+        variant: 'destructive',
+      });
+    }
   };
 
-  const handleDecreaseQuantity = (productId: string) => {
+  const handleDecreaseQuantity = async (productId: string) => {
     const currentQuantity = getCartItemQuantity(productId);
-    updateCartItemQuantity(productId, currentQuantity - 1);
+    await updateCartItemQuantity(productId, currentQuantity - 1);
   };
 
-  const handleIncreaseQuantity = (productId: string) => {
+  const handleIncreaseQuantity = async (productId: string) => {
     const currentQuantity = getCartItemQuantity(productId);
-    updateCartItemQuantity(productId, currentQuantity + 1);
+    await updateCartItemQuantity(productId, currentQuantity + 1);
   };
 
   const quantityInCart = (productId: string) => getCartItemQuantity(productId);
+  const cartCount = cart.reduce((sum, item) => sum + item.quantity, 0);
 
   return (
     <div>
-      <div className="mb-6 flex items-center gap-4">
-        <Link
-          href="/marketplace"
-          className="text-muted-foreground hover:text-primary"
-        >
-          <ArrowLeft className="h-5 w-5" />
-          <span className="sr-only">Назад</span>
+      <div className="mb-6 flex items-center justify-between gap-4">
+        <div className="flex items-center gap-4">
+          <Link
+            href="/marketplace"
+            className="text-muted-foreground hover:text-primary"
+          >
+            <ArrowLeft className="h-5 w-5" />
+            <span className="sr-only">Назад</span>
+          </Link>
+          <h1 className="truncate text-3xl font-bold">{shop.name}</h1>
+        </div>
+        <Link href="/cart" className="relative">
+          <Button variant="outline" size="icon" className="relative">
+            <ShoppingBag className="h-4 w-4" />
+            {cartCount > 0 && (
+              <span className="absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full bg-neon-cyan text-xs font-bold text-black">
+                {cartCount}
+              </span>
+            )}
+          </Button>
         </Link>
-        <h1 className="truncate text-3xl font-bold">{shop.name}</h1>
       </div>
 
       <div className="relative mb-8 h-48 w-full overflow-hidden rounded-lg md:h-64">

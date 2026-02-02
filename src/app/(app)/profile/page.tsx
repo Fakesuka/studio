@@ -24,7 +24,7 @@ import {
 } from 'lucide-react';
 import { FrostButton } from '@/components/ui/frost-button';
 import { IceCard } from '@/components/ui/ice-card';
-import { Switch } from '@/components/ui/switch';
+import { ThemeSwitcher } from '@/components/theme-switcher';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useAppContext } from '@/context/AppContext';
@@ -63,8 +63,29 @@ import { YAKUTIA_CITIES, type YakutiaCity } from '@/lib/cities';
 import { serviceTypesList, type ServiceType, type LegalStatus, type DriverProfile } from '@/lib/types';
 import type { UserRole } from '@/components/role-switcher';
 
+interface Review {
+  id: string;
+  rating: number;
+  comment?: string;
+  createdAt: string;
+  fromUser?: {
+    name?: string;
+    avatarUrl?: string;
+  };
+}
+
 // Profile stats component
-function ProfileStats({ currentRole, driverProfile }: { currentRole: UserRole; driverProfile: DriverProfile | null }) {
+function ProfileStats({
+  currentRole,
+  driverProfile,
+  canOpenReviews,
+  onRatingClick,
+}: {
+  currentRole: UserRole;
+  driverProfile: DriverProfile | null;
+  canOpenReviews: boolean;
+  onRatingClick?: () => void;
+}) {
   const { orders } = useAppContext();
 
   // Calculate completed orders count
@@ -93,13 +114,35 @@ function ProfileStats({ currentRole, driverProfile }: { currentRole: UserRole; d
 
   return (
     <div className="grid grid-cols-3 gap-3">
-      {stats.map((stat, i) => (
-        <div key={i} className="flex flex-col items-center justify-center p-3 rounded-2xl bg-white/5 border border-white/5 backdrop-blur-sm">
-          <stat.icon className={`h-5 w-5 ${stat.color} mb-1`} />
-          <span className="text-lg font-bold text-white">{stat.value}</span>
-          <span className="text-[10px] uppercase tracking-wider text-gray-500">{stat.label}</span>
-        </div>
-      ))}
+      {stats.map((stat, i) => {
+        const isRating = stat.label === 'Рейтинг';
+        const content = (
+          <>
+            <stat.icon className={`h-5 w-5 ${stat.color} mb-1`} />
+            <span className="text-lg font-bold text-white">{stat.value}</span>
+            <span className="text-[10px] uppercase tracking-wider text-gray-500">{stat.label}</span>
+          </>
+        );
+
+        if (isRating && canOpenReviews) {
+          return (
+            <button
+              key={i}
+              type="button"
+              onClick={onRatingClick}
+              className="flex flex-col items-center justify-center p-3 rounded-2xl bg-white/5 border border-white/5 backdrop-blur-sm transition hover:bg-white/10"
+            >
+              {content}
+            </button>
+          );
+        }
+
+        return (
+          <div key={i} className="flex flex-col items-center justify-center p-3 rounded-2xl bg-white/5 border border-white/5 backdrop-blur-sm">
+            {content}
+          </div>
+        );
+      })}
     </div>
   );
 }
@@ -176,11 +219,17 @@ export default function ProfilePage() {
   const [showTopUp, setShowTopUp] = useState(false);
   const [showSellerForm, setShowSellerForm] = useState(false);
   const [showDriverForm, setShowDriverForm] = useState(false);
-  const [name, setName] = useState('Загрузка...');
+  const [name, setName] = useState('');
   const [username, setUsername] = useState('');
   const [phone, setPhone] = useState('');
-  const [city, setCity] = useState<YakutiaCity>('Якутск');
+  const [city, setCity] = useState<YakutiaCity | ''>('');
   const [customCity, setCustomCity] = useState('');
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
+  const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
+  const [isProfileLoading, setIsProfileLoading] = useState(true);
+  const [isReviewsOpen, setIsReviewsOpen] = useState(false);
+  const [reviews, setReviews] = useState<Review[]>([]);
+  const [isReviewsLoading, setIsReviewsLoading] = useState(false);
 
   useEffect(() => {
     const loadUserData = async () => {
@@ -201,6 +250,11 @@ export default function ProfilePage() {
         if (profile.city) {
           console.log('[Profile] Setting city from API:', profile.city);
           setCity(profile.city as YakutiaCity);
+        }
+        if (profile.avatarUrl) {
+          console.log('[Profile] Setting avatar from API:', profile.avatarUrl);
+          setAvatarUrl(profile.avatarUrl);
+          setAvatarPreview(profile.avatarUrl);
         }
 
         // Get data from Telegram WebApp
@@ -225,6 +279,9 @@ export default function ProfilePage() {
             setPhone(telegramPhone);
           }
         }
+        if (!profile.city) {
+          setCity('Якутск');
+        }
         console.log('[Profile] User data loaded successfully');
       } catch (error) {
         logError('[Profile] Error loading user data:', error);
@@ -238,6 +295,11 @@ export default function ProfilePage() {
           console.log('[Profile] No Telegram data, using default');
           setName('Пользователь');
         }
+        if (!city) {
+          setCity('Якутск');
+        }
+      } finally {
+        setIsProfileLoading(false);
       }
     };
 
@@ -245,6 +307,26 @@ export default function ProfilePage() {
   }, []);
 
   const userShop = (shops || []).find(shop => shop.userId === userId);
+  const canOpenReviews = isSeller || isDriver;
+
+  const handleOpenReviews = async () => {
+    if (!canOpenReviews) return;
+    setIsReviewsOpen(true);
+    setIsReviewsLoading(true);
+    try {
+      const data = await api.getMyReviews() as { reviews?: Review[] };
+      setReviews(data.reviews || []);
+    } catch (error) {
+      logError('[Profile] Error loading reviews:', error);
+      toast({
+        title: 'Ошибка',
+        description: 'Не удалось загрузить отзывы.',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsReviewsLoading(false);
+    }
+  };
 
   const sellerForm = useForm<SellerFormValues>({
     resolver: zodResolver(sellerFormSchema),
@@ -363,11 +445,26 @@ export default function ProfilePage() {
       return;
     }
 
+    if (typeof webApp.requestContact !== 'function') {
+      toast({
+        title: 'Недоступно',
+        description: 'Telegram не поддерживает запрос контакта в этой версии.',
+        variant: 'destructive',
+      });
+      return;
+    }
+
     console.log('[Profile] Phone not in user data, requesting via requestContact');
     // If not available, request it
-    webApp.requestContact(async (contactShared) => {
+    webApp.requestContact(async (contactShared: boolean | { phone_number?: string }) => {
       console.log('[Profile] Contact shared:', contactShared);
       if (contactShared) {
+        if (typeof contactShared === 'object' && 'phone_number' in contactShared) {
+          const phoneNumber = (contactShared as { phone_number?: string }).phone_number;
+          if (phoneNumber) {
+            setPhone(phoneNumber);
+          }
+        }
         // Contact was shared and sent to bot
         // Wait a moment for the bot to process and save to database
         toast({
@@ -432,7 +529,13 @@ export default function ProfilePage() {
   const handleSaveProfile = async () => {
     try {
       const selectedCity = city === 'Другой' ? customCity : city;
-      const profileData = { name, phone, city: selectedCity };
+      const avatarToSave = avatarPreview || avatarUrl;
+      const profileData = {
+        name,
+        phone,
+        city: selectedCity,
+        ...(avatarToSave ? { avatarUrl: avatarToSave } : {}),
+      };
       console.log('Saving profile data:', profileData);
 
       await api.updateProfile(profileData);
@@ -449,6 +552,26 @@ export default function ProfilePage() {
         description: getErrorMessage(error, 'Не удалось сохранить профиль.'),
         variant: 'destructive',
       });
+    }
+  };
+
+  const fileToDataUri = (file: File): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result as string);
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
+  };
+
+  const handleAvatarChange = async (
+    event: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      const dataUri = await fileToDataUri(file);
+      setAvatarPreview(dataUri);
+      setAvatarUrl(dataUri);
     }
   };
 
@@ -471,12 +594,21 @@ export default function ProfilePage() {
 
       {/* Avatar Hub (Ice Version) */}
       <div className="flex flex-col items-center justify-center -mt-2">
-        <div className="relative mb-4 group cursor-pointer">
+        <label
+          htmlFor="avatar-upload"
+          className="relative mb-4 group cursor-pointer"
+        >
           <div className="absolute inset-0 bg-neon-cyan/20 blur-xl rounded-full opacity-50 group-hover:opacity-100 transition-opacity animate-pulse" />
           <div className="relative h-28 w-28 p-[3px] rounded-full bg-gradient-to-br from-neon-cyan via-white/50 to-neon-purple">
             <div className="h-full w-full rounded-full border-4 border-black overflow-hidden relative">
               <Avatar className="h-full w-full">
-                <AvatarImage src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${userId}`} />
+                <AvatarImage
+                  src={
+                    avatarPreview ||
+                    avatarUrl ||
+                    `https://api.dicebear.com/7.x/avataaars/svg?seed=${userId}`
+                  }
+                />
                 <AvatarFallback>YG</AvatarFallback>
               </Avatar>
             </div>
@@ -488,15 +620,42 @@ export default function ProfilePage() {
               <User className="h-4 w-4 text-neon-cyan" />
             )}
           </div>
-        </div>
+        </label>
+        <Input
+          id="avatar-upload"
+          type="file"
+          accept="image/*"
+          className="hidden"
+          onChange={handleAvatarChange}
+        />
         <h2 className="text-2xl font-bold text-white flex items-center gap-2">
           {name}
         </h2>
         <p className="text-gray-400 text-sm">{city === 'Другой' ? customCity : city}</p>
+        <div className="mt-3">
+          <label
+            htmlFor="avatar-upload"
+            className="cursor-pointer rounded-full border border-white/10 bg-white/5 px-4 py-1 text-xs text-neon-cyan hover:bg-white/10"
+          >
+            Загрузить фото
+          </label>
+          <Input
+            id="avatar-upload"
+            type="file"
+            accept="image/*"
+            className="hidden"
+            onChange={handleAvatarChange}
+          />
+        </div>
       </div>
 
       {/* Stats Row */}
-      <ProfileStats currentRole={currentRole} driverProfile={driverProfile} />
+      <ProfileStats
+        currentRole={currentRole}
+        driverProfile={driverProfile}
+        canOpenReviews={canOpenReviews}
+        onRatingClick={handleOpenReviews}
+      />
 
       {/* Wallet Card (3D Ice) */}
       <IceCard variant="crystal" className="relative overflow-hidden min-h-[160px] flex flex-col justify-between p-6 group">
@@ -539,7 +698,8 @@ export default function ProfilePage() {
               <Input
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                placeholder="Ваше имя"
+                placeholder={isProfileLoading ? 'Загрузка...' : 'Ваше имя'}
+                disabled={isProfileLoading}
                 className="bg-white/5 border-white/10 text-white"
               />
               <p className="text-[10px] text-gray-500">Берётся из Telegram, можно изменить</p>
@@ -564,7 +724,14 @@ export default function ProfilePage() {
                   onClick={requestPhoneNumber}
                   className="text-neon-cyan"
                 >
-                  Получить
+                  <svg
+                    viewBox="0 0 24 24"
+                    aria-hidden="true"
+                    className="h-4 w-4"
+                    fill="currentColor"
+                  >
+                    <path d="M21.9 4.2c.2.1.3.4.2.6l-3.4 16c0 .2-.2.3-.4.3-.1 0-.2 0-.3-.1l-4.9-3.4-2.5 2.4c-.1.1-.2.1-.3.1h-.1c-.2 0-.3-.2-.3-.4l.2-3.4L18.3 7c.1-.1.1-.3 0-.4-.1-.1-.3-.1-.4 0L7.9 13.1l-4.8-1.5c-.2 0-.3-.2-.3-.4 0-.2.1-.4.3-.4L21.4 4c.2-.1.4 0 .5.2Z" />
+                  </svg>
                 </FrostButton>
               </div>
               <p className="text-[10px] text-gray-500">Получается только через Telegram бота</p>
@@ -575,17 +742,23 @@ export default function ProfilePage() {
               <label className="text-xs text-gray-400 flex items-center gap-2">
                 <MapPin className="h-3 w-3" /> Город
               </label>
-              <select
-                value={city}
-                onChange={(e) => setCity(e.target.value as YakutiaCity)}
-                className="bg-white/5 border border-white/10 text-white rounded-md p-2 text-sm"
-              >
-                {YAKUTIA_CITIES.map((c) => (
-                  <option key={c} value={c} className="bg-black text-white">
-                    {c}
-                  </option>
-                ))}
-              </select>
+                <select
+                  value={city}
+                  onChange={(e) => setCity(e.target.value as YakutiaCity)}
+                  className="bg-white/5 border border-white/10 text-white rounded-md p-2 text-sm"
+                  disabled={isProfileLoading}
+                >
+                  {isProfileLoading && (
+                    <option value="" className="bg-black text-white">
+                      Загрузка...
+                    </option>
+                  )}
+                  {YAKUTIA_CITIES.map((c) => (
+                    <option key={c} value={c} className="bg-black text-white">
+                      {c}
+                    </option>
+                  ))}
+                </select>
               {city === 'Другой' && (
                 <Input
                   value={customCity}
@@ -672,14 +845,14 @@ export default function ProfilePage() {
         <div className="space-y-3">
           <h3 className="text-xs uppercase text-gray-500 font-bold tracking-widest px-2">Настройки</h3>
           <IceCard className="overflow-hidden">
-            <div className="flex items-center justify-between p-4 border-b border-white/5">
-              <div className="flex items-center gap-4">
+            <div className="p-4 border-b border-white/5">
+              <div className="flex items-center gap-4 mb-4">
                 <div className="h-8 w-8 rounded-full bg-black/40 flex items-center justify-center text-gray-400">
                   <Paintbrush className="h-4 w-4" />
                 </div>
-                <span className="text-gray-200 text-sm font-medium">Только тёмная тема</span>
+                <span className="text-gray-200 text-sm font-medium">Тема оформления</span>
               </div>
-              <Switch checked={true} disabled />
+              <ThemeSwitcher />
             </div>
             <div className="flex items-center justify-between p-4 cursor-pointer hover:bg-red-500/10 transition-colors group">
               <div className="flex items-center gap-4">
@@ -692,6 +865,41 @@ export default function ProfilePage() {
           </IceCard>
         </div>
       </div>
+
+      <Dialog open={isReviewsOpen} onOpenChange={setIsReviewsOpen}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle>Отзывы</DialogTitle>
+            <DialogDescription>
+              Отзывы о вас как исполнителе или продавце.
+            </DialogDescription>
+          </DialogHeader>
+          {isReviewsLoading ? (
+            <div className="flex justify-center py-8">
+              <div className="h-8 w-8 animate-spin rounded-full border-2 border-neon-cyan border-t-transparent" />
+            </div>
+          ) : reviews.length > 0 ? (
+            <div className="space-y-3">
+              {reviews.map((review) => (
+                <div key={review.id} className="rounded-xl border border-white/10 bg-white/5 p-4">
+                  <div className="flex items-center justify-between text-sm text-gray-300">
+                    <span>{review.fromUser?.name || 'Пользователь'}</span>
+                    <span className="text-neon-cyan">{review.rating.toFixed(1)}★</span>
+                  </div>
+                  {review.comment && (
+                    <p className="mt-2 text-sm text-gray-400">{review.comment}</p>
+                  )}
+                  <p className="mt-2 text-xs text-gray-500">
+                    {new Date(review.createdAt).toLocaleDateString('ru-RU')}
+                  </p>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <p className="text-sm text-gray-400">Пока нет отзывов.</p>
+          )}
+        </DialogContent>
+      </Dialog>
 
       {/* Dialog for Driver Registration */}
       <Dialog open={showDriverForm} onOpenChange={setShowDriverForm}>
