@@ -8,7 +8,6 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from '@/components/ui/popover';
-import { useToast } from '@/hooks/use-toast';
 
 export type UserRole = 'client' | 'driver';
 
@@ -20,7 +19,6 @@ interface RoleSwitcherProps {
 }
 
 export function RoleSwitcher({ currentRole, onRoleChange, isDriver, className }: RoleSwitcherProps) {
-  const { toast } = useToast();
   const [showHint, setShowHint] = useState(false);
 
   // Show hint on first load if user hasn't seen it
@@ -50,13 +48,6 @@ export function RoleSwitcher({ currentRole, onRoleChange, isDriver, className }:
     setShowHint(false);
     localStorage.setItem('roleSwitcherHintSeen', 'true');
 
-    // Show notification instead of redirecting
-    toast({
-      title: role === 'driver' ? 'Исполнитель' : 'Клиент',
-      description: role === 'driver'
-        ? 'Вы переключились в режим исполнителя'
-        : 'Вы переключились в режим клиента',
-    });
   };
 
   return (
@@ -105,7 +96,6 @@ export function RoleSwitcher({ currentRole, onRoleChange, isDriver, className }:
             <p className="text-sm font-medium">Переключатель ролей</p>
             <p className="text-xs text-muted-foreground">
               Используйте этот слайдер для переключения между режимами клиента и водителя.
-              Нажмите на нужную роль для переключения.
             </p>
           </div>
         </div>

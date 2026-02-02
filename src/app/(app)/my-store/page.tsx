@@ -104,6 +104,7 @@ export default function MyStorePage() {
     shops,
     products,
     addProduct,
+    updateProduct,
     deleteProduct,
     updateShop,
     isSeller,
@@ -115,6 +116,8 @@ export default function MyStorePage() {
   const [photoPreview, setPhotoPreview] = useState<string | null>(null);
   const [editingProduct, setEditingProduct] = useState<any | null>(null);
   const [isEditShopOpen, setIsEditShopOpen] = useState(false);
+  const [shopImagePreview, setShopImagePreview] = useState<string | null>(null);
+  const [shopBannerPreview, setShopBannerPreview] = useState<string | null>(null);
 
   // Find user shop - first try by userId, then take first shop if user is seller
   const userId = getCurrentUserId();
@@ -145,8 +148,8 @@ export default function MyStorePage() {
       .min(10, 'Описание должно быть длиннее 10 символов.'),
     type: z.enum(['store', 'person']),
     address: z.string().optional(),
-    imageUrl: z.string().url('Введите корректный URL').optional().or(z.literal('')),
-    bannerUrl: z.string().url('Введите корректный URL').optional().or(z.literal('')),
+    imageUrl: z.string().optional().or(z.literal('')),
+    bannerUrl: z.string().optional().or(z.literal('')),
   });
 
   type ShopFormValues = z.infer<typeof shopFormSchema>;
@@ -198,6 +201,8 @@ export default function MyStorePage() {
         imageUrl: userShop.imageUrl || '',
         bannerUrl: userShop.bannerUrl || '',
       });
+      setShopImagePreview(userShop.imageUrl || null);
+      setShopBannerPreview(userShop.bannerUrl || null);
     }
   };
 
@@ -225,7 +230,7 @@ export default function MyStorePage() {
     }
   };
 
-  const onProductSubmit = (data: ProductFormValues) => {
+  const onProductSubmit = async (data: ProductFormValues) => {
     const { image, ...productData } = data;
     const finalProductData = { ...productData };
 
@@ -233,40 +238,43 @@ export default function MyStorePage() {
       delete finalProductData.deliveryPrice;
     }
 
-    if (editingProduct) {
-      // Update existing product
-      // Note: updateProduct needs to be added to context
-      // For now, we'll delete and re-add
-      deleteProduct(editingProduct.id);
-      addProduct({
-        ...finalProductData,
-        imageUrl: photoPreview || editingProduct.imageUrl,
-        imageHint: `photo of ${data.name}`,
-      });
+    try {
+      if (editingProduct) {
+        await updateProduct(editingProduct.id, {
+          ...finalProductData,
+          imageUrl: photoPreview || editingProduct.imageUrl,
+          imageHint: `photo of ${data.name}`,
+        });
+        toast({
+          title: 'Товар обновлен!',
+          description: `${data.name} был успешно обновлен.`,
+        });
+      } else {
+        await addProduct({
+          ...finalProductData,
+          // TODO: Replace with real photo upload functionality
+          // Currently using placeholder image service
+          imageUrl:
+            photoPreview || `https://picsum.photos/seed/${data.name}/600/400`,
+          imageHint: `photo of ${data.name}`,
+        });
+        toast({
+          title: 'Товар добавлен!',
+          description: `${data.name} теперь в вашем магазине.`,
+        });
+      }
+
+      setIsAddProductDialogOpen(false);
+      setEditingProduct(null);
+      productForm.reset();
+      setPhotoPreview(null);
+    } catch (error) {
       toast({
-        title: 'Товар обновлен!',
-        description: `${data.name} был успешно обновлен.`,
-      });
-    } else {
-      // Add new product
-      addProduct({
-        ...finalProductData,
-        // TODO: Replace with real photo upload functionality
-        // Currently using placeholder image service
-        imageUrl:
-          photoPreview || `https://picsum.photos/seed/${data.name}/600/400`,
-        imageHint: `photo of ${data.name}`,
-      });
-      toast({
-        title: 'Товар добавлен!',
-        description: `${data.name} теперь в вашем магазине.`,
+        title: 'Ошибка',
+        description: 'Не удалось сохранить товар.',
+        variant: 'destructive',
       });
     }
-
-    setIsAddProductDialogOpen(false);
-    setEditingProduct(null);
-    productForm.reset();
-    setPhotoPreview(null);
   };
 
   const handleEditProduct = (product: any) => {
@@ -283,12 +291,20 @@ export default function MyStorePage() {
     setIsAddProductDialogOpen(true);
   };
 
-  const handleDeleteProduct = (productId: string) => {
-    deleteProduct(productId);
-    toast({
-      title: 'Товар удален',
-      description: 'Товар был успешно удален из вашего магазина.',
-    });
+  const handleDeleteProduct = async (productId: string) => {
+    try {
+      await deleteProduct(productId);
+      toast({
+        title: 'Товар удален',
+        description: 'Товар был успешно удален из вашего магазина.',
+      });
+    } catch (error) {
+      toast({
+        title: 'Ошибка',
+        description: 'Не удалось удалить товар.',
+        variant: 'destructive',
+      });
+    }
   };
 
   const handleDialogClose = (open: boolean) => {
@@ -300,23 +316,51 @@ export default function MyStorePage() {
     }
   };
 
+  const fileToDataUri = (file: File): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result as string);
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
+  };
+
   const handlePhotoChange = async (
     event: React.ChangeEvent<HTMLInputElement>
   ) => {
     const file = event.target.files?.[0];
     if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setPhotoPreview(reader.result as string);
-        productForm.setValue('image', reader.result as string);
-      };
-      reader.readAsDataURL(file);
+      const dataUri = await fileToDataUri(file);
+      setPhotoPreview(dataUri);
+      productForm.setValue('image', dataUri);
+    }
+  };
+
+  const handleShopImageChange = async (
+    event: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      const dataUri = await fileToDataUri(file);
+      setShopImagePreview(dataUri);
+      shopForm.setValue('imageUrl', dataUri);
+    }
+  };
+
+  const handleShopBannerChange = async (
+    event: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      const dataUri = await fileToDataUri(file);
+      setShopBannerPreview(dataUri);
+      shopForm.setValue('bannerUrl', dataUri);
     }
   };
 
   return (
     <div className="space-y-6">
-      <div className="mb-6 flex items-center justify-between gap-4">
+      <div className="mb-6 flex flex-col gap-3">
         <div className="flex items-center gap-4">
           <Link
             href="/profile"
@@ -327,7 +371,7 @@ export default function MyStorePage() {
           </Link>
           <h1 className="text-3xl font-bold">Мой магазин</h1>
         </div>
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2 pl-9">
           <Dialog open={isEditShopOpen} onOpenChange={handleShopEditOpen}>
             <DialogTrigger asChild>
               <Button variant="outline">
@@ -417,10 +461,26 @@ export default function MyStorePage() {
                       name="imageUrl"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Изображение (URL)</FormLabel>
+                          <FormLabel>Изображение</FormLabel>
                           <FormControl>
-                            <Input placeholder="https://..." {...field} />
+                            <Input
+                              type="file"
+                              accept="image/*"
+                              onChange={handleShopImageChange}
+                            />
                           </FormControl>
+                          {shopImagePreview && (
+                            <div className="mt-2">
+                              <Image
+                                src={shopImagePreview}
+                                alt="Предпросмотр изображения магазина"
+                                width={220}
+                                height={140}
+                                className="max-h-40 w-auto rounded-md object-cover"
+                              />
+                            </div>
+                          )}
+                          <Input type="hidden" {...field} />
                           <FormMessage />
                         </FormItem>
                       )}
@@ -430,10 +490,26 @@ export default function MyStorePage() {
                       name="bannerUrl"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Баннер (URL)</FormLabel>
+                          <FormLabel>Баннер</FormLabel>
                           <FormControl>
-                            <Input placeholder="https://..." {...field} />
+                            <Input
+                              type="file"
+                              accept="image/*"
+                              onChange={handleShopBannerChange}
+                            />
                           </FormControl>
+                          {shopBannerPreview && (
+                            <div className="mt-2">
+                              <Image
+                                src={shopBannerPreview}
+                                alt="Предпросмотр баннера"
+                                width={260}
+                                height={120}
+                                className="max-h-40 w-auto rounded-md object-cover"
+                              />
+                            </div>
+                          )}
+                          <Input type="hidden" {...field} />
                           <FormMessage />
                         </FormItem>
                       )}
