@@ -55,7 +55,7 @@ function LayoutContent({ children }: { children: React.ReactNode }) {
 
       <div className="relative z-10 flex min-h-screen w-full flex-col">
         <Header />
-        <main className="mt-[calc(env(safe-area-inset-top)+104px)] flex flex-1 flex-col p-4 pb-[calc(7rem+env(safe-area-inset-bottom))] md:mt-[104px] md:gap-8 md:p-8 md:pb-8 lg:px-12 xl:px-16">
+        <main className="mt-[calc(env(safe-area-inset-top)+48px)] flex flex-1 flex-col p-4 pb-[calc(7rem+env(safe-area-inset-bottom))] md:mt-12 md:gap-8 md:p-8 md:pb-8 lg:px-12 xl:px-16">
           {children}
         </main>
         {showDriverNav ? <DriverBottomNav /> : <BottomNav />}

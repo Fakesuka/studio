@@ -1,6 +1,5 @@
 'use client';
 
-import { useRouter } from 'next/navigation';
 import { User, Car, Info } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useState, useEffect } from 'react';
@@ -9,6 +8,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from '@/components/ui/popover';
+import { useToast } from '@/hooks/use-toast';
 
 export type UserRole = 'client' | 'driver';
 
@@ -20,7 +20,7 @@ interface RoleSwitcherProps {
 }
 
 export function RoleSwitcher({ currentRole, onRoleChange, isDriver, className }: RoleSwitcherProps) {
-  const router = useRouter();
+  const { toast } = useToast();
   const [showHint, setShowHint] = useState(false);
 
   // Show hint on first load if user hasn't seen it
@@ -44,15 +44,19 @@ export function RoleSwitcher({ currentRole, onRoleChange, isDriver, className }:
   }
 
   const handleRoleChange = (role: UserRole) => {
+    if (role === currentRole) return;
+
     onRoleChange(role);
     setShowHint(false);
     localStorage.setItem('roleSwitcherHintSeen', 'true');
-    // Auto-navigate to the correct home page
-    if (role === 'driver') {
-      router.push('/driver/dashboard');
-    } else {
-      router.push('/dashboard');
-    }
+
+    // Show notification instead of redirecting
+    toast({
+      title: role === 'driver' ? 'Исполнитель' : 'Клиент',
+      description: role === 'driver'
+        ? 'Вы переключились в режим исполнителя'
+        : 'Вы переключились в режим клиента',
+    });
   };
 
   return (
