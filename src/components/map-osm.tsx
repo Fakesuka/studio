@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useMemo } from 'react';
 import { MapContainer, TileLayer, Marker, Polyline, useMap, useMapEvents } from 'react-leaflet';
-import L from 'leaflet';
+import * as L from 'leaflet';
 import { cn } from '@/lib/utils';
 import 'leaflet/dist/leaflet.css';
 
