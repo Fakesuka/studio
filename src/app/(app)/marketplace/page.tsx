@@ -27,6 +27,14 @@ import { Input } from '@/components/ui/input';
 import { format } from 'date-fns';
 import { ru } from 'date-fns/locale';
 
+const marketplaceStatusLabels: Record<string, string> = {
+  Новый: 'Новый',
+  'В обработке': 'Подтвержден',
+  Доставляется: 'Доставляется',
+  Завершен: 'Доставлен',
+  Отменен: 'Отменен',
+};
+
 export default function MarketplacePage() {
   const { toast } = useToast();
   const {
@@ -51,22 +59,6 @@ export default function MarketplacePage() {
     const date = new Date(value);
     if (Number.isNaN(date.getTime())) return '—';
     return format(date, 'd MMM yyyy, HH:mm', { locale: ru });
-  };
-
-  const marketplaceStatusLabels: Record<string, string> = {
-    Новый: 'Новый',
-    'В обработке': 'Подтвержден',
-    Доставляется: 'Доставляется',
-    Завершен: 'Доставлен',
-    Отменен: 'Отменен',
-  };
-
-  const marketplaceStatusLabels: Record<string, string> = {
-    Новый: 'Новый',
-    'В обработке': 'Подтвержден',
-    Доставляется: 'Доставляется',
-    Завершен: 'Доставлен',
-    Отменен: 'Отменен',
   };
 
   const handleAddToCart = (productId: string, productName: string) => {
