@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { useEffect, useState } from 'react';
+import { useState, useEffect } from 'react';
 import { cn } from '@/lib/utils';
 import { driverBottomMenuItems } from '@/lib/menu-items';
 import { useAppContext } from '@/context/AppContext';
@@ -29,16 +29,18 @@ export function DriverBottomNav() {
     window.addEventListener('storage', handleStorage);
     window.addEventListener('driver-working-change', syncWorkingState);
 
+    // Also check periodically for same-tab updates
+    const interval = setInterval(syncWorkingState, 1000);
+
     return () => {
       window.removeEventListener('storage', handleStorage);
       window.removeEventListener('driver-working-change', syncWorkingState);
+      clearInterval(interval);
     };
   }, []);
 
-  // Check if there are new available orders
-  const availableOrders = isWorking
-    ? (orders || []).filter(o => o.status === 'Ищет исполнителя')
-    : [];
+  // Check if there are new available orders (only when working)
+  const availableOrders = (orders || []).filter(o => o.status === 'Ищет исполнителя');
   const hasNewOrders = availableOrders.length > 0;
 
   // Split menu items into 3 groups: left, center (wider), right
@@ -49,8 +51,8 @@ export function DriverBottomNav() {
   const renderCapsule = (item: typeof driverBottomMenuItems[0], isCenter: boolean = false) => {
     const isActive = pathname.startsWith(item.href);
     const isDashboard = item.href === '/driver/dashboard';
-    // Only pulse like heartbeat when there are new orders and not active
-    const shouldPulse = isDashboard && hasNewOrders && !isActive;
+    // Only pulse when there are new orders AND driver is working AND not on dashboard
+    const shouldPulse = isDashboard && hasNewOrders && isWorking && !isActive;
 
     return (
       <Link
@@ -71,7 +73,7 @@ export function DriverBottomNav() {
         <item.icon className={cn(
           "h-5 w-5 z-10",
           isActive ? "text-neon-purple" : "text-gray-400",
-          shouldPulse && "text-neon-purple"
+          shouldPulse && "text-neon-cyan"
         )} />
         <span className="sr-only">{item.label}</span>
       </Link>
