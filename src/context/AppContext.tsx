@@ -332,17 +332,21 @@ export function AppProvider({ children }: { children: ReactNode }) {
       const normalized = normalizeCartData(cartData);
       if (normalized.length > 0) {
         setCart(normalized);
-      } else if (addResult) {
+        return;
+      }
+
+      if (addResult) {
         setCart(prev => {
-          const existing = prev.find(item => getCartItemId(item) === productId);
+          const resultId = getCartItemId(addResult);
+          const existing = prev.find(item => getCartItemId(item) === resultId);
           if (existing) {
             return prev.map(item =>
-              getCartItemId(item) === productId
+              getCartItemId(item) === resultId
                 ? { ...item, quantity: item.quantity + 1 }
                 : item
             );
           }
-          return prev;
+          return [...prev, addResult];
         });
       }
     } catch (error) {

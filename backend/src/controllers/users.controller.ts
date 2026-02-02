@@ -42,14 +42,15 @@ export async function updateProfile(req: AuthRequest, res: Response) {
 
     console.log('Update profile request:', { name, phone, city, avatarUrl, userId: req.user!.id });
 
+    const updateData: Record<string, unknown> = {};
+    if (name !== undefined) updateData.name = name;
+    if (phone !== undefined) updateData.phone = phone;
+    if (city !== undefined) updateData.city = city;
+    if (avatarUrl !== undefined) updateData.avatarUrl = avatarUrl;
+
     const user = await prisma.user.update({
       where: { id: req.user!.id },
-      data: {
-        ...(name && { name }),
-        ...(phone && { phone }),
-        ...(city && { city }),
-        ...(avatarUrl && { avatarUrl }),
-      },
+      data: updateData,
     });
 
     console.log('Profile updated successfully');

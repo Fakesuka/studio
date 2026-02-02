@@ -594,7 +594,10 @@ export default function ProfilePage() {
 
       {/* Avatar Hub (Ice Version) */}
       <div className="flex flex-col items-center justify-center -mt-2">
-        <div className="relative mb-4 group cursor-pointer">
+        <label
+          htmlFor="avatar-upload"
+          className="relative mb-4 group cursor-pointer"
+        >
           <div className="absolute inset-0 bg-neon-cyan/20 blur-xl rounded-full opacity-50 group-hover:opacity-100 transition-opacity animate-pulse" />
           <div className="relative h-28 w-28 p-[3px] rounded-full bg-gradient-to-br from-neon-cyan via-white/50 to-neon-purple">
             <div className="h-full w-full rounded-full border-4 border-black overflow-hidden relative">
@@ -617,7 +620,14 @@ export default function ProfilePage() {
               <User className="h-4 w-4 text-neon-cyan" />
             )}
           </div>
-        </div>
+        </label>
+        <Input
+          id="avatar-upload"
+          type="file"
+          accept="image/*"
+          className="hidden"
+          onChange={handleAvatarChange}
+        />
         <h2 className="text-2xl font-bold text-white flex items-center gap-2">
           {name}
         </h2>

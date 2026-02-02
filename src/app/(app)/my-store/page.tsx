@@ -291,12 +291,20 @@ export default function MyStorePage() {
     setIsAddProductDialogOpen(true);
   };
 
-  const handleDeleteProduct = (productId: string) => {
-    deleteProduct(productId);
-    toast({
-      title: 'Товар удален',
-      description: 'Товар был успешно удален из вашего магазина.',
-    });
+  const handleDeleteProduct = async (productId: string) => {
+    try {
+      await deleteProduct(productId);
+      toast({
+        title: 'Товар удален',
+        description: 'Товар был успешно удален из вашего магазина.',
+      });
+    } catch (error) {
+      toast({
+        title: 'Ошибка',
+        description: 'Не удалось удалить товар.',
+        variant: 'destructive',
+      });
+    }
   };
 
   const handleDialogClose = (open: boolean) => {

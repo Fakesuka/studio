@@ -195,7 +195,7 @@ export default function Dashboard() {
       <section className="relative w-full">
         <div className="flex flex-col gap-2 mb-4">
           <h1 className="text-4xl font-display font-bold text-transparent bg-clip-text bg-gradient-to-r from-white via-blue-100 to-white drop-shadow-[0_0_10px_rgba(255,255,255,0.3)]">
-            Центр Управления
+            Центр заявок
           </h1>
           <p className="text-blue-200/60 text-sm font-light tracking-wide flex items-center gap-2">
             {weatherLoading ? (
@@ -310,4 +310,3 @@ export default function Dashboard() {
     </div >
   );
 }
-

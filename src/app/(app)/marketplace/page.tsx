@@ -14,6 +14,7 @@ import {
 import { useToast } from '@/hooks/use-toast';
 import {
   ShoppingCart,
+  ShoppingBag,
   Minus,
   Plus,
   Truck,
@@ -61,25 +62,34 @@ export default function MarketplacePage() {
     return format(date, 'd MMM yyyy, HH:mm', { locale: ru });
   };
 
-  const handleAddToCart = (productId: string, productName: string) => {
-    addToCart(productId);
-    toast({
-      title: `${productName} добавлен в корзину`,
-      duration: 2000,
-    });
+  const handleAddToCart = async (productId: string, productName: string) => {
+    try {
+      await addToCart(productId);
+      toast({
+        title: `${productName} добавлен в корзину`,
+        duration: 2000,
+      });
+    } catch (error) {
+      toast({
+        title: 'Ошибка',
+        description: 'Не удалось добавить товар в корзину.',
+        variant: 'destructive',
+      });
+    }
   };
 
-  const handleDecreaseQuantity = (productId: string) => {
+  const handleDecreaseQuantity = async (productId: string) => {
     const currentQuantity = getCartItemQuantity(productId);
-    updateCartItemQuantity(productId, currentQuantity - 1);
+    await updateCartItemQuantity(productId, currentQuantity - 1);
   };
 
-  const handleIncreaseQuantity = (productId: string) => {
+  const handleIncreaseQuantity = async (productId: string) => {
     const currentQuantity = getCartItemQuantity(productId);
-    updateCartItemQuantity(productId, currentQuantity + 1);
+    await updateCartItemQuantity(productId, currentQuantity + 1);
   };
 
   const quantityInCart = (productId: string) => getCartItemQuantity(productId);
+  const cartCount = cart.reduce((sum, item) => sum + item.quantity, 0);
 
   const filteredProducts = products
     .filter(product =>
@@ -118,11 +128,15 @@ export default function MarketplacePage() {
             </Link>
           )}
           <Link href="/cart" passHref>
-            <FrostButton variant="default" size="icon" className="relative rounded-full bg-white/10 hover:bg-white/20">
-              <ShoppingCart className="h-5 w-5" />
-              {cart.length > 0 && (
+            <FrostButton
+              variant="default"
+              size="icon"
+              className="relative rounded-full bg-white/10 hover:bg-white/20"
+            >
+              <ShoppingBag className="h-5 w-5" />
+              {cartCount > 0 && (
                 <span className="absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full bg-neon-cyan text-xs font-bold text-black">
-                  {cart.reduce((sum, item) => sum + item.quantity, 0)}
+                  {cartCount}
                 </span>
               )}
             </FrostButton>
