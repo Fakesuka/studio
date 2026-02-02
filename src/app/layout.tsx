@@ -40,7 +40,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="ru" suppressHydrationWarning className="dark">
+    <html lang="ru" suppressHydrationWarning>
       <body className={`${jakarta.variable} ${outfit.variable} font-sans antialiased bg-background text-foreground`}>
         <Script
           src="https://telegram.org/js/telegram-web-app.js"

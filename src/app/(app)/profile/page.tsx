@@ -24,7 +24,7 @@ import {
 } from 'lucide-react';
 import { FrostButton } from '@/components/ui/frost-button';
 import { IceCard } from '@/components/ui/ice-card';
-import { Switch } from '@/components/ui/switch';
+import { ThemeSwitcher } from '@/components/theme-switcher';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useAppContext } from '@/context/AppContext';
@@ -845,14 +845,14 @@ export default function ProfilePage() {
         <div className="space-y-3">
           <h3 className="text-xs uppercase text-gray-500 font-bold tracking-widest px-2">Настройки</h3>
           <IceCard className="overflow-hidden">
-            <div className="flex items-center justify-between p-4 border-b border-white/5">
-              <div className="flex items-center gap-4">
+            <div className="p-4 border-b border-white/5">
+              <div className="flex items-center gap-4 mb-4">
                 <div className="h-8 w-8 rounded-full bg-black/40 flex items-center justify-center text-gray-400">
                   <Paintbrush className="h-4 w-4" />
                 </div>
-                <span className="text-gray-200 text-sm font-medium">Только тёмная тема</span>
+                <span className="text-gray-200 text-sm font-medium">Тема оформления</span>
               </div>
-              <Switch checked={true} disabled />
+              <ThemeSwitcher />
             </div>
             <div className="flex items-center justify-between p-4 cursor-pointer hover:bg-red-500/10 transition-colors group">
               <div className="flex items-center gap-4">
