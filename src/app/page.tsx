@@ -62,15 +62,14 @@ export default function WelcomePage() {
 
           <div className="mb-8 text-center">
             {isReturningUser ? (
-              <div className="flex flex-col items-center gap-4">
+              <div className="flex flex-col items-center gap-5">
                 <div className="relative h-24 w-24">
                   <div className="absolute inset-0 rounded-full bg-neon-cyan/20 blur-xl animate-pulse-glow" />
                   <div className="absolute inset-2 rounded-full border border-neon-cyan/50 shadow-[0_0_20px_rgba(34,211,238,0.5)] animate-pulse" />
-                  <div className="relative h-full w-full rounded-full bg-white/5 backdrop-blur">
-                    <Image src="/logo.png" alt="YakGo" fill className="object-contain p-3" priority />
-                  </div>
                 </div>
-                <p className="text-sm text-neon-cyan/80">Загрузка профиля...</p>
+                <p className="text-lg font-medium text-neon-cyan">
+                  С возвращением{userName ? `, ${userName}` : ''}!
+                </p>
               </div>
             ) : (
               <div className="space-y-4">
