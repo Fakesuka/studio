@@ -49,7 +49,8 @@ export function DriverBottomNav() {
   const renderCapsule = (item: typeof driverBottomMenuItems[0], isCenter: boolean = false) => {
     const isActive = pathname.startsWith(item.href);
     const isDashboard = item.href === '/driver/dashboard';
-    const shouldPulse = isDashboard && hasNewOrders && isWorking && !isActive;
+    // Only pulse like heartbeat when there are new orders and not active
+    const shouldPulse = isDashboard && hasNewOrders && !isActive;
 
     return (
       <Link
@@ -61,14 +62,11 @@ export function DriverBottomNav() {
           isActive
             ? 'bg-gradient-to-tr from-neon-purple/20 to-neon-pink/20 border-neon-purple/30'
             : 'hover:bg-white/5 hover:border-white/20',
-          shouldPulse && 'border-neon-purple/60'
+          shouldPulse && 'animate-heartbeat border-neon-cyan/50'
         )}
       >
         {isActive && (
           <span className="absolute inset-0 rounded-full shadow-[0_0_15px_rgba(168,85,247,0.3)]" />
-        )}
-        {shouldPulse && (
-          <span className="absolute inset-0 rounded-full shadow-[0_0_14px_rgba(168,85,247,0.45)] animate-pulse" />
         )}
         <item.icon className={cn(
           "h-5 w-5 z-10",

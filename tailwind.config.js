@@ -85,6 +85,13 @@ module.exports = {
           "0%": { opacity: "0", transform: "scale(0)" },
           "50%": { opacity: "1", transform: "scale(1)" },
           "100%": { opacity: "0", transform: "scale(0)" },
+        },
+        "heartbeat": {
+          "0%": { transform: "scale(1)" },
+          "14%": { transform: "scale(1.15)" },
+          "28%": { transform: "scale(1)" },
+          "42%": { transform: "scale(1.15)" },
+          "70%": { transform: "scale(1)" },
         }
       },
       animation: {
@@ -94,6 +101,7 @@ module.exports = {
         "pulse-glow": "pulse-glow 3s cubic-bezier(0.4, 0, 0.6, 1) infinite",
         "ice-shine": "ice-shine 3s linear infinite",
         "radar-blip": "radar-blip 4s ease-in-out forwards",
+        "heartbeat": "heartbeat 1.5s ease-in-out infinite",
       },
       backgroundImage: {
         'aurora-gradient': 'linear-gradient(to right bottom, #0F1115, #1A1024, #121826)',
