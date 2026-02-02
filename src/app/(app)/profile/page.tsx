@@ -39,7 +39,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
@@ -60,7 +60,49 @@ import { getTelegramWebApp, getTelegramPhoneNumber, getTelegramUser } from '@/li
 import { safeErrorLog, getErrorMessage, logError } from '@/lib/error-utils';
 import { api } from '@/lib/api';
 import { YAKUTIA_CITIES, type YakutiaCity } from '@/lib/cities';
-import { serviceTypesList, type ServiceType, type LegalStatus } from '@/lib/types';
+import { serviceTypesList, type ServiceType, type LegalStatus, type DriverProfile } from '@/lib/types';
+import type { UserRole } from '@/components/role-switcher';
+
+// Profile stats component
+function ProfileStats({ currentRole, driverProfile }: { currentRole: UserRole; driverProfile: DriverProfile | null }) {
+  const { orders } = useAppContext();
+
+  // Calculate completed orders count
+  const completedOrders = (orders || []).filter(o => o.status === 'Завершён').length;
+
+  // Calculate days since first order or registration (mock for now)
+  const daysSinceStart = useMemo(() => {
+    const firstOrder = (orders || []).sort((a, b) =>
+      new Date(a.date || 0).getTime() - new Date(b.date || 0).getTime()
+    )[0];
+    if (firstOrder?.date) {
+      const days = Math.floor((Date.now() - new Date(firstOrder.date).getTime()) / (1000 * 60 * 60 * 24));
+      return Math.max(1, days);
+    }
+    return 1;
+  }, [orders]);
+
+  // Rating (mock for now - would come from API)
+  const rating = driverProfile ? 4.98 : 5.0;
+
+  const stats = [
+    { label: 'Рейтинг', value: rating.toFixed(2), icon: Star, color: 'text-yellow-400' },
+    { label: 'Заказы', value: completedOrders.toString(), icon: Snowflake, color: 'text-neon-cyan' },
+    { label: 'Дней', value: daysSinceStart.toString(), icon: Clock, color: 'text-neon-purple' },
+  ];
+
+  return (
+    <div className="grid grid-cols-3 gap-3">
+      {stats.map((stat, i) => (
+        <div key={i} className="flex flex-col items-center justify-center p-3 rounded-2xl bg-white/5 border border-white/5 backdrop-blur-sm">
+          <stat.icon className={`h-5 w-5 ${stat.color} mb-1`} />
+          <span className="text-lg font-bold text-white">{stat.value}</span>
+          <span className="text-[10px] uppercase tracking-wider text-gray-500">{stat.label}</span>
+        </div>
+      ))}
+    </div>
+  );
+}
 
 const sellerFormSchema = z
   .object({
@@ -420,16 +462,11 @@ export default function ProfilePage() {
 
       <div className="flex items-center justify-between px-2">
         <h1 className="text-3xl font-display font-bold text-white tracking-tight">Профиль</h1>
-        <div className="flex items-center gap-2">
-          <RoleSwitcher
-            currentRole={currentRole}
-            onRoleChange={setCurrentRole}
-            isDriver={isDriver}
-          />
-          <FrostButton variant="ghost" size="icon" className="rounded-full">
-            <Settings className="h-5 w-5 text-gray-400" />
-          </FrostButton>
-        </div>
+        <RoleSwitcher
+          currentRole={currentRole}
+          onRoleChange={setCurrentRole}
+          isDriver={isDriver}
+        />
       </div>
 
       {/* Avatar Hub (Ice Version) */}
@@ -444,11 +481,13 @@ export default function ProfilePage() {
               </Avatar>
             </div>
           </div>
-          {isDriver && (
-            <div className="absolute bottom-1 right-1 h-8 w-8 bg-black rounded-full flex items-center justify-center border border-neon-cyan shadow-[0_0_10px_rgba(34,211,238,0.5)]">
-              <Car className="h-4 w-4 text-neon-cyan" />
-            </div>
-          )}
+          <div className={`absolute bottom-1 right-1 h-8 w-8 bg-black rounded-full flex items-center justify-center border shadow-[0_0_10px_rgba(34,211,238,0.5)] ${currentRole === 'driver' ? 'border-neon-purple' : 'border-neon-cyan'}`}>
+            {currentRole === 'driver' ? (
+              <Car className="h-4 w-4 text-neon-purple" />
+            ) : (
+              <User className="h-4 w-4 text-neon-cyan" />
+            )}
+          </div>
         </div>
         <h2 className="text-2xl font-bold text-white flex items-center gap-2">
           {name}
@@ -457,19 +496,7 @@ export default function ProfilePage() {
       </div>
 
       {/* Stats Row */}
-      <div className="grid grid-cols-3 gap-3">
-        {[
-          { label: 'Рейтинг', value: '4.98', icon: Star, color: 'text-yellow-400' },
-          { label: 'Заказы', value: '124', icon: Snowflake, color: 'text-neon-cyan' },
-          { label: 'Дней', value: '365', icon: Clock, color: 'text-neon-purple' },
-        ].map((stat, i) => (
-          <div key={i} className="flex flex-col items-center justify-center p-3 rounded-2xl bg-white/5 border border-white/5 backdrop-blur-sm">
-            <stat.icon className={`h-5 w-5 ${stat.color} mb-1`} />
-            <span className="text-lg font-bold text-white">{stat.value}</span>
-            <span className="text-[10px] uppercase tracking-wider text-gray-500">{stat.label}</span>
-          </div>
-        ))}
-      </div>
+      <ProfileStats currentRole={currentRole} driverProfile={driverProfile} />
 
       {/* Wallet Card (3D Ice) */}
       <IceCard variant="crystal" className="relative overflow-hidden min-h-[160px] flex flex-col justify-between p-6 group">

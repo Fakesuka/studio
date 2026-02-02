@@ -39,6 +39,8 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
+import { Switch } from '@/components/ui/switch';
+import { Power } from 'lucide-react';
 
 const MapOSM = dynamic(() => import('@/components/map-osm'), {
   ssr: false,
@@ -332,6 +334,29 @@ export default function DriverDashboard() {
   const { isDriver, isContextLoading, orders, activeDriverOrder } =
     useAppContext();
   const router = useRouter();
+  const { toast } = useToast();
+  const [isWorking, setIsWorking] = useState(() => {
+    // Load from localStorage on init
+    if (typeof window !== 'undefined') {
+      return localStorage.getItem('driverIsWorking') === 'true';
+    }
+    return false;
+  });
+
+  // Save working status to localStorage
+  useEffect(() => {
+    localStorage.setItem('driverIsWorking', isWorking.toString());
+  }, [isWorking]);
+
+  const handleWorkingToggle = (checked: boolean) => {
+    setIsWorking(checked);
+    toast({
+      title: checked ? 'Вы на линии' : 'Вы не на линии',
+      description: checked
+        ? 'Теперь вам будут приходить новые заказы'
+        : 'Вы не будете получать новые заказы',
+    });
+  };
 
   useEffect(() => {
     if (!isContextLoading && !isDriver) {
@@ -361,18 +386,51 @@ export default function DriverDashboard() {
     );
   }
 
-  const availableOrders = (orders || []).filter(o => o.status === 'Ищет исполнителя');
+  const availableOrders = isWorking
+    ? (orders || []).filter(o => o.status === 'Ищет исполнителя')
+    : [];
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold">Новые заказы</h1>
-        <p className="text-muted-foreground">
-          Здесь будут отображаться доступные заказы в реальном времени.
-        </p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-bold">Новые заказы</h1>
+          <p className="text-muted-foreground">
+            {isWorking
+              ? 'Доступные заказы в реальном времени'
+              : 'Включите режим работы для получения заказов'}
+          </p>
+        </div>
+        <div className="flex items-center gap-3 rounded-full border border-white/10 bg-black/40 px-4 py-2 backdrop-blur-xl">
+          <Power className={`h-4 w-4 ${isWorking ? 'text-green-400' : 'text-gray-400'}`} />
+          <span className={`text-sm font-medium ${isWorking ? 'text-green-400' : 'text-gray-400'}`}>
+            {isWorking ? 'На линии' : 'Не на линии'}
+          </span>
+          <Switch
+            checked={isWorking}
+            onCheckedChange={handleWorkingToggle}
+            className="data-[state=checked]:bg-green-500"
+          />
+        </div>
       </div>
 
-      {availableOrders.length > 0 ? (
+      {!isWorking ? (
+        <Card>
+          <CardContent className="p-6">
+            <div className="flex h-64 flex-col items-center justify-center gap-4 rounded-lg border-2 border-dashed text-center">
+              <Power className="h-10 w-10 text-muted-foreground" />
+              <div>
+                <p className="font-semibold text-muted-foreground">
+                  Вы не на линии
+                </p>
+                <p className="text-sm text-muted-foreground">
+                  Включите режим &quot;На линии&quot; чтобы получать новые заказы.
+                </p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      ) : availableOrders.length > 0 ? (
         <div className="space-y-4">
           {availableOrders.map(order => (
             <AvailableOrderCard key={order.id} order={order} />
