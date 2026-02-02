@@ -2,10 +2,9 @@
 
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
-import { ArrowRight, Sparkles } from 'lucide-react';
 import { getTelegramUser } from '@/lib/telegram';
 import { useEffect, useState } from 'react';
-import Image from 'next/image';
+import { ArrowRight } from 'lucide-react';
 
 export default function WelcomePage() {
   const router = useRouter();
@@ -40,78 +39,100 @@ export default function WelcomePage() {
   };
 
   return (
-    <div className="relative flex min-h-screen w-screen flex-col items-center justify-center overflow-hidden bg-aurora-gradient text-white">
-      {/* Animated Aurora Background Effects */}
-      <div className="absolute inset-0 z-0">
-        <div className="absolute -top-[20%] -left-[10%] h-[70vh] w-[70vw] rounded-full bg-neon-cyan/20 blur-[120px] animate-pulse-glow" />
-        <div className="absolute top-[40%] -right-[20%] h-[60vh] w-[60vw] rounded-full bg-neon-purple/20 blur-[100px] animate-aurora" />
-        <div className="absolute -bottom-[10%] left-[20%] h-[50vh] w-[50vw] rounded-full bg-neon-pink/10 blur-[80px]" />
+    <div className="relative flex min-h-screen w-screen flex-col items-center justify-center overflow-hidden bg-[#0A0D1F] text-white">
+      <div className="absolute inset-0">
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(93,255,255,0.35),transparent_60%)] opacity-80" />
+        <div className="absolute inset-x-0 top-[-20%] h-[60%] bg-[radial-gradient(circle,rgba(47,230,255,0.35),transparent_70%)] blur-[40px]" />
+        <div className="absolute inset-x-0 top-[10%] h-[60%] bg-[radial-gradient(circle_at_right,rgba(32,255,201,0.3),transparent_65%)] blur-[60px]" />
+        <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(10,13,31,0.1),rgba(10,13,31,0.95))]" />
       </div>
 
-      {/* Grid Pattern Overlay */}
-      <div className="absolute inset-0 z-0 bg-[linear-gradient(rgba(255,255,255,0.03)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.03)_1px,transparent_1px)] bg-[size:40px_40px] [mask-image:radial-gradient(ellipse_at_center,black_40%,transparent_80%)]" />
-
-      <div className="relative z-10 flex w-full max-w-sm flex-col items-center px-6">
-        {/* Glass Card Container */}
-        <div className="w-full rounded-3xl border border-white/10 bg-white/5 backdrop-blur-2xl p-8 shadow-2xl shadow-black/40 animate-in fade-in zoom-in duration-700">
-
-          {/* Logo Section */}
-          <div className="mb-8 flex flex-col items-center">
-            <div className="relative mb-4 h-20 w-20 rounded-2xl bg-gradient-to-br from-neon-cyan to-neon-purple p-0.5 shadow-lg shadow-neon-cyan/30">
-              <div className="flex h-full w-full items-center justify-center rounded-2xl bg-black/40 backdrop-blur-md">
-                <Sparkles className="h-10 w-10 text-white" />
-              </div>
+      <div className="relative z-10 flex w-full flex-col items-center gap-8 px-6">
+        <div className="relative w-full max-w-3xl">
+          <div className="absolute inset-0 rounded-[32px] border border-white/20 bg-white/5 shadow-[0_30px_80px_rgba(0,0,0,0.45)] backdrop-blur-sm" />
+          <div className="relative overflow-hidden rounded-[32px] border border-white/10 p-8">
+            <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(255,255,255,0.15),transparent_55%)]" />
+            <svg
+              viewBox="0 0 900 560"
+              className="relative h-auto w-full"
+              aria-hidden="true"
+            >
+              <rect
+                x="40"
+                y="40"
+                width="820"
+                height="420"
+                rx="24"
+                fill="rgba(255,255,255,0.05)"
+                stroke="rgba(255,255,255,0.25)"
+                strokeWidth="2"
+              />
+              <path
+                d="M 120 330 L 160 280 L 210 250 L 250 220 L 300 210 L 350 190 L 410 170 L 470 160 L 520 150 L 580 140 L 640 130 L 700 120 L 760 110"
+                fill="none"
+                stroke="rgba(255,255,255,0.35)"
+                strokeWidth="3"
+              />
+              <path
+                d="M 130 320 Q 250 200 360 210 Q 520 220 720 140"
+                fill="none"
+                stroke="rgba(128,255,255,0.8)"
+                strokeWidth="6"
+                strokeDasharray="16 12"
+                strokeLinecap="round"
+                className="route-dash"
+              />
+              {[
+                [130, 320],
+                [260, 230],
+                [360, 210],
+                [520, 220],
+                [650, 170],
+                [720, 140],
+              ].map(([cx, cy], index) => (
+                <circle
+                  key={`${cx}-${cy}`}
+                  cx={cx}
+                  cy={cy}
+                  r={index === 5 ? 12 : 8}
+                  fill="rgba(128,255,255,0.9)"
+                  stroke="rgba(255,255,255,0.7)"
+                  strokeWidth="3"
+                />
+              ))}
+            </svg>
+            <div className="mt-6 text-center text-sm uppercase tracking-[0.3em] text-white/70">
+              Загрузка маршрутов...
             </div>
-            <h1 className="text-center font-display text-4xl font-bold tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-neon-cyan via-white to-neon-purple drop-shadow-sm">
-              YakGo
-            </h1>
-          </div>
-
-          <div className="mb-8 text-center">
-            {isReturningUser ? (
-              <div className="space-y-2">
-                <h2 className="text-2xl font-medium text-white">С возвращением!</h2>
-                <p className="font-display text-xl text-neon-cyan">{userName}</p>
-                <div className="mt-4 flex items-center justify-center gap-2 text-sm text-gray-400">
-                  <div className="h-2 w-2 rounded-full bg-neon-cyan animate-pulse" />
-                  <span>Загрузка профиля...</span>
-                </div>
-              </div>
-            ) : (
-              <div className="space-y-4">
-                <h2 className="text-2xl font-medium leading-snug text-white">
-                  Ваш надежный помощник на дорогах
-                </h2>
-                <p className="text-sm text-gray-400">
-                  Помощь на дopoгах, эвакуация, доставка топлива и многое другое — в один клик.
-                </p>
-                {userName && (
-                  <p className="rounded-full bg-white/5 px-3 py-1 text-xs text-neon-cyan w-fit mx-auto border border-white/10">
-                    Привет, {userName}
-                  </p>
-                )}
-              </div>
-            )}
-          </div>
-
-          {!isReturningUser && (
-            <div className="space-y-3">
-              <Button
-                size="lg"
-                variant="neon"
-                className="w-full text-base font-bold tracking-wide"
-                onClick={handleEnter}
-              >
-                Начать
-                <ArrowRight className="ml-2 h-5 w-5" />
-              </Button>
+            <div className="mx-auto mt-3 h-2 w-2/3 rounded-full bg-white/10">
+              <div className="progress-bar h-full rounded-full bg-gradient-to-r from-cyan-200 via-cyan-400 to-cyan-200" />
             </div>
+          </div>
+        </div>
+
+        <div className="text-center">
+          <h1 className="text-5xl font-display font-semibold tracking-[0.15em]">
+            АВРОРА.
+          </h1>
+          <p className="mt-2 text-sm uppercase tracking-[0.4em] text-white/70">
+            АВТОСЕРВИСЫ ЯКУТИИ
+          </p>
+          {userName && (
+            <p className="mt-4 text-sm text-cyan-200/90">Привет, {userName}</p>
           )}
         </div>
 
-        <p className="mt-8 text-xs text-gray-500">
-          version 2.1.0 • Aurora Edition
-        </p>
+        {!isReturningUser && (
+          <Button
+            size="lg"
+            variant="neon"
+            className="w-full max-w-xs text-base font-bold tracking-wide"
+            onClick={handleEnter}
+          >
+            Начать
+            <ArrowRight className="ml-2 h-5 w-5" />
+          </Button>
+        )}
       </div>
     </div>
   );

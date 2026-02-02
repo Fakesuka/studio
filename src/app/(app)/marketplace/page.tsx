@@ -14,6 +14,7 @@ import {
 import { useToast } from '@/hooks/use-toast';
 import {
   ShoppingCart,
+  ShoppingBag,
   Minus,
   Plus,
   Truck,
@@ -24,6 +25,16 @@ import {
 import { useAppContext } from '@/context/AppContext';
 import { useState } from 'react';
 import { Input } from '@/components/ui/input';
+import { format } from 'date-fns';
+import { ru } from 'date-fns/locale';
+
+const marketplaceStatusLabels: Record<string, string> = {
+  Новый: 'Новый',
+  'В обработке': 'Подтвержден',
+  Доставляется: 'Доставляется',
+  Завершен: 'Доставлен',
+  Отменен: 'Отменен',
+};
 
 export default function MarketplacePage() {
   const { toast } = useToast();
@@ -35,6 +46,7 @@ export default function MarketplacePage() {
     updateCartItemQuantity,
     getCartItemQuantity,
     isSeller,
+    marketplaceOrders,
   } = useAppContext();
 
   const [searchTerm, setSearchTerm] = useState('');
@@ -44,26 +56,40 @@ export default function MarketplacePage() {
       pickup: false,
     }
   );
-
-  const handleAddToCart = (productId: string, productName: string) => {
-    addToCart(productId);
-    toast({
-      title: `${productName} добавлен в корзину`,
-      duration: 2000,
-    });
+  const formatOrderDate = (value: string) => {
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) return '—';
+    return format(date, 'd MMM yyyy, HH:mm', { locale: ru });
   };
 
-  const handleDecreaseQuantity = (productId: string) => {
-    const currentQuantity = getCartItemQuantity(productId);
-    updateCartItemQuantity(productId, currentQuantity - 1);
+  const handleAddToCart = async (productId: string, productName: string) => {
+    try {
+      await addToCart(productId);
+      toast({
+        title: `${productName} добавлен в корзину`,
+        duration: 2000,
+      });
+    } catch (error) {
+      toast({
+        title: 'Ошибка',
+        description: 'Не удалось добавить товар в корзину.',
+        variant: 'destructive',
+      });
+    }
   };
 
-  const handleIncreaseQuantity = (productId: string) => {
+  const handleDecreaseQuantity = async (productId: string) => {
     const currentQuantity = getCartItemQuantity(productId);
-    updateCartItemQuantity(productId, currentQuantity + 1);
+    await updateCartItemQuantity(productId, currentQuantity - 1);
+  };
+
+  const handleIncreaseQuantity = async (productId: string) => {
+    const currentQuantity = getCartItemQuantity(productId);
+    await updateCartItemQuantity(productId, currentQuantity + 1);
   };
 
   const quantityInCart = (productId: string) => getCartItemQuantity(productId);
+  const cartCount = cart.reduce((sum, item) => sum + item.quantity, 0);
 
   const filteredProducts = products
     .filter(product =>
@@ -102,11 +128,15 @@ export default function MarketplacePage() {
             </Link>
           )}
           <Link href="/cart" passHref>
-            <FrostButton variant="default" size="icon" className="relative rounded-full bg-white/10 hover:bg-white/20">
-              <ShoppingCart className="h-5 w-5" />
-              {cart.length > 0 && (
+            <FrostButton
+              variant="default"
+              size="icon"
+              className="relative rounded-full bg-white/10 hover:bg-white/20"
+            >
+              <ShoppingBag className="h-5 w-5" />
+              {cartCount > 0 && (
                 <span className="absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full bg-neon-cyan text-xs font-bold text-black">
-                  {cart.reduce((sum, item) => sum + item.quantity, 0)}
+                  {cartCount}
                 </span>
               )}
             </FrostButton>
@@ -150,6 +180,41 @@ export default function MarketplacePage() {
             Самовывоз
           </FrostButton>
         </div>
+      </div>
+
+      <div className="mb-10">
+        <h2 className="mb-4 text-xl font-bold text-white flex items-center gap-2">
+          <span className="w-1 h-6 bg-neon-purple rounded-full shadow-[0_0_10px_rgba(168,85,247,0.8)]" />
+          Мои покупки
+        </h2>
+        {marketplaceOrders.length > 0 ? (
+          <div className="grid gap-4 md:grid-cols-2">
+            {marketplaceOrders.map((order, index) => (
+              <IceCard key={order.id} variant="crystal" className="p-4">
+                <div className="flex items-start justify-between gap-4">
+                  <div>
+                    <p className="text-sm text-blue-200/70">
+                      Заказ №{index + 1}
+                    </p>
+                    <p className="mt-1 text-xs text-gray-400">
+                      {formatOrderDate(order.date)}
+                    </p>
+                    <p className="mt-3 text-sm text-white">
+                      {order.items.length} товар(а) · {order.total.toLocaleString('ru-RU')} ₽
+                    </p>
+                  </div>
+                  <span className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs text-neon-purple">
+                    {marketplaceStatusLabels[order.status] ?? order.status}
+                  </span>
+                </div>
+              </IceCard>
+            ))}
+          </div>
+        ) : (
+          <IceCard variant="crystal" className="p-6 text-center text-sm text-gray-400">
+            У вас пока нет покупок.
+          </IceCard>
+        )}
       </div>
 
       <div className="mb-10">
@@ -280,4 +345,3 @@ export default function MarketplacePage() {
     </div>
   );
 }
-

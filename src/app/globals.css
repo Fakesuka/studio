@@ -95,6 +95,33 @@
   }
 }
 
+@keyframes route-dash {
+  0% {
+    stroke-dashoffset: 0;
+  }
+  100% {
+    stroke-dashoffset: -120;
+  }
+}
+
+@keyframes loading-bar {
+  0% {
+    transform: translateX(-20%);
+  }
+  100% {
+    transform: translateX(120%);
+  }
+}
+
+.route-dash {
+  animation: route-dash 3s linear infinite;
+}
+
+.progress-bar {
+  width: 45%;
+  animation: loading-bar 2.8s ease-in-out infinite;
+}
+
 @layer base {
   * {
     @apply border-border;
@@ -102,6 +129,8 @@
 
   body {
     @apply bg-background text-foreground;
+    overscroll-behavior: none;
+    overflow-x: hidden;
   }
 
   html,
