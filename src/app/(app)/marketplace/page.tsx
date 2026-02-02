@@ -61,6 +61,14 @@ export default function MarketplacePage() {
     Отменен: 'Отменен',
   };
 
+  const marketplaceStatusLabels: Record<string, string> = {
+    Новый: 'Новый',
+    'В обработке': 'Подтвержден',
+    Доставляется: 'Доставляется',
+    Завершен: 'Доставлен',
+    Отменен: 'Отменен',
+  };
+
   const handleAddToCart = (productId: string, productName: string) => {
     addToCart(productId);
     toast({
