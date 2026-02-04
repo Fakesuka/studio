@@ -23,12 +23,11 @@ export default function WelcomePage() {
       const fullName = `${telegramUser.first_name} ${telegramUser.last_name || ''}`.trim();
       setUserName(fullName || telegramUser.first_name || 'Пользователь');
 
-      // If user has visited before, auto-redirect to dashboard
+      // If user has visited before, auto-redirect to dashboard immediately
       if (hasVisited === 'true') {
         setIsReturningUser(true);
-        setTimeout(() => {
-          router.push('/dashboard');
-        }, 2000); // Slightly longer delay to enjoy the animation
+        router.push('/dashboard');
+        return;
       }
     }
   }, [router]);
@@ -39,7 +38,7 @@ export default function WelcomePage() {
     router.push('/dashboard');
   };
 
-  const backgroundImage = theme === 'light' ? '/bckwhite.png' : '/bckdark.png';
+  const backgroundImage = theme === 'light' ? '/BCKWHITE.PNG' : '/BCKDARK.PNG';
 
   return (
     <div className="relative flex min-h-screen w-screen flex-col items-center justify-center overflow-hidden bg-[#0A0D1F] text-white">
