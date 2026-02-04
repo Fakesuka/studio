@@ -8,6 +8,7 @@ import { ArrowRight } from 'lucide-react';
 
 export default function WelcomePage() {
   const router = useRouter();
+  const { theme } = useTheme();
   const [userName, setUserName] = useState('');
   const [isReturningUser, setIsReturningUser] = useState(false);
 
@@ -37,6 +38,8 @@ export default function WelcomePage() {
     localStorage.setItem('yakgo_has_visited', 'true');
     router.push('/dashboard');
   };
+
+  const backgroundImage = theme === 'light' ? '/bckwhite.png' : '/bckdark.png';
 
   return (
     <div className="relative flex min-h-screen w-screen flex-col items-center justify-center overflow-hidden bg-[#0A0D1F] text-white">

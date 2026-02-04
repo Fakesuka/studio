@@ -632,6 +632,21 @@ export default function ProfilePage() {
           {name}
         </h2>
         <p className="text-gray-400 text-sm">{city === 'Другой' ? customCity : city}</p>
+        <div className="mt-3">
+          <label
+            htmlFor="avatar-upload"
+            className="cursor-pointer rounded-full border border-white/10 bg-white/5 px-4 py-1 text-xs text-neon-cyan hover:bg-white/10"
+          >
+            Загрузить фото
+          </label>
+          <Input
+            id="avatar-upload"
+            type="file"
+            accept="image/*"
+            className="hidden"
+            onChange={handleAvatarChange}
+          />
+        </div>
       </div>
 
       {/* Stats Row */}
