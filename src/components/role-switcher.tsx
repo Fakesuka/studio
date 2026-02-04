@@ -47,6 +47,7 @@ export function RoleSwitcher({ currentRole, onRoleChange, isDriver, className }:
     onRoleChange(role);
     setShowHint(false);
     localStorage.setItem('roleSwitcherHintSeen', 'true');
+
   };
 
   return (
