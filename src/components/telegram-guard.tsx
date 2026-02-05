@@ -146,14 +146,17 @@ export function TelegramGuard({ children }: { children: React.ReactNode }) {
         </div>
 
         <div className="relative z-10 flex flex-col items-center justify-center px-6 w-full">
-          <Image
-            src="/logo.png"
-            alt="YakGo"
-            width={480}
-            height={480}
-            className="w-[75vw] max-w-[480px] h-auto"
-            priority
-          />
+          <div className="relative flex items-center justify-center">
+            <div className="absolute w-[60vw] h-[60vw] max-w-[400px] max-h-[400px] rounded-full bg-[radial-gradient(circle,rgba(34,211,238,0.2)_0%,rgba(0,100,255,0.1)_40%,transparent_70%)]" />
+            <Image
+              src="/logo.png"
+              alt="YakGo"
+              width={480}
+              height={480}
+              className="relative w-[75vw] max-w-[480px] h-auto"
+              priority
+            />
+          </div>
 
           <h1 className="text-4xl font-bold tracking-[0.25em] text-white mt-2">
             YAKGO
