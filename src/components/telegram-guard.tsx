@@ -87,7 +87,7 @@ export function TelegramGuard({ children }: { children: React.ReactNode }) {
               width={240}
               height={240}
               priority
-              className="drop-shadow-[0_30px_80px_rgba(0,0,0,0.55)]"
+              className="w-[42vw] max-w-[280px] h-auto drop-shadow-[0_0_40px_rgba(0,180,255,0.35)] animate-pulse"
             />
             <h1 className="mt-6 text-4xl font-semibold tracking-[0.35em] text-white">
               YAKGO
@@ -167,7 +167,7 @@ export function TelegramGuard({ children }: { children: React.ReactNode }) {
               width={200}
               height={200}
               priority
-              className="drop-shadow-[0_25px_70px_rgba(0,0,0,0.5)]"
+              className="w-[42vw] max-w-[280px] h-auto drop-shadow-[0_0_40px_rgba(0,180,255,0.35)] animate-pulse"
             />
             <h1 className="mt-5 text-3xl font-semibold tracking-[0.35em] text-white">YAKGO</h1>
             <p className="mt-3 text-sm text-white/60">
