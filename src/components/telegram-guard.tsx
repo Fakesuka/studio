@@ -4,6 +4,45 @@ import { useEffect, useState, useMemo } from 'react';
 import { isTelegramWebApp, getTelegramUser, getTelegramWebApp } from '@/lib/telegram';
 import Image from 'next/image';
 
+// Частицы северного сияния
+const AuroraParticles = () => {
+  const particles = useMemo(() =>
+    Array.from({ length: 40 }, (_, i) => ({
+      id: i,
+      left: Math.random() * 100,
+      delay: Math.random() * 5,
+      duration: 3 + Math.random() * 4,
+      size: 2 + Math.random() * 3,
+      opacity: 0.2 + Math.random() * 0.4,
+    })), []
+  );
+
+  return (
+    <div className="absolute inset-0 overflow-hidden pointer-events-none">
+      {particles.map((p) => (
+        <div
+          key={p.id}
+          className="absolute rounded-full aurora-particle"
+          style={{
+            left: `${p.left}%`,
+            width: `${p.size}px`,
+            height: `${p.size}px`,
+            opacity: p.opacity,
+            animationDelay: `${p.delay}s`,
+            animationDuration: `${p.duration}s`,
+            background: p.id % 3 === 0
+              ? '#22D3EE'
+              : p.id % 3 === 1
+                ? '#A855F7'
+                : '#818CF8',
+            boxShadow: `0 0 ${p.size * 2}px ${p.id % 3 === 0 ? '#22D3EE' : '#A855F7'}`,
+          }}
+        />
+      ))}
+    </div>
+  );
+};
+
 // Этапы загрузки
 const loadingStages = [
   'Инициализация...',
@@ -56,25 +95,24 @@ export function TelegramGuard({ children }: { children: React.ReactNode }) {
       }
     }
 
-    // Animate progress bar
+    // Progress bar animation
     const progressInterval = setInterval(() => {
       setProgress(prev => {
         if (prev >= 100) {
           clearInterval(progressInterval);
           return 100;
         }
-        // Varying speed for realism
         const increment = prev < 30 ? 3 : prev < 70 ? 2 : prev < 90 ? 1 : 0.5;
         return Math.min(prev + increment, 100);
       });
     }, 60);
 
-    // Update loading stage
+    // Loading stages
     const stageInterval = setInterval(() => {
       setStageIndex(prev => (prev < loadingStages.length - 1 ? prev + 1 : prev));
     }, 800);
 
-    // Fade out and hide welcome
+    // Fade out transition
     const fadeTimer = setTimeout(() => {
       setFadeOut(true);
     }, 3200);
@@ -91,16 +129,13 @@ export function TelegramGuard({ children }: { children: React.ReactNode }) {
     };
   }, []);
 
-  // Show welcome/loading screen
+  // Welcome / Loading screen
   if (showWelcome || isTelegram === null) {
     return (
-      <div className={`loading-screen min-h-screen w-full relative overflow-hidden bg-[#050d1a] flex flex-col items-center justify-center transition-opacity duration-500 ${fadeOut ? 'opacity-0' : 'opacity-100'}`}>
-        <div className="absolute inset-0">
-          <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(14,94,120,0.35),transparent_55%)]" />
-          <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_40%,rgba(12,80,110,0.45),transparent_60%)]" />
-          <div className="absolute inset-0 bg-[radial-gradient(circle_at_70%_60%,rgba(7,28,48,0.8),transparent_65%)]" />
-          <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(4,10,20,0.1),rgba(4,8,16,0.95))]" />
-        </div>
+      <div className={`min-h-screen w-full relative overflow-hidden bg-[#080B18] flex flex-col items-center justify-center transition-opacity duration-500 ${fadeOut ? 'opacity-0' : 'opacity-100'}`}>
+
+        {/* Subtle aurora particles */}
+        <AuroraParticles />
 
         {/* Neon particles */}
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
@@ -126,48 +161,56 @@ export function TelegramGuard({ children }: { children: React.ReactNode }) {
         </div>
 
         <div className="relative z-10 flex flex-col items-center justify-center px-6">
-          <div className="relative mb-10 flex flex-col items-center">
-            <div className="absolute inset-0 -z-10 h-[36rem] w-[36rem] rounded-full bg-cyan-400/25 blur-[180px]" />
+
+          {/* Logo image - large, no glow/shimmer */}
+          <div className="logo-appear">
             <Image
               src="/logo.png"
               alt="YakGo"
-              width={480}
-              height={480}
+              width={280}
+              height={280}
+              className="object-contain"
               priority
-              className="w-[90vw] max-w-[640px] h-auto drop-shadow-[0_0_80px_rgba(0,150,255,0.45)] animate-pulse"
             />
-            <h1 className="mt-6 text-4xl font-semibold tracking-[0.35em] text-white">
-              YAKGO
-            </h1>
-            <p className="mt-3 text-sm text-white/60">
-              Ваш надёжный помощник на дорогах Якутии
-            </p>
           </div>
 
+          {/* YAKGO text */}
+          <h1 className="text-4xl font-bold tracking-[0.25em] text-white mt-2 text-appear-1">
+            YAKGO
+          </h1>
+
+          {/* Subtitle */}
+          <p className="text-white/50 text-sm tracking-[0.2em] uppercase mt-2 text-appear-2">
+            Автосервисы Якутии
+          </p>
+
+          {/* Greeting */}
           {userName && (
-            <p className="text-sm text-cyan-200/90">
+            <p className="text-cyan-400/70 text-sm font-medium mt-4 text-appear-2">
               Добро пожаловать, {userName}!
             </p>
           )}
 
-          <div className="mt-10 w-72 max-w-full">
-            <p className="text-white/50 text-xs text-center mb-3 h-4 transition-all duration-300">
+          {/* Loading section */}
+          <div className="mt-10 w-64 text-appear-3">
+            {/* Stage text */}
+            <p className="text-white/40 text-xs text-center mb-3 transition-all duration-300">
               {loadingStages[stageIndex]}
             </p>
-            <div className="relative h-1.5 rounded-full bg-white/10 overflow-hidden">
-              <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent animate-shimmer" />
+
+            {/* Progress bar */}
+            <div className="relative h-1 bg-white/10 rounded-full overflow-hidden">
               <div
                 className="h-full rounded-full transition-all duration-150 ease-out"
                 style={{
                   width: `${progress}%`,
-                  background: 'linear-gradient(90deg, #22D3EE 0%, #A855F7 50%, #22D3EE 100%)',
-                  backgroundSize: '200% 100%',
+                  background: 'linear-gradient(90deg, #3B82F6 0%, #A855F7 100%)',
                 }}
-              >
-                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/40 to-transparent animate-shine" />
-              </div>
+              />
             </div>
-            <p className="text-cyan-300/70 text-[10px] text-center mt-2 font-mono">
+
+            {/* Percentage */}
+            <p className="text-white/30 text-[10px] text-center mt-2 font-mono">
               {Math.round(progress)}%
             </p>
           </div>
@@ -179,9 +222,9 @@ export function TelegramGuard({ children }: { children: React.ReactNode }) {
             100% { transform: translateX(100%); }
           }
 
-          @keyframes shine {
-            0% { transform: translateX(-100%); }
-            100% { transform: translateX(200%); }
+          .text-appear-2 {
+            opacity: 0;
+            animation: fade-up 0.6s ease-out 0.4s forwards;
           }
 
           @keyframes neon-float {
@@ -219,36 +262,31 @@ export function TelegramGuard({ children }: { children: React.ReactNode }) {
     );
   }
 
-  // If not Telegram, show warning
+  // Not in Telegram
   if (!isTelegram) {
     return (
-      <div className="min-h-screen w-full relative overflow-hidden bg-[#050d1a] flex flex-col items-center justify-center px-6">
-        <div className="absolute inset-0">
-          <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(14,94,120,0.35),transparent_55%)]" />
-          <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_40%,rgba(12,80,110,0.45),transparent_60%)]" />
-          <div className="absolute inset-0 bg-[radial-gradient(circle_at_70%_60%,rgba(7,28,48,0.8),transparent_65%)]" />
-          <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(4,10,20,0.1),rgba(4,8,16,0.95))]" />
-        </div>
+      <div className="min-h-screen w-full relative overflow-hidden bg-[#080B18] flex flex-col items-center justify-center">
+        <AuroraParticles />
 
-        <div className="relative z-10 w-full max-w-sm text-center">
-          <div className="mb-8 flex flex-col items-center">
-            <Image
-              src="/logo.png"
-              alt="YakGo"
-              width={200}
-              height={200}
-              priority
-              className="w-[52vw] max-w-[300px] h-auto drop-shadow-[0_0_60px_rgba(0,150,255,0.45)] animate-pulse"
-            />
-            <h1 className="mt-5 text-3xl font-semibold tracking-[0.35em] text-white">YAKGO</h1>
-            <p className="mt-3 text-sm text-white/60">
-              Ваш надёжный помощник на дорогах Якутии
-            </p>
-          </div>
+        <div className="relative z-10 text-center max-w-sm p-6">
+          <Image
+            src="/logo.png"
+            alt="YakGo"
+            width={180}
+            height={180}
+            className="object-contain mx-auto mb-4"
+            priority
+          />
+          <h1 className="text-3xl font-bold tracking-[0.2em] text-white mb-1">
+            YAKGO
+          </h1>
+          <p className="text-white/40 text-xs tracking-[0.15em] uppercase mb-8">
+            Автосервисы Якутии
+          </p>
 
-          <div className="rounded-2xl border border-white/10 bg-white/5 p-6 shadow-[0_20px_60px_rgba(0,0,0,0.35)] backdrop-blur-xl">
-            <div className="w-14 h-14 mx-auto mb-4 rounded-2xl bg-cyan-400/10 flex items-center justify-center">
-              <svg className="w-7 h-7 text-cyan-200" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <div className="bg-white/5 backdrop-blur-xl rounded-2xl p-6 border border-white/10">
+            <div className="w-14 h-14 mx-auto mb-4 rounded-full bg-cyan-400/10 flex items-center justify-center">
+              <svg className="w-7 h-7 text-cyan-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
               </svg>
             </div>
@@ -270,6 +308,5 @@ export function TelegramGuard({ children }: { children: React.ReactNode }) {
     );
   }
 
-  // If Telegram, render children
   return <>{children}</>;
 }
