@@ -4,45 +4,6 @@ import { useEffect, useState, useMemo } from 'react';
 import { isTelegramWebApp, getTelegramUser, getTelegramWebApp } from '@/lib/telegram';
 import Image from 'next/image';
 
-// Частицы северного сияния
-const AuroraParticles = () => {
-  const particles = useMemo(() =>
-    Array.from({ length: 40 }, (_, i) => ({
-      id: i,
-      left: Math.random() * 100,
-      delay: Math.random() * 5,
-      duration: 3 + Math.random() * 4,
-      size: 2 + Math.random() * 3,
-      opacity: 0.2 + Math.random() * 0.4,
-    })), []
-  );
-
-  return (
-    <div className="absolute inset-0 overflow-hidden pointer-events-none">
-      {particles.map((p) => (
-        <div
-          key={p.id}
-          className="absolute rounded-full aurora-particle"
-          style={{
-            left: `${p.left}%`,
-            width: `${p.size}px`,
-            height: `${p.size}px`,
-            opacity: p.opacity,
-            animationDelay: `${p.delay}s`,
-            animationDuration: `${p.duration}s`,
-            background: p.id % 3 === 0
-              ? '#22D3EE'
-              : p.id % 3 === 1
-                ? '#A855F7'
-                : '#818CF8',
-            boxShadow: `0 0 ${p.size * 2}px ${p.id % 3 === 0 ? '#22D3EE' : '#A855F7'}`,
-          }}
-        />
-      ))}
-    </div>
-  );
-};
-
 // Этапы загрузки
 const loadingStages = [
   'Инициализация...',
@@ -51,19 +12,42 @@ const loadingStages = [
   'Почти готово...',
 ];
 
-// Generate random particles data
+// Generate neon particles with guaranteed spread across screen zones
 function generateParticles(count: number) {
-  return Array.from({ length: count }, (_, i) => ({
-    id: i,
-    left: Math.random() * 100,
-    top: Math.random() * 100,
-    size: Math.random() * 4 + 2,
-    duration: Math.random() * 6 + 4,
-    delay: Math.random() * 5,
-    opacity: Math.random() * 0.6 + 0.2,
-    dx: (Math.random() - 0.5) * 120,
-    dy: (Math.random() - 0.5) * 120,
-  }));
+  return Array.from({ length: count }, (_, i) => {
+    const cols = 5;
+    const rows = 5;
+    const col = i % cols;
+    const row = Math.floor(i / cols) % rows;
+    const left = (col / cols) * 100 + Math.random() * (100 / cols);
+    const top = (row / rows) * 100 + Math.random() * (100 / rows);
+
+    return {
+      id: i,
+      left: Math.min(left, 98),
+      top: Math.min(top, 98),
+      size: Math.random() * 3 + 1.5,
+      duration: Math.random() * 8 + 6,
+      delay: Math.random() * 6,
+      opacity: Math.random() * 0.5 + 0.15,
+      x1: (Math.random() - 0.5) * 80,
+      y1: (Math.random() - 0.5) * 80,
+      x2: (Math.random() - 0.5) * 100,
+      y2: (Math.random() - 0.5) * 100,
+      x3: (Math.random() - 0.5) * 60,
+      y3: (Math.random() - 0.5) * 60,
+      color: i % 3 === 0
+        ? 'rgba(34,211,238,0.9)'
+        : i % 3 === 1
+          ? 'rgba(168,85,247,0.7)'
+          : 'rgba(0,150,255,0.8)',
+      glow: i % 3 === 0
+        ? 'rgba(34,211,238,0.6)'
+        : i % 3 === 1
+          ? 'rgba(168,85,247,0.5)'
+          : 'rgba(0,100,255,0.5)',
+    };
+  });
 }
 
 export function TelegramGuard({ children }: { children: React.ReactNode }) {
@@ -134,9 +118,6 @@ export function TelegramGuard({ children }: { children: React.ReactNode }) {
     return (
       <div className={`min-h-screen w-full relative overflow-hidden bg-[#080B18] flex flex-col items-center justify-center transition-opacity duration-500 ${fadeOut ? 'opacity-0' : 'opacity-100'}`}>
 
-        {/* Subtle aurora particles */}
-        <AuroraParticles />
-
         {/* Neon particles */}
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
           {particles.map((p) => (
@@ -148,57 +129,51 @@ export function TelegramGuard({ children }: { children: React.ReactNode }) {
                 top: `${p.top}%`,
                 width: `${p.size}px`,
                 height: `${p.size}px`,
-                opacity: p.opacity,
-                background: `radial-gradient(circle, rgba(34,211,238,0.9), rgba(0,150,255,0.4))`,
-                boxShadow: `0 0 ${p.size * 3}px rgba(34,211,238,0.6), 0 0 ${p.size * 6}px rgba(0,100,255,0.3)`,
+                background: `radial-gradient(circle, ${p.color}, transparent)`,
+                boxShadow: `0 0 ${p.size * 3}px ${p.glow}, 0 0 ${p.size * 6}px ${p.glow}`,
                 animationDuration: `${p.duration}s`,
                 animationDelay: `${p.delay}s`,
-                ['--dx' as string]: `${p.dx}px`,
-                ['--dy' as string]: `${p.dy}px`,
+                ['--x1' as string]: `${p.x1}px`,
+                ['--y1' as string]: `${p.y1}px`,
+                ['--x2' as string]: `${p.x2}px`,
+                ['--y2' as string]: `${p.y2}px`,
+                ['--x3' as string]: `${p.x3}px`,
+                ['--y3' as string]: `${p.y3}px`,
+                ['--p-opacity' as string]: p.opacity,
               }}
             />
           ))}
         </div>
 
-        <div className="relative z-10 flex flex-col items-center justify-center px-6">
+        <div className="relative z-10 flex flex-col items-center justify-center px-6 w-full">
+          <Image
+            src="/logo.png"
+            alt="YakGo"
+            width={480}
+            height={480}
+            className="w-[75vw] max-w-[480px] h-auto drop-shadow-[0_0_60px_rgba(0,150,255,0.3)]"
+            priority
+          />
 
-          {/* Logo image - large, no glow/shimmer */}
-          <div className="logo-appear">
-            <Image
-              src="/logo.png"
-              alt="YakGo"
-              width={280}
-              height={280}
-              className="object-contain"
-              priority
-            />
-          </div>
-
-          {/* YAKGO text */}
-          <h1 className="text-4xl font-bold tracking-[0.25em] text-white mt-2 text-appear-1">
+          <h1 className="text-4xl font-bold tracking-[0.25em] text-white mt-2">
             YAKGO
           </h1>
 
-          {/* Subtitle */}
-          <p className="text-white/50 text-sm tracking-[0.2em] uppercase mt-2 text-appear-2">
-            Автосервисы Якутии
+          <p className="text-white/50 text-sm mt-2">
+            Ваш надёжный помощник на дорогах Якутии
           </p>
 
-          {/* Greeting */}
           {userName && (
-            <p className="text-cyan-400/70 text-sm font-medium mt-4 text-appear-2">
+            <p className="text-cyan-400/70 text-sm font-medium mt-4">
               Добро пожаловать, {userName}!
             </p>
           )}
 
-          {/* Loading section */}
-          <div className="mt-10 w-64 text-appear-3">
-            {/* Stage text */}
+          <div className="mt-10 w-64">
             <p className="text-white/40 text-xs text-center mb-3 transition-all duration-300">
               {loadingStages[stageIndex]}
             </p>
 
-            {/* Progress bar */}
             <div className="relative h-1 bg-white/10 rounded-full overflow-hidden">
               <div
                 className="h-full rounded-full transition-all duration-150 ease-out"
@@ -209,7 +184,6 @@ export function TelegramGuard({ children }: { children: React.ReactNode }) {
               />
             </div>
 
-            {/* Percentage */}
             <p className="text-white/30 text-[10px] text-center mt-2 font-mono">
               {Math.round(progress)}%
             </p>
@@ -217,41 +191,27 @@ export function TelegramGuard({ children }: { children: React.ReactNode }) {
         </div>
 
         <style jsx global>{`
-          @keyframes shimmer {
-            0% { transform: translateX(-100%); }
-            100% { transform: translateX(100%); }
-          }
-
-          .text-appear-2 {
-            opacity: 0;
-            animation: fade-up 0.6s ease-out 0.4s forwards;
-          }
-
           @keyframes neon-float {
             0%, 100% {
               transform: translate(0, 0) scale(1);
-              opacity: var(--particle-opacity, 0.4);
+              opacity: var(--p-opacity, 0.3);
             }
-            25% {
-              transform: translate(calc(var(--dx) * 0.5), calc(var(--dy) * -0.7)) scale(1.3);
-              opacity: calc(var(--particle-opacity, 0.4) * 1.5);
+            20% {
+              transform: translate(var(--x1), var(--y1)) scale(1.2);
+              opacity: calc(var(--p-opacity, 0.3) * 1.4);
             }
-            50% {
-              transform: translate(var(--dx), var(--dy)) scale(0.8);
-              opacity: calc(var(--particle-opacity, 0.4) * 0.6);
+            40% {
+              transform: translate(var(--x2), var(--y2)) scale(0.7);
+              opacity: calc(var(--p-opacity, 0.3) * 0.5);
             }
-            75% {
-              transform: translate(calc(var(--dx) * -0.3), calc(var(--dy) * 0.5)) scale(1.1);
-              opacity: var(--particle-opacity, 0.4);
+            60% {
+              transform: translate(var(--x3), var(--y3)) scale(1.3);
+              opacity: var(--p-opacity, 0.3);
             }
-          }
-
-          .animate-shimmer {
-            animation: shimmer 2s infinite;
-          }
-
-          .animate-shine {
-            animation: shine 1.5s infinite;
+            80% {
+              transform: translate(calc(var(--x1) * -0.6), calc(var(--y2) * -0.4)) scale(0.9);
+              opacity: calc(var(--p-opacity, 0.3) * 1.2);
+            }
           }
 
           .neon-particle {
@@ -266,8 +226,6 @@ export function TelegramGuard({ children }: { children: React.ReactNode }) {
   if (!isTelegram) {
     return (
       <div className="min-h-screen w-full relative overflow-hidden bg-[#080B18] flex flex-col items-center justify-center">
-        <AuroraParticles />
-
         <div className="relative z-10 text-center max-w-sm p-6">
           <Image
             src="/logo.png"
@@ -281,7 +239,7 @@ export function TelegramGuard({ children }: { children: React.ReactNode }) {
             YAKGO
           </h1>
           <p className="text-white/40 text-xs tracking-[0.15em] uppercase mb-8">
-            Автосервисы Якутии
+            Ваш надёжный помощник на дорогах Якутии
           </p>
 
           <div className="bg-white/5 backdrop-blur-xl rounded-2xl p-6 border border-white/10">
