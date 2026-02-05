@@ -70,7 +70,7 @@ export function TelegramGuard({ children }: { children: React.ReactNode }) {
   // Show welcome/loading screen
   if (showWelcome || isTelegram === null) {
     return (
-      <div className={`loading-screen min-h-screen w-full relative overflow-hidden bg-[#05070E] flex flex-col items-center justify-center transition-opacity duration-500 ${fadeOut ? 'opacity-0' : 'opacity-100'}`}>
+      <div className={`loading-screen min-h-screen w-full relative overflow-hidden bg-[#050d1a] flex flex-col items-center justify-center transition-opacity duration-500 ${fadeOut ? 'opacity-0' : 'opacity-100'}`}>
         <div className="absolute inset-0">
           <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(14,94,120,0.35),transparent_55%)]" />
           <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_40%,rgba(12,80,110,0.45),transparent_60%)]" />
@@ -80,14 +80,14 @@ export function TelegramGuard({ children }: { children: React.ReactNode }) {
 
         <div className="relative z-10 flex flex-col items-center justify-center px-6">
           <div className="relative mb-10 flex flex-col items-center">
-            <div className="absolute inset-0 -z-10 h-72 w-72 rounded-full bg-cyan-400/25 blur-[140px]" />
+            <div className="absolute inset-0 -z-10 h-[36rem] w-[36rem] rounded-full bg-cyan-400/25 blur-[180px]" />
             <Image
               src="/logo.png"
               alt="YakGo"
-              width={240}
-              height={240}
+              width={480}
+              height={480}
               priority
-              className="w-[52vw] max-w-[320px] h-auto drop-shadow-[0_0_60px_rgba(0,150,255,0.45)] animate-pulse"
+              className="w-[90vw] max-w-[640px] h-auto drop-shadow-[0_0_80px_rgba(0,150,255,0.45)] animate-pulse"
             />
             <h1 className="mt-6 text-4xl font-semibold tracking-[0.35em] text-white">
               YAKGO
@@ -152,7 +152,7 @@ export function TelegramGuard({ children }: { children: React.ReactNode }) {
   // If not Telegram, show warning
   if (!isTelegram) {
     return (
-      <div className="min-h-screen w-full relative overflow-hidden bg-[#05070E] flex flex-col items-center justify-center px-6">
+      <div className="min-h-screen w-full relative overflow-hidden bg-[#050d1a] flex flex-col items-center justify-center px-6">
         <div className="absolute inset-0">
           <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(14,94,120,0.35),transparent_55%)]" />
           <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_40%,rgba(12,80,110,0.45),transparent_60%)]" />
