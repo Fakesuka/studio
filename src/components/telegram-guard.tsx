@@ -70,24 +70,24 @@ export function TelegramGuard({ children }: { children: React.ReactNode }) {
   // Show welcome/loading screen
   if (showWelcome || isTelegram === null) {
     return (
-      <div className={`loading-screen min-h-screen w-full relative overflow-hidden bg-[#06070F] flex flex-col items-center justify-center transition-opacity duration-500 ${fadeOut ? 'opacity-0' : 'opacity-100'}`}>
+      <div className={`loading-screen min-h-screen w-full relative overflow-hidden bg-[#05070E] flex flex-col items-center justify-center transition-opacity duration-500 ${fadeOut ? 'opacity-0' : 'opacity-100'}`}>
         <div className="absolute inset-0">
-          <div className="absolute -top-24 left-1/2 h-80 w-80 -translate-x-1/2 rounded-full bg-cyan-500/20 blur-[120px]" />
-          <div className="absolute bottom-0 right-0 h-72 w-72 rounded-full bg-purple-500/20 blur-[110px]" />
-          <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(255,255,255,0.08),transparent_55%)]" />
-          <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(6,7,15,0.2),rgba(6,7,15,0.95))]" />
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(14,94,120,0.35),transparent_55%)]" />
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_40%,rgba(12,80,110,0.45),transparent_60%)]" />
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_70%_60%,rgba(7,28,48,0.8),transparent_65%)]" />
+          <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(4,10,20,0.1),rgba(4,8,16,0.95))]" />
         </div>
 
         <div className="relative z-10 flex flex-col items-center justify-center px-6">
-          <div className="relative mb-8 flex flex-col items-center">
-            <div className="absolute inset-0 -z-10 h-56 w-56 rounded-full bg-cyan-500/20 blur-[120px]" />
+          <div className="relative mb-10 flex flex-col items-center">
+            <div className="absolute inset-0 -z-10 h-72 w-72 rounded-full bg-cyan-400/25 blur-[140px]" />
             <Image
               src="/logo.png"
               alt="YakGo"
               width={240}
               height={240}
               priority
-              className="w-[42vw] max-w-[280px] h-auto drop-shadow-[0_0_40px_rgba(0,180,255,0.35)] animate-pulse"
+              className="w-[52vw] max-w-[320px] h-auto drop-shadow-[0_0_60px_rgba(0,150,255,0.45)] animate-pulse"
             />
             <h1 className="mt-6 text-4xl font-semibold tracking-[0.35em] text-white">
               YAKGO
@@ -152,11 +152,12 @@ export function TelegramGuard({ children }: { children: React.ReactNode }) {
   // If not Telegram, show warning
   if (!isTelegram) {
     return (
-      <div className="min-h-screen w-full relative overflow-hidden bg-[#06070F] flex flex-col items-center justify-center px-6">
+      <div className="min-h-screen w-full relative overflow-hidden bg-[#05070E] flex flex-col items-center justify-center px-6">
         <div className="absolute inset-0">
-          <div className="absolute -top-24 left-1/2 h-80 w-80 -translate-x-1/2 rounded-full bg-cyan-500/20 blur-[120px]" />
-          <div className="absolute bottom-0 right-0 h-72 w-72 rounded-full bg-purple-500/20 blur-[110px]" />
-          <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(6,7,15,0.2),rgba(6,7,15,0.95))]" />
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(14,94,120,0.35),transparent_55%)]" />
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_40%,rgba(12,80,110,0.45),transparent_60%)]" />
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_70%_60%,rgba(7,28,48,0.8),transparent_65%)]" />
+          <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(4,10,20,0.1),rgba(4,8,16,0.95))]" />
         </div>
 
         <div className="relative z-10 w-full max-w-sm text-center">
@@ -167,7 +168,7 @@ export function TelegramGuard({ children }: { children: React.ReactNode }) {
               width={200}
               height={200}
               priority
-              className="w-[42vw] max-w-[280px] h-auto drop-shadow-[0_0_40px_rgba(0,180,255,0.35)] animate-pulse"
+              className="w-[52vw] max-w-[300px] h-auto drop-shadow-[0_0_60px_rgba(0,150,255,0.45)] animate-pulse"
             />
             <h1 className="mt-5 text-3xl font-semibold tracking-[0.35em] text-white">YAKGO</h1>
             <p className="mt-3 text-sm text-white/60">
