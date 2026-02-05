@@ -151,7 +151,7 @@ export function TelegramGuard({ children }: { children: React.ReactNode }) {
             alt="YakGo"
             width={480}
             height={480}
-            className="w-[75vw] max-w-[480px] h-auto drop-shadow-[0_0_60px_rgba(0,150,255,0.3)]"
+            className="w-[75vw] max-w-[480px] h-auto"
             priority
           />
 
