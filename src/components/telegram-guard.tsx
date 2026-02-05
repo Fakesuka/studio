@@ -1,7 +1,7 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { isTelegramWebApp, getTelegramUser } from '@/lib/telegram';
+import { useEffect, useState, useMemo } from 'react';
+import { isTelegramWebApp, getTelegramUser, getTelegramWebApp } from '@/lib/telegram';
 import Image from 'next/image';
 
 // Этапы загрузки
@@ -12,6 +12,21 @@ const loadingStages = [
   'Почти готово...',
 ];
 
+// Generate random particles data
+function generateParticles(count: number) {
+  return Array.from({ length: count }, (_, i) => ({
+    id: i,
+    left: Math.random() * 100,
+    top: Math.random() * 100,
+    size: Math.random() * 4 + 2,
+    duration: Math.random() * 6 + 4,
+    delay: Math.random() * 5,
+    opacity: Math.random() * 0.6 + 0.2,
+    dx: (Math.random() - 0.5) * 120,
+    dy: (Math.random() - 0.5) * 120,
+  }));
+}
+
 export function TelegramGuard({ children }: { children: React.ReactNode }) {
   const [showWelcome, setShowWelcome] = useState(true);
   const [isTelegram, setIsTelegram] = useState<boolean | null>(null);
@@ -20,7 +35,16 @@ export function TelegramGuard({ children }: { children: React.ReactNode }) {
   const [userName, setUserName] = useState('');
   const [fadeOut, setFadeOut] = useState(false);
 
+  const particles = useMemo(() => generateParticles(25), []);
+
   useEffect(() => {
+    // Expand Telegram WebApp immediately during splash
+    const webApp = getTelegramWebApp();
+    if (webApp) {
+      webApp.ready();
+      webApp.expand();
+    }
+
     // Check if Telegram and get user
     const isTg = isTelegramWebApp();
     setIsTelegram(isTg);
@@ -78,6 +102,29 @@ export function TelegramGuard({ children }: { children: React.ReactNode }) {
           <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(4,10,20,0.1),rgba(4,8,16,0.95))]" />
         </div>
 
+        {/* Neon particles */}
+        <div className="absolute inset-0 overflow-hidden pointer-events-none">
+          {particles.map((p) => (
+            <div
+              key={p.id}
+              className="absolute rounded-full neon-particle"
+              style={{
+                left: `${p.left}%`,
+                top: `${p.top}%`,
+                width: `${p.size}px`,
+                height: `${p.size}px`,
+                opacity: p.opacity,
+                background: `radial-gradient(circle, rgba(34,211,238,0.9), rgba(0,150,255,0.4))`,
+                boxShadow: `0 0 ${p.size * 3}px rgba(34,211,238,0.6), 0 0 ${p.size * 6}px rgba(0,100,255,0.3)`,
+                animationDuration: `${p.duration}s`,
+                animationDelay: `${p.delay}s`,
+                ['--dx' as string]: `${p.dx}px`,
+                ['--dy' as string]: `${p.dy}px`,
+              }}
+            />
+          ))}
+        </div>
+
         <div className="relative z-10 flex flex-col items-center justify-center px-6">
           <div className="relative mb-10 flex flex-col items-center">
             <div className="absolute inset-0 -z-10 h-[36rem] w-[36rem] rounded-full bg-cyan-400/25 blur-[180px]" />
@@ -126,7 +173,7 @@ export function TelegramGuard({ children }: { children: React.ReactNode }) {
           </div>
         </div>
 
-        <style jsx>{`
+        <style jsx global>{`
           @keyframes shimmer {
             0% { transform: translateX(-100%); }
             100% { transform: translateX(100%); }
@@ -137,12 +184,35 @@ export function TelegramGuard({ children }: { children: React.ReactNode }) {
             100% { transform: translateX(200%); }
           }
 
-          :global(.animate-shimmer) {
+          @keyframes neon-float {
+            0%, 100% {
+              transform: translate(0, 0) scale(1);
+              opacity: var(--particle-opacity, 0.4);
+            }
+            25% {
+              transform: translate(calc(var(--dx) * 0.5), calc(var(--dy) * -0.7)) scale(1.3);
+              opacity: calc(var(--particle-opacity, 0.4) * 1.5);
+            }
+            50% {
+              transform: translate(var(--dx), var(--dy)) scale(0.8);
+              opacity: calc(var(--particle-opacity, 0.4) * 0.6);
+            }
+            75% {
+              transform: translate(calc(var(--dx) * -0.3), calc(var(--dy) * 0.5)) scale(1.1);
+              opacity: var(--particle-opacity, 0.4);
+            }
+          }
+
+          .animate-shimmer {
             animation: shimmer 2s infinite;
           }
 
-          :global(.animate-shine) {
+          .animate-shine {
             animation: shine 1.5s infinite;
+          }
+
+          .neon-particle {
+            animation: neon-float ease-in-out infinite;
           }
         `}</style>
       </div>
