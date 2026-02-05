@@ -87,8 +87,8 @@ export function TelegramGuard({ children }: { children: React.ReactNode }) {
             <h1 className="mt-6 text-4xl font-semibold tracking-[0.35em] text-white">
               YAKGO
             </h1>
-            <p className="mt-2 text-xs uppercase tracking-[0.4em] text-white/50">
-              Автосервисы Якутии
+            <p className="mt-3 text-sm text-white/60">
+              Ваш надёжный помощник на дорогах Якутии
             </p>
           </div>
 
@@ -160,8 +160,8 @@ export function TelegramGuard({ children }: { children: React.ReactNode }) {
               <Image src="/logo.png" alt="YakGo" width={60} height={60} priority />
             </div>
             <h1 className="mt-5 text-3xl font-semibold tracking-[0.35em] text-white">YAKGO</h1>
-            <p className="mt-2 text-xs uppercase tracking-[0.4em] text-white/50">
-              Автосервисы Якутии
+            <p className="mt-3 text-sm text-white/60">
+              Ваш надёжный помощник на дорогах Якутии
             </p>
           </div>
 
