@@ -4,16 +4,16 @@ import { useEffect, useState, useMemo } from 'react';
 import { isTelegramWebApp, getTelegramUser, getTelegramWebApp } from '@/lib/telegram';
 import Image from 'next/image';
 
-// Генератор частиц для эффекта северного сияния
+// Частицы северного сияния
 const AuroraParticles = () => {
   const particles = useMemo(() =>
-    Array.from({ length: 50 }, (_, i) => ({
+    Array.from({ length: 40 }, (_, i) => ({
       id: i,
       left: Math.random() * 100,
       delay: Math.random() * 5,
       duration: 3 + Math.random() * 4,
-      size: 2 + Math.random() * 4,
-      opacity: 0.3 + Math.random() * 0.5,
+      size: 2 + Math.random() * 3,
+      opacity: 0.2 + Math.random() * 0.4,
     })), []
   );
 
@@ -43,47 +43,6 @@ const AuroraParticles = () => {
   );
 };
 
-// Снежинки
-const Snowflakes = () => {
-  const flakes = useMemo(() =>
-    Array.from({ length: 30 }, (_, i) => ({
-      id: i,
-      left: Math.random() * 100,
-      delay: Math.random() * 8,
-      duration: 8 + Math.random() * 6,
-      size: 3 + Math.random() * 5,
-    })), []
-  );
-
-  return (
-    <div className="absolute inset-0 overflow-hidden pointer-events-none">
-      {flakes.map((f) => (
-        <div
-          key={f.id}
-          className="absolute snowflake text-white/40"
-          style={{
-            left: `${f.left}%`,
-            fontSize: `${f.size}px`,
-            animationDelay: `${f.delay}s`,
-            animationDuration: `${f.duration}s`,
-          }}
-        >
-          ❄
-        </div>
-      ))}
-    </div>
-  );
-};
-
-// Пульсирующие круги вокруг логотипа
-const PulseRings = () => (
-  <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-    <div className="absolute w-32 h-32 rounded-full border border-cyan-400/30 animate-ping-slow" />
-    <div className="absolute w-48 h-48 rounded-full border border-purple-500/20 animate-ping-slower" />
-    <div className="absolute w-64 h-64 rounded-full border border-cyan-400/10 animate-ping-slowest" />
-  </div>
-);
-
 // Этапы загрузки
 const loadingStages = [
   'Инициализация...',
@@ -102,13 +61,11 @@ export function TelegramGuard({ children }: { children: React.ReactNode }) {
   const [fadeOut, setFadeOut] = useState(false);
 
   useEffect(() => {
-    // Get theme from Telegram
     const webApp = getTelegramWebApp();
     if (webApp?.colorScheme) {
       setIsDark(webApp.colorScheme === 'dark');
     }
 
-    // Check if Telegram and get user
     const isTg = isTelegramWebApp();
     setIsTelegram(isTg);
 
@@ -119,25 +76,24 @@ export function TelegramGuard({ children }: { children: React.ReactNode }) {
       }
     }
 
-    // Animate progress bar
+    // Progress bar animation
     const progressInterval = setInterval(() => {
       setProgress(prev => {
         if (prev >= 100) {
           clearInterval(progressInterval);
           return 100;
         }
-        // Varying speed for realism
         const increment = prev < 30 ? 3 : prev < 70 ? 2 : prev < 90 ? 1 : 0.5;
         return Math.min(prev + increment, 100);
       });
     }, 60);
 
-    // Update loading stage
+    // Loading stages
     const stageInterval = setInterval(() => {
       setStageIndex(prev => (prev < loadingStages.length - 1 ? prev + 1 : prev));
     }, 800);
 
-    // Fade out and hide welcome
+    // Fade out transition
     const fadeTimer = setTimeout(() => {
       setFadeOut(true);
     }, 3200);
@@ -154,174 +110,111 @@ export function TelegramGuard({ children }: { children: React.ReactNode }) {
     };
   }, []);
 
-  // Show welcome/loading screen
+  // Welcome / Loading screen
   if (showWelcome || isTelegram === null) {
     return (
-      <div className={`loading-screen min-h-screen w-full relative overflow-hidden bg-[#0A0D1F] flex flex-col items-center justify-center transition-opacity duration-500 ${fadeOut ? 'opacity-0' : 'opacity-100'}`}>
-        {/* Aurora Background Image */}
-        <div className="absolute inset-0">
-          <Image
-            src={isDark ? "/BCKDARK.PNG" : "/BCKWHITE.PNG"}
-            alt="Aurora"
-            fill
-            className="object-cover object-center"
-            priority
-          />
-          {/* Overlay gradient for depth */}
-          <div className="absolute inset-0 bg-gradient-to-b from-transparent via-[#0A0D1F]/30 to-[#0A0D1F]/80" />
-        </div>
+      <div className={`min-h-screen w-full relative overflow-hidden bg-[#080B18] flex flex-col items-center justify-center transition-opacity duration-500 ${fadeOut ? 'opacity-0' : 'opacity-100'}`}>
 
-        {/* Aurora Particles Effect */}
+        {/* Subtle aurora particles */}
         <AuroraParticles />
 
-        {/* Snowflakes */}
-        <Snowflakes />
+        {/* Main content */}
+        <div className="relative z-10 flex flex-col items-center justify-center px-6">
 
-        {/* Main Content */}
-        <div className="relative z-10 flex flex-col items-center justify-center">
-          {/* Pulse Rings behind logo */}
-          <div className="relative">
-            <PulseRings />
-
-            {/* Logo Container */}
-            <div className="relative z-10 logo-container">
-              {/* Glow effect */}
-              <div className="absolute inset-0 blur-3xl bg-gradient-to-r from-cyan-500/40 via-purple-500/30 to-cyan-500/40 animate-pulse-glow" />
-
-              {/* Main Logo */}
-              <div className="relative glass-logo rounded-3xl p-8 border border-white/20">
-                <h1 className="text-6xl font-bold tracking-wider logo-text">
-                  <span className="text-white">ЯК</span>
-                  <span className="text-cyan-400">GO</span>
-                </h1>
-              </div>
-            </div>
+          {/* Logo image - large, no glow/shimmer */}
+          <div className="logo-appear">
+            <Image
+              src="/logo.png"
+              alt="YakGo"
+              width={280}
+              height={280}
+              className="object-contain"
+              priority
+            />
           </div>
 
-          {/* Tagline */}
-          <div className="mt-6 text-center tagline-appear">
-            <p className="text-white/60 text-sm tracking-[0.3em] uppercase font-light">
-              Автосервисы Якутии
-            </p>
-          </div>
+          {/* YAKGO text */}
+          <h1 className="text-4xl font-bold tracking-[0.25em] text-white mt-2 text-appear-1">
+            YAKGO
+          </h1>
 
-          {/* Greeting (personalized if available) */}
+          {/* Subtitle */}
+          <p className="text-white/50 text-sm tracking-[0.2em] uppercase mt-2 text-appear-2">
+            Автосервисы Якутии
+          </p>
+
+          {/* Greeting */}
           {userName && (
-            <div className="mt-4 greeting-appear">
-              <p className="text-cyan-400/80 text-base font-medium">
-                Добро пожаловать, {userName}!
-              </p>
-            </div>
+            <p className="text-cyan-400/70 text-sm font-medium mt-4 text-appear-2">
+              Добро пожаловать, {userName}!
+            </p>
           )}
 
-          {/* Loading Section */}
-          <div className="mt-12 w-72 loading-section-appear">
-            {/* Stage Text */}
-            <p className="text-white/50 text-xs text-center mb-3 h-4 transition-all duration-300">
+          {/* Loading section */}
+          <div className="mt-10 w-64 text-appear-3">
+            {/* Stage text */}
+            <p className="text-white/40 text-xs text-center mb-3 transition-all duration-300">
               {loadingStages[stageIndex]}
             </p>
 
-            {/* Progress Bar */}
+            {/* Progress bar */}
             <div className="relative h-1 bg-white/10 rounded-full overflow-hidden">
-              {/* Animated background shimmer */}
-              <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent animate-shimmer" />
-
-              {/* Progress fill */}
               <div
-                className="h-full rounded-full relative overflow-hidden transition-all duration-150 ease-out"
+                className="h-full rounded-full transition-all duration-150 ease-out"
                 style={{
                   width: `${progress}%`,
-                  background: 'linear-gradient(90deg, #22D3EE 0%, #A855F7 50%, #22D3EE 100%)',
-                  backgroundSize: '200% 100%',
+                  background: 'linear-gradient(90deg, #3B82F6 0%, #A855F7 100%)',
                 }}
-              >
-                {/* Shine effect */}
-                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/40 to-transparent animate-shine" />
-              </div>
+              />
             </div>
 
-            {/* Progress percentage */}
-            <p className="text-cyan-400/60 text-[10px] text-center mt-2 font-mono">
+            {/* Percentage */}
+            <p className="text-white/30 text-[10px] text-center mt-2 font-mono">
               {Math.round(progress)}%
             </p>
           </div>
         </div>
 
-        {/* Bottom decoration */}
-        <div className="absolute bottom-6 left-0 right-0 flex justify-center">
-          <div className="flex items-center gap-2 text-white/20 text-xs">
-            <span className="w-8 h-px bg-gradient-to-r from-transparent to-white/20" />
-            <span>AURORA</span>
-            <span className="w-8 h-px bg-gradient-to-l from-transparent to-white/20" />
-          </div>
-        </div>
-
         <style jsx>{`
-          .glass-logo {
-            background: rgba(255, 255, 255, 0.05);
-            backdrop-filter: blur(20px);
-            box-shadow:
-              0 0 60px rgba(34, 211, 238, 0.2),
-              0 0 100px rgba(168, 85, 247, 0.1),
-              inset 0 0 60px rgba(255, 255, 255, 0.05);
+          .logo-appear {
+            animation: logo-in 0.8s ease-out forwards;
           }
 
-          .logo-text {
-            text-shadow:
-              0 0 20px rgba(34, 211, 238, 0.5),
-              0 0 40px rgba(34, 211, 238, 0.3),
-              0 0 60px rgba(168, 85, 247, 0.2);
-          }
-
-          .logo-container {
-            animation: logo-appear 1s ease-out forwards;
-          }
-
-          .tagline-appear {
+          .text-appear-1 {
             opacity: 0;
-            animation: fade-up 0.8s ease-out 0.3s forwards;
+            animation: fade-up 0.6s ease-out 0.2s forwards;
           }
 
-          .greeting-appear {
+          .text-appear-2 {
             opacity: 0;
-            animation: fade-up 0.8s ease-out 0.5s forwards;
+            animation: fade-up 0.6s ease-out 0.4s forwards;
           }
 
-          .loading-section-appear {
+          .text-appear-3 {
             opacity: 0;
-            animation: fade-up 0.8s ease-out 0.7s forwards;
+            animation: fade-up 0.6s ease-out 0.6s forwards;
           }
 
-          @keyframes logo-appear {
+          @keyframes logo-in {
             0% {
               opacity: 0;
-              transform: scale(0.8) translateY(20px);
+              transform: scale(0.85);
             }
             100% {
               opacity: 1;
-              transform: scale(1) translateY(0);
+              transform: scale(1);
             }
           }
 
           @keyframes fade-up {
             0% {
               opacity: 0;
-              transform: translateY(15px);
+              transform: translateY(10px);
             }
             100% {
               opacity: 1;
               transform: translateY(0);
             }
-          }
-
-          @keyframes shimmer {
-            0% { transform: translateX(-100%); }
-            100% { transform: translateX(100%); }
-          }
-
-          @keyframes shine {
-            0% { transform: translateX(-100%); }
-            100% { transform: translateX(200%); }
           }
 
           :global(.aurora-particle) {
@@ -333,116 +226,43 @@ export function TelegramGuard({ children }: { children: React.ReactNode }) {
               transform: translateY(100vh) scale(0);
               opacity: 0;
             }
-            10% {
-              opacity: 1;
-            }
-            90% {
-              opacity: 1;
-            }
+            10% { opacity: 1; }
+            90% { opacity: 1; }
             100% {
               transform: translateY(-20vh) scale(1);
               opacity: 0;
             }
-          }
-
-          :global(.snowflake) {
-            animation: snow-fall linear infinite;
-          }
-
-          @keyframes snow-fall {
-            0% {
-              transform: translateY(-20px) rotate(0deg);
-              opacity: 0;
-            }
-            10% {
-              opacity: 1;
-            }
-            90% {
-              opacity: 1;
-            }
-            100% {
-              transform: translateY(100vh) rotate(360deg);
-              opacity: 0;
-            }
-          }
-
-          :global(.animate-ping-slow) {
-            animation: ping-slow 3s cubic-bezier(0, 0, 0.2, 1) infinite;
-          }
-
-          :global(.animate-ping-slower) {
-            animation: ping-slow 4s cubic-bezier(0, 0, 0.2, 1) infinite;
-            animation-delay: 0.5s;
-          }
-
-          :global(.animate-ping-slowest) {
-            animation: ping-slow 5s cubic-bezier(0, 0, 0.2, 1) infinite;
-            animation-delay: 1s;
-          }
-
-          @keyframes ping-slow {
-            0% {
-              transform: scale(1);
-              opacity: 0.5;
-            }
-            50% {
-              transform: scale(1.5);
-              opacity: 0;
-            }
-            100% {
-              transform: scale(1);
-              opacity: 0;
-            }
-          }
-
-          :global(.animate-shimmer) {
-            animation: shimmer 2s infinite;
-          }
-
-          :global(.animate-shine) {
-            animation: shine 1.5s infinite;
           }
         `}</style>
       </div>
     );
   }
 
-  // If not Telegram, show warning
+  // Not in Telegram
   if (!isTelegram) {
     return (
-      <div className="min-h-screen w-full relative overflow-hidden bg-[#0A0D1F] flex flex-col items-center justify-center">
-        {/* Aurora Background */}
-        <div className="absolute inset-0">
-          <Image
-            src={isDark ? "/BCKDARK.PNG" : "/BCKWHITE.PNG"}
-            alt="Aurora"
-            fill
-            className="object-cover object-center opacity-80"
-            priority
-          />
-          <div className="absolute inset-0 bg-[#0A0D1F]/60" />
-        </div>
-
-        {/* Aurora Particles */}
+      <div className="min-h-screen w-full relative overflow-hidden bg-[#080B18] flex flex-col items-center justify-center">
         <AuroraParticles />
 
-        {/* Content */}
         <div className="relative z-10 text-center max-w-sm p-6">
-          {/* Logo */}
-          <div className="mb-8">
-            <h1 className="text-5xl font-bold tracking-wider">
-              <span className="text-white">ЯК</span>
-              <span className="text-cyan-400">GO</span>
-            </h1>
-            <p className="text-white/40 text-xs tracking-[0.2em] uppercase mt-2">
-              Автосервисы Якутии
-            </p>
-          </div>
+          <Image
+            src="/logo.png"
+            alt="YakGo"
+            width={180}
+            height={180}
+            className="object-contain mx-auto mb-4"
+            priority
+          />
+          <h1 className="text-3xl font-bold tracking-[0.2em] text-white mb-1">
+            YAKGO
+          </h1>
+          <p className="text-white/40 text-xs tracking-[0.15em] uppercase mb-8">
+            Автосервисы Якутии
+          </p>
 
-          {/* Warning Card */}
           <div className="bg-white/5 backdrop-blur-xl rounded-2xl p-6 border border-white/10">
-            <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-cyan-400/10 flex items-center justify-center">
-              <svg className="w-8 h-8 text-cyan-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <div className="w-14 h-14 mx-auto mb-4 rounded-full bg-cyan-400/10 flex items-center justify-center">
+              <svg className="w-7 h-7 text-cyan-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
               </svg>
             </div>
@@ -464,6 +284,5 @@ export function TelegramGuard({ children }: { children: React.ReactNode }) {
     );
   }
 
-  // If Telegram, render children
   return <>{children}</>;
 }
