@@ -1,7 +1,7 @@
 'use client';
 
-import { useEffect, useState, useMemo } from 'react';
-import { isTelegramWebApp, getTelegramUser, getTelegramWebApp } from '@/lib/telegram';
+import { useEffect, useState } from 'react';
+import { isTelegramWebApp, getTelegramUser } from '@/lib/telegram';
 import Image from 'next/image';
 
 // Частицы северного сияния
@@ -57,7 +57,6 @@ export function TelegramGuard({ children }: { children: React.ReactNode }) {
   const [progress, setProgress] = useState(0);
   const [stageIndex, setStageIndex] = useState(0);
   const [userName, setUserName] = useState('');
-  const [isDark, setIsDark] = useState(true);
   const [fadeOut, setFadeOut] = useState(false);
 
   useEffect(() => {
@@ -272,7 +271,7 @@ export function TelegramGuard({ children }: { children: React.ReactNode }) {
             </p>
             <a
               href="https://t.me/yaktgo_bot"
-              className="inline-flex items-center justify-center w-full px-6 py-3.5 bg-gradient-to-r from-cyan-500 to-cyan-400 hover:from-cyan-400 hover:to-cyan-300 text-black font-semibold rounded-xl transition-all duration-300 shadow-lg shadow-cyan-500/25"
+              className="inline-flex items-center justify-center w-full px-6 py-3.5 bg-gradient-to-r from-cyan-500 to-purple-400 hover:from-cyan-400 hover:to-purple-300 text-black font-semibold rounded-xl transition-all duration-300 shadow-lg shadow-cyan-500/25"
               target="_blank"
               rel="noopener noreferrer"
             >

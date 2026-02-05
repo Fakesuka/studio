@@ -2,15 +2,13 @@
 
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
-import { ArrowRight } from 'lucide-react';
 import { getTelegramUser } from '@/lib/telegram';
 import { useEffect, useState } from 'react';
-import { useTheme } from 'next-themes';
+import { ArrowRight } from 'lucide-react';
 import Image from 'next/image';
 
 export default function WelcomePage() {
   const router = useRouter();
-  const { theme } = useTheme();
   const [userName, setUserName] = useState('');
   const [isReturningUser, setIsReturningUser] = useState(false);
 
@@ -40,57 +38,46 @@ export default function WelcomePage() {
     router.push('/dashboard');
   };
 
-  const backgroundImage = theme === 'light' ? '/BCKWHITE.PNG' : '/BCKDARK.PNG';
-
   return (
-    <div className="relative flex min-h-screen w-screen flex-col overflow-hidden text-slate-900 dark:text-white">
-      {/* Welcome Background */}
+    <div className="relative flex min-h-screen w-screen flex-col items-center justify-center overflow-hidden bg-[#06070F] text-white">
       <div className="absolute inset-0">
-        <Image
-          src={backgroundImage}
-          alt="YakGo welcome background"
-          fill
-          priority
-          className="object-cover"
-        />
-        <div className="absolute inset-0 bg-black/30 dark:bg-black/45" />
+        <div className="absolute -top-24 left-1/2 h-96 w-96 -translate-x-1/2 rounded-full bg-cyan-500/20 blur-[140px]" />
+        <div className="absolute bottom-0 right-0 h-80 w-80 rounded-full bg-purple-500/20 blur-[120px]" />
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(255,255,255,0.08),transparent_55%)]" />
+        <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(6,7,15,0.2),rgba(6,7,15,0.95))]" />
       </div>
 
-      {/* Aurora Glow */}
-      <div className="absolute inset-0 z-0">
-        <div className="absolute -top-[20%] -left-[10%] h-[70vh] w-[70vw] rounded-full bg-neon-cyan/25 blur-[140px] animate-pulse-glow" />
-        <div className="absolute top-[35%] -right-[20%] h-[60vh] w-[60vw] rounded-full bg-neon-purple/20 blur-[120px] animate-aurora" />
-        <div className="absolute -bottom-[10%] left-[15%] h-[50vh] w-[50vw] rounded-full bg-neon-pink/15 blur-[100px]" />
-      </div>
-
-      <div className="relative z-10 flex min-h-screen w-full flex-col justify-end px-6 pb-10">
-        <div className="flex flex-col gap-6 rounded-3xl border border-white/15 bg-white/10 p-6 text-center backdrop-blur-xl shadow-[0_20px_60px_rgba(0,0,0,0.35)]">
-          <p className="text-xs uppercase tracking-[0.2em] text-white/70">
-            Добро пожаловать
-          </p>
-          <h1 className="text-3xl font-display font-semibold text-white">
-            Ваш надежный помощник на дорогах
-          </h1>
-          <p className="text-sm text-white/70">
-            Помощь на дopoгах, эвакуация, доставка топлива и многое другое — в один клик.
-          </p>
-          {userName && (
-            <p className="mx-auto w-fit rounded-full border border-white/20 bg-white/10 px-4 py-1 text-xs text-neon-cyan">
-              Привет, {userName}
-            </p>
-          )}
-          {!isReturningUser && (
-            <Button
-              size="lg"
-              variant="neon"
-              className="w-full text-base font-bold tracking-wide"
-              onClick={handleEnter}
-            >
-              Начать
-              <ArrowRight className="ml-2 h-5 w-5" />
-            </Button>
-          )}
+      <div className="relative z-10 flex w-full max-w-3xl flex-col items-center gap-10 px-6">
+        <div className="w-full rounded-[32px] border border-white/10 bg-white/5 p-8 shadow-[0_30px_90px_rgba(0,0,0,0.5)] backdrop-blur-xl">
+          <div className="flex flex-col items-center gap-6 text-center">
+            <div className="rounded-3xl border border-white/15 bg-white/5 p-6 shadow-[0_20px_60px_rgba(0,0,0,0.35)]">
+              <Image src="/logo.png" alt="YakGo" width={72} height={72} priority />
+            </div>
+            <div>
+              <h1 className="text-4xl font-semibold tracking-[0.35em]">YAKGO</h1>
+              <p className="mt-3 text-sm text-white/60">
+                Ваш надёжный помощник на дорогах Якутии
+              </p>
+              {userName && (
+                <p className="mt-3 text-sm text-cyan-200/90">
+                  {isReturningUser ? `С возвращением, ${userName}` : `Привет, ${userName}`}
+                </p>
+              )}
+            </div>
+          </div>
         </div>
+
+        {!isReturningUser && (
+          <Button
+            size="lg"
+            variant="neon"
+            className="w-full max-w-xs text-base font-bold tracking-wide"
+            onClick={handleEnter}
+          >
+            Регистрация через Telegram
+            <ArrowRight className="ml-2 h-5 w-5" />
+          </Button>
+        )}
       </div>
     </div>
   );
