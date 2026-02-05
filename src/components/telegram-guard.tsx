@@ -80,10 +80,15 @@ export function TelegramGuard({ children }: { children: React.ReactNode }) {
 
         <div className="relative z-10 flex flex-col items-center justify-center px-6">
           <div className="relative mb-8 flex flex-col items-center">
-            <div className="absolute inset-0 -z-10 h-28 w-28 rounded-3xl bg-gradient-to-br from-cyan-500/30 via-transparent to-purple-500/30 blur-2xl" />
-            <div className="rounded-3xl border border-white/15 bg-white/5 p-6 shadow-[0_20px_60px_rgba(0,0,0,0.4)] backdrop-blur-xl">
-              <Image src="/logo.png" alt="YakGo" width={72} height={72} priority />
-            </div>
+            <div className="absolute inset-0 -z-10 h-56 w-56 rounded-full bg-cyan-500/20 blur-[120px]" />
+            <Image
+              src="/logo.png"
+              alt="YakGo"
+              width={240}
+              height={240}
+              priority
+              className="w-[42vw] max-w-[280px] h-auto drop-shadow-[0_0_40px_rgba(0,180,255,0.35)] animate-pulse"
+            />
             <h1 className="mt-6 text-4xl font-semibold tracking-[0.35em] text-white">
               YAKGO
             </h1>
@@ -156,9 +161,14 @@ export function TelegramGuard({ children }: { children: React.ReactNode }) {
 
         <div className="relative z-10 w-full max-w-sm text-center">
           <div className="mb-8 flex flex-col items-center">
-            <div className="rounded-3xl border border-white/15 bg-white/5 p-5 backdrop-blur-xl">
-              <Image src="/logo.png" alt="YakGo" width={60} height={60} priority />
-            </div>
+            <Image
+              src="/logo.png"
+              alt="YakGo"
+              width={200}
+              height={200}
+              priority
+              className="w-[42vw] max-w-[280px] h-auto drop-shadow-[0_0_40px_rgba(0,180,255,0.35)] animate-pulse"
+            />
             <h1 className="mt-5 text-3xl font-semibold tracking-[0.35em] text-white">YAKGO</h1>
             <p className="mt-3 text-sm text-white/60">
               Ваш надёжный помощник на дорогах Якутии
