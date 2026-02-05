@@ -1,7 +1,7 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { isTelegramWebApp, getTelegramUser } from '@/lib/telegram';
+import { useEffect, useState, useMemo } from 'react';
+import { isTelegramWebApp, getTelegramUser, getTelegramWebApp } from '@/lib/telegram';
 import Image from 'next/image';
 
 // Частицы северного сияния
@@ -51,6 +51,21 @@ const loadingStages = [
   'Почти готово...',
 ];
 
+// Generate random particles data
+function generateParticles(count: number) {
+  return Array.from({ length: count }, (_, i) => ({
+    id: i,
+    left: Math.random() * 100,
+    top: Math.random() * 100,
+    size: Math.random() * 4 + 2,
+    duration: Math.random() * 6 + 4,
+    delay: Math.random() * 5,
+    opacity: Math.random() * 0.6 + 0.2,
+    dx: (Math.random() - 0.5) * 120,
+    dy: (Math.random() - 0.5) * 120,
+  }));
+}
+
 export function TelegramGuard({ children }: { children: React.ReactNode }) {
   const [showWelcome, setShowWelcome] = useState(true);
   const [isTelegram, setIsTelegram] = useState<boolean | null>(null);
@@ -59,12 +74,17 @@ export function TelegramGuard({ children }: { children: React.ReactNode }) {
   const [userName, setUserName] = useState('');
   const [fadeOut, setFadeOut] = useState(false);
 
+  const particles = useMemo(() => generateParticles(25), []);
+
   useEffect(() => {
+    // Expand Telegram WebApp immediately during splash
     const webApp = getTelegramWebApp();
-    if (webApp?.colorScheme) {
-      setIsDark(webApp.colorScheme === 'dark');
+    if (webApp) {
+      webApp.ready();
+      webApp.expand();
     }
 
+    // Check if Telegram and get user
     const isTg = isTelegramWebApp();
     setIsTelegram(isTg);
 
@@ -117,7 +137,29 @@ export function TelegramGuard({ children }: { children: React.ReactNode }) {
         {/* Subtle aurora particles */}
         <AuroraParticles />
 
-        {/* Main content */}
+        {/* Neon particles */}
+        <div className="absolute inset-0 overflow-hidden pointer-events-none">
+          {particles.map((p) => (
+            <div
+              key={p.id}
+              className="absolute rounded-full neon-particle"
+              style={{
+                left: `${p.left}%`,
+                top: `${p.top}%`,
+                width: `${p.size}px`,
+                height: `${p.size}px`,
+                opacity: p.opacity,
+                background: `radial-gradient(circle, rgba(34,211,238,0.9), rgba(0,150,255,0.4))`,
+                boxShadow: `0 0 ${p.size * 3}px rgba(34,211,238,0.6), 0 0 ${p.size * 6}px rgba(0,100,255,0.3)`,
+                animationDuration: `${p.duration}s`,
+                animationDelay: `${p.delay}s`,
+                ['--dx' as string]: `${p.dx}px`,
+                ['--dy' as string]: `${p.dy}px`,
+              }}
+            />
+          ))}
+        </div>
+
         <div className="relative z-10 flex flex-col items-center justify-center px-6">
 
           {/* Logo image - large, no glow/shimmer */}
@@ -174,14 +216,10 @@ export function TelegramGuard({ children }: { children: React.ReactNode }) {
           </div>
         </div>
 
-        <style jsx>{`
-          .logo-appear {
-            animation: logo-in 0.8s ease-out forwards;
-          }
-
-          .text-appear-1 {
-            opacity: 0;
-            animation: fade-up 0.6s ease-out 0.2s forwards;
+        <style jsx global>{`
+          @keyframes shimmer {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(100%); }
           }
 
           .text-appear-2 {
@@ -189,48 +227,35 @@ export function TelegramGuard({ children }: { children: React.ReactNode }) {
             animation: fade-up 0.6s ease-out 0.4s forwards;
           }
 
-          .text-appear-3 {
-            opacity: 0;
-            animation: fade-up 0.6s ease-out 0.6s forwards;
-          }
-
-          @keyframes logo-in {
-            0% {
-              opacity: 0;
-              transform: scale(0.85);
+          @keyframes neon-float {
+            0%, 100% {
+              transform: translate(0, 0) scale(1);
+              opacity: var(--particle-opacity, 0.4);
             }
-            100% {
-              opacity: 1;
-              transform: scale(1);
+            25% {
+              transform: translate(calc(var(--dx) * 0.5), calc(var(--dy) * -0.7)) scale(1.3);
+              opacity: calc(var(--particle-opacity, 0.4) * 1.5);
             }
-          }
-
-          @keyframes fade-up {
-            0% {
-              opacity: 0;
-              transform: translateY(10px);
+            50% {
+              transform: translate(var(--dx), var(--dy)) scale(0.8);
+              opacity: calc(var(--particle-opacity, 0.4) * 0.6);
             }
-            100% {
-              opacity: 1;
-              transform: translateY(0);
+            75% {
+              transform: translate(calc(var(--dx) * -0.3), calc(var(--dy) * 0.5)) scale(1.1);
+              opacity: var(--particle-opacity, 0.4);
             }
           }
 
-          :global(.aurora-particle) {
-            animation: float-up linear infinite;
+          .animate-shimmer {
+            animation: shimmer 2s infinite;
           }
 
-          @keyframes float-up {
-            0% {
-              transform: translateY(100vh) scale(0);
-              opacity: 0;
-            }
-            10% { opacity: 1; }
-            90% { opacity: 1; }
-            100% {
-              transform: translateY(-20vh) scale(1);
-              opacity: 0;
-            }
+          .animate-shine {
+            animation: shine 1.5s infinite;
+          }
+
+          .neon-particle {
+            animation: neon-float ease-in-out infinite;
           }
         `}</style>
       </div>
