@@ -11,6 +11,7 @@ export default function WelcomePage() {
   const router = useRouter();
   const [userName, setUserName] = useState('');
   const [isReturningUser, setIsReturningUser] = useState(false);
+  const [ready, setReady] = useState(false);
 
   useEffect(() => {
     // Check if user has visited before
@@ -30,7 +31,15 @@ export default function WelcomePage() {
         return;
       }
     }
+
+    // Only show welcome UI after we confirmed it's a new user
+    setReady(true);
   }, [router]);
+
+  // Show blank screen matching splash while checking / redirecting
+  if (!ready) {
+    return <div className="min-h-screen w-screen bg-[#080B18]" />;
+  }
 
   const handleEnter = () => {
     // Mark that user has visited
@@ -39,7 +48,7 @@ export default function WelcomePage() {
   };
 
   return (
-    <div className="relative flex min-h-screen w-screen flex-col items-center justify-center overflow-hidden bg-[#06070F] text-white">
+    <div className="relative flex min-h-screen w-screen flex-col items-center justify-center overflow-hidden bg-[#080B18] text-white">
       <div className="absolute inset-0">
         <div className="absolute -top-24 left-1/2 h-96 w-96 -translate-x-1/2 rounded-full bg-cyan-500/20 blur-[140px]" />
         <div className="absolute bottom-0 right-0 h-80 w-80 rounded-full bg-purple-500/20 blur-[120px]" />
