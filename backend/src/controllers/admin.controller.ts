@@ -374,7 +374,7 @@ export async function removeAdmin(req: AuthRequest, res: Response) {
 // Add balance to user
 export async function addBalance(req: AuthRequest, res: Response) {
   try {
-    const { oderId } = req.params;
+    const oderId = req.params.oderId as string;
     const { amount, reason } = req.body;
 
     if (!amount || amount <= 0) {
