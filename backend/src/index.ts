@@ -44,10 +44,12 @@ const corsOptions = {
 app.use(cors(corsOptions));
 
 // Log CORS configuration on startup
-console.log('🔒 CORS Configuration:', {
-  origin: process.env.FRONTEND_URL || '*',
-  credentials: true,
-});
+if (process.env.NODE_ENV !== 'test') {
+  console.log('🔒 CORS Configuration:', {
+    origin: process.env.FRONTEND_URL || '*',
+    credentials: true,
+  });
+}
 
 // Explicit preflight handler for all routes
 app.options('*', cors(corsOptions));
@@ -56,10 +58,12 @@ app.use(express.json());
 
 // Log all requests
 app.use((req, res, next) => {
-  console.log(`[${new Date().toISOString()}] ${req.method} ${req.path}`, {
-    origin: req.headers.origin,
-    hasInitData: !!req.headers['x-telegram-init-data'],
-  });
+  if (process.env.NODE_ENV !== 'test') {
+    console.log(`[${new Date().toISOString()}] ${req.method} ${req.path}`, {
+      origin: req.headers.origin,
+      hasInitData: !!req.headers['x-telegram-init-data'],
+    });
+  }
   next();
 });
 
@@ -84,14 +88,30 @@ io.on('connection', (socket: any) => {
   const authSocket = socket as AuthenticatedSocket;
   const user = authSocket.data.user;
 
-  console.log('Client connected:', socket.id, 'User:', user?.id);
+  if (process.env.NODE_ENV !== 'test') {
+    console.log('Client connected:', socket.id, 'User:', user?.id);
+  }
 
   if (!user) {
     // Should not happen due to middleware, but for type safety
-    console.error('Socket connection without user data');
+    if (process.env.NODE_ENV !== 'test') console.error('Socket connection without user data');
     socket.disconnect();
     return;
   }
+
+  // Helper to check order access
+  const canAccessOrder = async (orderId: string): Promise<boolean> => {
+    try {
+      const order = await prisma.order.findUnique({
+        where: { id: orderId }
+      });
+      if (!order) return false;
+      return order.userId === user.id || order.driverId === user.id;
+    } catch (error) {
+      console.error('Error checking access:', error);
+      return false;
+    }
+  };
 
   // Driver sends location updates
   socket.on('driver:location', async (data: { latitude: number; longitude: number }) => {
@@ -128,27 +148,35 @@ io.on('connection', (socket: any) => {
   });
 
   // Client subscribes to order updates
-  socket.on('order:subscribe', (orderId: string) => {
-    socket.join(`order:${orderId}`);
-    console.log(`Client subscribed to order: ${orderId}`);
+  socket.on('order:subscribe', async (orderId: string) => {
+    if (await canAccessOrder(orderId)) {
+      socket.join(`order:${orderId}`);
+      if (process.env.NODE_ENV !== 'test') console.log(`Client subscribed to order: ${orderId}`);
+    } else {
+      socket.emit('error', { message: 'Unauthorized' });
+    }
   });
 
   // Client unsubscribes from order updates
   socket.on('order:unsubscribe', (orderId: string) => {
     socket.leave(`order:${orderId}`);
-    console.log(`Client unsubscribed from order: ${orderId}`);
+    if (process.env.NODE_ENV !== 'test') console.log(`Client unsubscribed from order: ${orderId}`);
   });
 
   // Chat: Join chat room
-  socket.on('chat:join', (orderId: string) => {
-    socket.join(`chat:${orderId}`);
-    console.log(`Socket ${socket.id} joined chat: ${orderId}`);
+  socket.on('chat:join', async (orderId: string) => {
+    if (await canAccessOrder(orderId)) {
+      socket.join(`chat:${orderId}`);
+      if (process.env.NODE_ENV !== 'test') console.log(`Socket ${socket.id} joined chat: ${orderId}`);
+    } else {
+      socket.emit('chat:error', { message: 'Unauthorized' });
+    }
   });
 
   // Chat: Leave chat room
   socket.on('chat:leave', (orderId: string) => {
     socket.leave(`chat:${orderId}`);
-    console.log(`Socket ${socket.id} left chat: ${orderId}`);
+    if (process.env.NODE_ENV !== 'test') console.log(`Socket ${socket.id} left chat: ${orderId}`);
   });
 
   // Chat: Send message
@@ -156,6 +184,11 @@ io.on('connection', (socket: any) => {
     try {
       const { orderId, receiverId, content } = data;
       const senderId = user.id; // Securely get senderId
+
+      if (!(await canAccessOrder(orderId))) {
+         socket.emit('chat:error', { message: 'Unauthorized' });
+         return;
+      }
 
       // Save message to database
       const message = await prisma.message.create({
@@ -178,7 +211,7 @@ io.on('connection', (socket: any) => {
         read: false,
       });
 
-      console.log(`Message sent in order ${orderId} from ${senderId}`);
+      if (process.env.NODE_ENV !== 'test') console.log(`Message sent in order ${orderId} from ${senderId}`);
     } catch (error) {
       console.error('Error sending chat message:', error);
       socket.emit('chat:error', { message: 'Failed to send message' });
@@ -190,6 +223,13 @@ io.on('connection', (socket: any) => {
     try {
       const { orderId } = data;
       const userId = user.id; // Securely get userId
+
+      // Check access? Reading messages implies access. But updateMany filters by receiverId.
+      // receiverId must be userId. So user can only mark messages sent TO them.
+      // This is secure by design (IDOR not possible if filtered by receiverId=userId).
+      // But we should verify order context?
+      // "where: { orderId, receiverId: userId }"
+      // If orderId is random, it doesn't matter, as long as receiverId is me.
 
       await prisma.message.updateMany({
         where: {
@@ -208,44 +248,49 @@ io.on('connection', (socket: any) => {
   });
 
   socket.on('disconnect', () => {
-    console.log('Client disconnected:', socket.id);
+    if (process.env.NODE_ENV !== 'test') console.log('Client disconnected:', socket.id);
   });
 });
 
 // Start server
 const PORT = process.env.PORT || 3001;
 
-httpServer.listen(PORT, () => {
-  console.log(`🚀 Server is running on port ${PORT}`);
-  console.log(`📍 Health check: http://localhost:${PORT}/health`);
-  console.log(`🔌 WebSocket server is running`);
+// Only start the server if this file is run directly
+if (require.main === module) {
+  httpServer.listen(PORT, () => {
+    console.log(`🚀 Server is running on port ${PORT}`);
+    console.log(`📍 Health check: http://localhost:${PORT}/health`);
+    console.log(`🔌 WebSocket server is running`);
 
-  // Start Telegram bot
-  try {
-    startBot();
-  } catch (error) {
-    console.error('⚠️ Failed to start Telegram bot:', error);
-    console.log('💡 The API will continue running without the bot');
-  }
-});
-
-// Graceful shutdown
-process.on('SIGINT', async () => {
-  console.log('\n👋 Shutting down gracefully...');
-  stopBot();
-  await prisma.$disconnect();
-  httpServer.close(() => {
-    console.log('✅ Server closed');
-    process.exit(0);
+    // Start Telegram bot
+    try {
+      startBot();
+    } catch (error) {
+      console.error('⚠️ Failed to start Telegram bot:', error);
+      console.log('💡 The API will continue running without the bot');
+    }
   });
-});
 
-process.on('SIGTERM', async () => {
-  console.log('\n👋 Shutting down gracefully...');
-  stopBot();
-  await prisma.$disconnect();
-  httpServer.close(() => {
-    console.log('✅ Server closed');
-    process.exit(0);
+  // Graceful shutdown
+  process.on('SIGINT', async () => {
+    console.log('\n👋 Shutting down gracefully...');
+    stopBot();
+    await prisma.$disconnect();
+    httpServer.close(() => {
+      console.log('✅ Server closed');
+      process.exit(0);
+    });
   });
-});
+
+  process.on('SIGTERM', async () => {
+    console.log('\n👋 Shutting down gracefully...');
+    stopBot();
+    await prisma.$disconnect();
+    httpServer.close(() => {
+      console.log('✅ Server closed');
+      process.exit(0);
+    });
+  });
+}
+
+export { app, httpServer, io };
