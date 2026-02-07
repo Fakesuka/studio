@@ -16,6 +16,7 @@ import healthRoutes from './routes/health.routes';
 import aiRoutes from './routes/ai.routes';
 import prisma from './utils/prisma';
 import { startBot, stopBot } from './bot';
+import { authenticateSocket, AuthenticatedSocket } from './middleware/socketAuth';
 
 dotenv.config();
 
@@ -75,14 +76,28 @@ app.use('/api/analytics', analyticsRoutes);
 app.use('/api/bonuses', bonusesRoutes);
 app.use('/api/ai', aiRoutes);
 
+// Apply authentication middleware to Socket.IO
+io.use(authenticateSocket());
+
 // WebSocket for real-time driver tracking
-io.on('connection', (socket) => {
-  console.log('Client connected:', socket.id);
+io.on('connection', (socket: any) => {
+  const authSocket = socket as AuthenticatedSocket;
+  const user = authSocket.data.user;
+
+  console.log('Client connected:', socket.id, 'User:', user?.id);
+
+  if (!user) {
+    // Should not happen due to middleware, but for type safety
+    console.error('Socket connection without user data');
+    socket.disconnect();
+    return;
+  }
 
   // Driver sends location updates
-  socket.on('driver:location', async (data: { driverId: string; latitude: number; longitude: number }) => {
+  socket.on('driver:location', async (data: { latitude: number; longitude: number }) => {
     try {
-      const { driverId, latitude, longitude } = data;
+      const { latitude, longitude } = data;
+      const driverId = user.id; // Securely get driverId from authenticated user
 
       // Update driver location in database
       await prisma.driverLocation.upsert({
@@ -137,9 +152,10 @@ io.on('connection', (socket) => {
   });
 
   // Chat: Send message
-  socket.on('chat:send', async (data: { orderId: string; senderId: string; receiverId: string; content: string }) => {
+  socket.on('chat:send', async (data: { orderId: string; receiverId: string; content: string }) => {
     try {
-      const { orderId, senderId, receiverId, content } = data;
+      const { orderId, receiverId, content } = data;
+      const senderId = user.id; // Securely get senderId
 
       // Save message to database
       const message = await prisma.message.create({
@@ -170,9 +186,10 @@ io.on('connection', (socket) => {
   });
 
   // Chat: Mark messages as read
-  socket.on('chat:mark-read', async (data: { orderId: string; userId: string }) => {
+  socket.on('chat:mark-read', async (data: { orderId: string }) => {
     try {
-      const { orderId, userId } = data;
+      const { orderId } = data;
+      const userId = user.id; // Securely get userId
 
       await prisma.message.updateMany({
         where: {
