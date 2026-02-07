@@ -165,36 +165,52 @@ export async function getConversations(req: AuthRequest, res: Response): Promise
       orderBy: { updatedAt: 'desc' },
     });
 
-    // Для каждого заказа получаем последнее сообщение и количество непрочитанных
-    const conversations = await Promise.all(
-      orders.map(async (order) => {
-        const lastMessage = await prisma.message.findFirst({
-          where: { orderId: order.id },
-          orderBy: { createdAt: 'desc' },
-        });
+    // Для каждого заказа получаем последнее сообщение и количество непрочитанных (оптимизировано)
+    const orderIds = orders.map((o) => o.id);
 
-        const unreadCount = await prisma.message.count({
-          where: {
-            orderId: order.id,
-            receiverId: req.user!.id,
-            read: false,
-          },
-        });
+    // Получаем последние сообщения для всех заказов одним запросом
+    const lastMessages = await prisma.message.findMany({
+      where: { orderId: { in: orderIds } },
+      orderBy: [
+        { orderId: 'asc' },
+        { createdAt: 'desc' },
+      ],
+      distinct: ['orderId'],
+    });
 
-        // Определяем собеседника
-        const otherUser = order.userId === req.user!.id ? order.driver : order.user;
+    // Получаем количество непрочитанных сообщений для всех заказов одним запросом
+    const unreadCounts = await prisma.message.groupBy({
+      by: ['orderId'],
+      where: {
+        orderId: { in: orderIds },
+        receiverId: req.user!.id,
+        read: false,
+      },
+      _count: {
+        _all: true,
+      },
+    });
 
-        return {
-          orderId: order.id,
-          orderService: order.service,
-          orderStatus: order.status,
-          otherUser,
-          lastMessage,
-          unreadCount,
-          updatedAt: order.updatedAt,
-        };
-      })
-    );
+    const lastMessageMap = new Map(lastMessages.map((m) => [m.orderId, m]));
+    const unreadCountMap = new Map(unreadCounts.map((c) => [c.orderId, c._count._all]));
+
+    const conversations = orders.map((order) => {
+      const lastMessage = lastMessageMap.get(order.id) || null;
+      const unreadCount = unreadCountMap.get(order.id) || 0;
+
+      // Определяем собеседника
+      const otherUser = order.userId === req.user!.id ? order.driver : order.user;
+
+      return {
+        orderId: order.id,
+        orderService: order.service,
+        orderStatus: order.status,
+        otherUser,
+        lastMessage,
+        unreadCount,
+        updatedAt: order.updatedAt,
+      };
+    });
 
     res.json({ conversations: conversations.filter((c) => c.otherUser) });
   } catch (error: any) {
