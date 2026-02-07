@@ -190,6 +190,8 @@ export async function getSellerAnalytics(req: AuthRequest, res: Response): Promi
     }
 
     // Получаем магазины продавца
+    // This part can also be optimized to select only product IDs, but we need active products count later.
+    // Keeping it as is but making sure we only fetch necessary data could be good, but shops + products is probably not huge compared to orders.
     const shops = await prisma.shop.findMany({
       where: { userId: req.user!.id },
       include: {
@@ -209,10 +211,17 @@ export async function getSellerAnalytics(req: AuthRequest, res: Response): Promi
           },
         },
       },
-      include: {
-        order: true,
-        product: true,
-      },
+      select: {
+        productId: true,
+        quantity: true,
+        price: true,
+        orderId: true,
+        order: {
+          select: {
+            createdAt: true,
+          }
+        }
+      }
     });
 
     // Подсчитываем статистику
@@ -224,7 +233,7 @@ export async function getSellerAnalytics(req: AuthRequest, res: Response): Promi
     const productStats = orderItems.reduce((acc: any, item) => {
       if (!acc[item.productId]) {
         acc[item.productId] = {
-          product: item.product,
+          productId: item.productId,
           quantity: 0,
           revenue: 0,
         };
@@ -234,9 +243,24 @@ export async function getSellerAnalytics(req: AuthRequest, res: Response): Promi
       return acc;
     }, {});
 
-    const topProducts = Object.values(productStats)
+    const topProductStats = Object.values(productStats)
       .sort((a: any, b: any) => b.revenue - a.revenue)
       .slice(0, 10);
+
+    // Fetch details for top products
+    const topProductIds = topProductStats.map((p: any) => p.productId);
+    const productsDetails = await prisma.product.findMany({
+       where: { id: { in: topProductIds as string[] } }
+    });
+
+    const topProducts = topProductStats.map((stat: any) => {
+        const product = productsDetails.find(p => p.id === stat.productId);
+        return {
+            product,
+            quantity: stat.quantity,
+            revenue: stat.revenue
+        };
+    });
 
     // Заказы по дням
     const ordersByDay = orderItems.reduce((acc: any, item) => {
