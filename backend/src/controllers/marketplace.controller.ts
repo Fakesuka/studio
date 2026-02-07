@@ -394,17 +394,19 @@ export async function placeOrder(req: AuthRequest, res: Response) {
       });
 
       // Create order items
-      for (const item of items) {
+      const orderItemsData = items.map((item: any) => {
         const product = productMap.get(item.productId)!;
-        await tx.marketplaceOrderItem.create({
-          data: {
-            orderId: newOrder.id,
-            productId: item.productId,
-            quantity: item.quantity,
-            price: product.price,
-          },
-        });
-      }
+        return {
+          orderId: newOrder.id,
+          productId: item.productId,
+          quantity: item.quantity,
+          price: product.price,
+        };
+      });
+
+      await tx.marketplaceOrderItem.createMany({
+        data: orderItemsData,
+      });
 
       // Clear cart
       await tx.cartItem.deleteMany({
