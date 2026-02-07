@@ -39,8 +39,9 @@ export async function getDriverAnalytics(req: AuthRequest, res: Response): Promi
         startDate = new Date(now.getFullYear(), now.getMonth(), 1);
     }
 
-    // Получаем завершенные заказы за период
-    const completedOrders = await prisma.order.findMany({
+    // Получаем статистику по услугам (оптимизировано через groupBy)
+    const serviceStatsGrouped = await prisma.order.groupBy({
+      by: ['service'],
       where: {
         driverId: req.user!.id,
         status: 'Завершен',
@@ -48,27 +49,51 @@ export async function getDriverAnalytics(req: AuthRequest, res: Response): Promi
           gte: startDate,
         },
       },
+      _count: {
+        service: true,
+      },
+      _sum: {
+        price: true,
+      },
     });
 
-    // Подсчитываем статистику
-    const totalOrders = completedOrders.length;
-    const totalRevenue = completedOrders.reduce((sum, order) => sum + order.price, 0);
+    // Получаем данные для графика по дням (оптимизировано: выбираем только нужные поля)
+    const ordersForDailyStats = await prisma.order.findMany({
+      where: {
+        driverId: req.user!.id,
+        status: 'Завершен',
+        createdAt: {
+          gte: startDate,
+        },
+      },
+      select: {
+        createdAt: true,
+        price: true,
+      },
+    });
+
+    // Подсчитываем общую статистику из сгруппированных данных
+    let totalOrders = 0;
+    let totalRevenue = 0;
+
+    const serviceStats: Record<string, { count: number; revenue: number }> = {};
+
+    serviceStatsGrouped.forEach((group) => {
+      const count = group._count.service;
+      const revenue = group._sum.price || 0;
+
+      totalOrders += count;
+      totalRevenue += revenue;
+
+      serviceStats[group.service] = { count, revenue };
+    });
+
     const earnings = totalRevenue * 0.9; // 10% комиссия
     const commission = totalRevenue * 0.1;
     const averageOrderValue = totalOrders > 0 ? totalRevenue / totalOrders : 0;
 
-    // Группировка по услугам
-    const serviceStats = completedOrders.reduce((acc: any, order) => {
-      if (!acc[order.service]) {
-        acc[order.service] = { count: 0, revenue: 0 };
-      }
-      acc[order.service].count++;
-      acc[order.service].revenue += order.price;
-      return acc;
-    }, {});
-
     // Заказы по дням (для графика)
-    const ordersByDay = completedOrders.reduce((acc: any, order) => {
+    const ordersByDay = ordersForDailyStats.reduce((acc: any, order) => {
       const date = new Date(order.createdAt).toISOString().split('T')[0];
       if (!acc[date]) {
         acc[date] = { count: 0, revenue: 0 };
@@ -78,8 +103,8 @@ export async function getDriverAnalytics(req: AuthRequest, res: Response): Promi
       return acc;
     }, {});
 
-    // Получаем рейтинг и отзывы
-    const reviews = await prisma.review.findMany({
+    // Получаем агрегированный рейтинг и количество отзывов (оптимизировано)
+    const reviewsAggregate = await prisma.review.aggregate({
       where: {
         toUserId: req.user!.id,
         type: 'driver_review',
@@ -87,11 +112,16 @@ export async function getDriverAnalytics(req: AuthRequest, res: Response): Promi
           gte: startDate,
         },
       },
+      _avg: {
+        rating: true,
+      },
+      _count: {
+        _all: true,
+      },
     });
 
-    const avgRating = reviews.length > 0
-      ? reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length
-      : 0;
+    const avgRating = reviewsAggregate._avg.rating || 0;
+    const reviewsCount = reviewsAggregate._count._all;
 
     res.json({
       period,
@@ -102,13 +132,13 @@ export async function getDriverAnalytics(req: AuthRequest, res: Response): Promi
         commission,
         averageOrderValue,
         rating: Math.round(avgRating * 10) / 10,
-        reviewsCount: reviews.length,
+        reviewsCount,
       },
       serviceBreakdown: Object.entries(serviceStats).map(([service, stats]: any) => ({
         service,
         count: stats.count,
         revenue: stats.revenue,
-        percentage: (stats.count / totalOrders) * 100,
+        percentage: totalOrders > 0 ? (stats.count / totalOrders) * 100 : 0,
       })),
       dailyStats: Object.entries(ordersByDay).map(([date, stats]: any) => ({
         date,
