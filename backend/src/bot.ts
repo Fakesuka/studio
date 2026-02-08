@@ -5,7 +5,6 @@ import prisma from './utils/prisma';
 dotenv.config();
 
 const BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN;
-const MINI_APP_URL = process.env.FRONTEND_URL || 'http://localhost:3000';
 
 let bot: TelegramBot | null = null;
 
@@ -15,12 +14,28 @@ export function startBot() {
     return null;
   }
 
+  // Security check: Ensure FRONTEND_URL is set in production
+  const frontendUrl = process.env.FRONTEND_URL;
+  let miniAppUrl = 'http://localhost:3000';
+
+  if (!frontendUrl) {
+    if (process.env.NODE_ENV === 'production') {
+      const errorMsg = '❌ Security Error: FRONTEND_URL is required in production environment.';
+      console.error(errorMsg);
+      throw new Error(errorMsg);
+    } else {
+      console.warn('⚠️ FRONTEND_URL is not set, defaulting to http://localhost:3000');
+    }
+  } else {
+    miniAppUrl = frontendUrl;
+  }
+
   try {
     // Create bot instance
     bot = new TelegramBot(BOT_TOKEN, { polling: true });
 
     console.log('🤖 YakGo Telegram Bot started successfully!');
-    console.log(`🔗 Mini App URL: ${MINI_APP_URL}`);
+    console.log(`🔗 Mini App URL: ${miniAppUrl}`);
 
     // Handle /start command
     bot.onText(/\/start/, (msg) => {
@@ -73,7 +88,7 @@ export function startBot() {
             [
               {
                 text: '🚀 Открыть YakGo',
-                web_app: { url: MINI_APP_URL },
+                web_app: { url: miniAppUrl },
               },
             ],
           ],
@@ -159,7 +174,7 @@ export function startBot() {
                 [
                   {
                     text: '📱 Открыть YakGo',
-                    web_app: { url: MINI_APP_URL },
+                    web_app: { url: miniAppUrl },
                   },
                 ],
               ],
