@@ -176,7 +176,8 @@ io.on('connection', (socket: any) => {
       console.warn(`[Security] Potential spoofing attempt: User ${user.id} trying to send as ${data.senderId}`);
     }
     // Logic is delegated to handleChatSend which securely uses user.id
-    handleChatSend(io, socket, user, data);
+    const { senderId, ...safeData } = data || {};
+    handleChatSend(io, socket, user, safeData as any);
   });
 
   socket.on('chat:mark-read', async (data: { orderId: string }) => {
