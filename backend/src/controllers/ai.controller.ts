@@ -1,34 +1,26 @@
 import { Response } from 'express';
 import { AuthRequest } from '../middleware/auth';
-
 const OLLAMA_URL = process.env.OLLAMA_URL || 'http://localhost:11434';
 const OLLAMA_MODEL = process.env.OLLAMA_MODEL || 'qwen2.5:7b';
 const DASHSCOPE_API_KEY = process.env.DASHSCOPE_API_KEY;
-
 const systemPrompt = `Ты эксперт-автомеханик в Якутске, Россия. Ты помогаешь пользователю диагностировать проблему с автомобилем на основе описания. В Якутске очень холодно, поэтому многие проблемы связаны с погодой.
-
 Проанализируй описание проблемы и дай краткую, полезную диагностику на русском языке. Затем предложи наиболее подходящую услугу из списка доступных сервисов.
-
 Доступные услуги:
 - "Отогрев авто": Услуга по прогреву автомобиля. Выбирай для проблем, связанных с холодом, замерзанием, двигатель не заводится зимой.
 - "Доставка топлива": Доставка топлива. Выбирай для проблем с нехваткой бензина/топлива.
 - "Техпомощь": Техническая помощь на дороге. Выбирай для спущенного колеса, разряженного аккумулятора, мелких поломок.
 - "Эвакуатор": Услуга эвакуатора. Выбирай для серьезных аварий, поломок, когда машину нельзя починить на месте.
-
 Если не можешь уверенно определить конкретную услугу, можешь вернуть null.
-
 ВАЖНО: Отвечай ТОЛЬКО в формате JSON:
 {
   "diagnosis": "твоя диагностика на русском",
   "suggestedService": "одна из услуг выше или null"
 }`;
-
 /**
  * Fallback diagnosis using keyword matching
  */
 function fallbackDiagnosis(description: string): { diagnosis: string; suggestedService: string | null } {
   const lowerDesc = description.toLowerCase();
-
   if (
     lowerDesc.includes('не заводится') ||
     lowerDesc.includes('замерз') ||
@@ -41,7 +33,6 @@ function fallbackDiagnosis(description: string): { diagnosis: string; suggestedS
       suggestedService: 'Отогрев авто',
     };
   }
-
   if (
     lowerDesc.includes('бензин') ||
     lowerDesc.includes('топлив') ||
@@ -53,7 +44,6 @@ function fallbackDiagnosis(description: string): { diagnosis: string; suggestedS
       suggestedService: 'Доставка топлива',
     };
   }
-
   if (
     lowerDesc.includes('колесо') ||
     lowerDesc.includes('шина') ||
@@ -66,7 +56,6 @@ function fallbackDiagnosis(description: string): { diagnosis: string; suggestedS
       suggestedService: 'Техпомощь',
     };
   }
-
   if (
     lowerDesc.includes('авария') ||
     lowerDesc.includes('сломал') ||
@@ -78,13 +67,11 @@ function fallbackDiagnosis(description: string): { diagnosis: string; suggestedS
       suggestedService: 'Эвакуатор',
     };
   }
-
   return {
     diagnosis: 'Требуется диагностика. Рекомендую вызвать техпомощь.',
     suggestedService: 'Техпомощь',
   };
 }
-
 /**
  * Diagnose problem using Ollama (local LLM)
  */
@@ -102,14 +89,11 @@ async function diagnosWithOllama(description: string): Promise<{ diagnosis: stri
         format: 'json',
       }),
     });
-
     if (!response.ok) {
       throw new Error(`Ollama API error: ${response.status}`);
     }
-
     const data = await response.json() as { response: string };
     const result = JSON.parse(data.response);
-
     return {
       diagnosis: result.diagnosis || 'Не удалось определить проблему',
       suggestedService: result.suggestedService || null,
@@ -119,7 +103,6 @@ async function diagnosWithOllama(description: string): Promise<{ diagnosis: stri
     throw error;
   }
 }
-
 /**
  * Diagnose problem using DashScope (Alibaba Qwen API)
  */
@@ -127,7 +110,6 @@ async function diagnosWithDashScope(description: string): Promise<{ diagnosis: s
   if (!DASHSCOPE_API_KEY) {
     throw new Error('DASHSCOPE_API_KEY not configured');
   }
-
   try {
     const response = await fetch(
       'https://dashscope.aliyuncs.com/api/v1/services/aigc/text-generation/generation',
@@ -151,15 +133,12 @@ async function diagnosWithDashScope(description: string): Promise<{ diagnosis: s
         }),
       }
     );
-
     if (!response.ok) {
       throw new Error(`DashScope API error: ${response.status}`);
     }
-
     const data = await response.json() as { output: { choices: { message: { content: string } }[] } };
     const content = data.output.choices[0].message.content;
     const result = JSON.parse(content);
-
     return {
       diagnosis: result.diagnosis || 'Не удалось определить проблему',
       suggestedService: result.suggestedService || null,
@@ -169,7 +148,6 @@ async function diagnosWithDashScope(description: string): Promise<{ diagnosis: s
     throw error;
   }
 }
-
 /**
  * AI Diagnosis endpoint
  * POST /api/ai/diagnose
@@ -177,14 +155,11 @@ async function diagnosWithDashScope(description: string): Promise<{ diagnosis: s
 export async function diagnoseProblem(req: AuthRequest, res: Response): Promise<void> {
   try {
     const { description } = req.body;
-
     if (!description || description.length < 5) {
       res.status(400).json({ error: 'Описание проблемы слишком короткое' });
       return;
     }
-
     let result: { diagnosis: string; suggestedService: string | null };
-
     // Try AI providers in order of preference
     try {
       if (DASHSCOPE_API_KEY) {
@@ -201,14 +176,12 @@ export async function diagnoseProblem(req: AuthRequest, res: Response): Promise<
       console.error('[AI] AI provider failed, using fallback:', aiError);
       result = fallbackDiagnosis(description);
     }
-
     res.json(result);
   } catch (error: any) {
     console.error('Diagnose problem error:', error);
     res.status(500).json({ error: 'Ошибка диагностики' });
   }
 }
-
 /**
  * Check AI status
  * GET /api/ai/status
@@ -218,10 +191,7 @@ export async function getAIStatus(req: AuthRequest, res: Response): Promise<void
     const status: any = {
       dashscope: !!DASHSCOPE_API_KEY,
       ollama: false,
-      ollamaUrl: OLLAMA_URL,
-      ollamaModel: OLLAMA_MODEL,
     };
-
     // Check if Ollama is available
     if (process.env.OLLAMA_ENABLED === 'true' || process.env.OLLAMA_URL) {
       try {
@@ -236,7 +206,6 @@ export async function getAIStatus(req: AuthRequest, res: Response): Promise<void
         status.ollamaError = 'Connection failed';
       }
     }
-
     res.json(status);
   } catch (error: any) {
     console.error('AI status error:', error);
