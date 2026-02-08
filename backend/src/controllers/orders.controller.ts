@@ -1,6 +1,7 @@
 import { Response } from 'express';
 import { AuthRequest } from '../middleware/auth';
 import prisma from '../utils/prisma';
+import { notificationQueue } from '../utils/queue';
 import { generateOrderId } from '../utils/telegram';
 import {
   notifyNewOrder,
@@ -44,19 +45,20 @@ export async function createOrder(req: AuthRequest, res: Response) {
       },
     });
 
-    await Promise.all(
-      driversToNotify
-        .map(driver => driver.user?.telegramId)
-        .filter(Boolean)
-        .map(telegramId =>
+    // Queue notifications to be sent in background
+    driversToNotify
+      .map(driver => driver.user?.telegramId)
+      .filter(Boolean)
+      .forEach(telegramId => {
+        notificationQueue.add(() =>
           notifyNewOrder(telegramId!, {
             orderId,
             service,
             location,
             price,
           })
-        )
-    );
+        );
+      });
 
     return res.status(201).json(order);
   } catch (error) {
