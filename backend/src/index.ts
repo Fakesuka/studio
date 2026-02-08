@@ -17,36 +17,25 @@ import aiRoutes from './routes/ai.routes';
 import prisma from './utils/prisma';
 import { startBot, stopBot } from './bot';
 import { authenticateSocket, AuthenticatedSocket } from './middleware/socketAuth';
+import { getCorsOptions } from './utils/cors';
 
 dotenv.config();
 
 const app = express();
 const httpServer = createServer(app);
+const corsOptions = getCorsOptions();
+
 const io = new Server(httpServer, {
-  cors: {
-    origin: process.env.FRONTEND_URL || '*',
-    credentials: true,
-    methods: ['GET', 'POST'],
-  },
+  cors: corsOptions,
 });
 
 // Middleware
-const corsOptions = {
-  origin: process.env.FRONTEND_URL || '*',
-  credentials: true,
-  allowedHeaders: ['Content-Type', 'X-Telegram-Init-Data', 'Authorization'],
-  exposedHeaders: ['Content-Type'],
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  preflightContinue: false,
-  optionsSuccessStatus: 204,
-};
-
 app.use(cors(corsOptions));
 
 // Log CORS configuration on startup
 if (process.env.NODE_ENV !== 'test') {
   console.log('🔒 CORS Configuration:', {
-    origin: process.env.FRONTEND_URL || '*',
+    origin: 'Dynamic (whitelisted)',
     credentials: true,
   });
 }
