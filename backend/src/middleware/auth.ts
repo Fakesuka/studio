@@ -2,6 +2,7 @@ import { Request, Response, NextFunction } from 'express';
 import { validateTelegramWebAppData } from '../utils/telegram';
 import prisma from '../utils/prisma';
 import { sanitizeName, sanitizeUrl, sanitizeTelegramId } from '../utils/sanitize';
+import { userCache } from '../utils/cache';
 
 export interface AuthRequest extends Request {
   user?: {
@@ -56,28 +57,39 @@ export async function authenticateUser(
 
     // Find or create user - with input sanitization
     const telegramId = sanitizeTelegramId(telegramData.user.id);
-    let user = await prisma.user.findUnique({
-      where: { telegramId },
-    });
 
-    if (!user) {
-      console.log('[Auth] Creating new user for Telegram ID:', telegramId);
-      // Sanitize user inputs before storing
-      const rawName = `${telegramData.user.first_name} ${telegramData.user.last_name || ''}`.trim();
-      const sanitizedName = sanitizeName(rawName) || 'User';
-      const sanitizedAvatarUrl = sanitizeUrl(telegramData.user.photo_url);
+    // Check cache first
+    let user = userCache.get<any>(telegramId);
 
-      // Create new user
-      user = await prisma.user.create({
-        data: {
-          telegramId,
-          name: sanitizedName,
-          avatarUrl: sanitizedAvatarUrl,
-        },
-      });
-      console.log('[Auth] New user created:', user.id);
+    if (user) {
+      console.log('[Auth] User found in cache:', user.id);
     } else {
-      console.log('[Auth] Existing user found:', user.id);
+      user = await prisma.user.findUnique({
+        where: { telegramId },
+      });
+
+      if (!user) {
+        console.log('[Auth] Creating new user for Telegram ID:', telegramId);
+        // Sanitize user inputs before storing
+        const rawName = `${telegramData.user.first_name} ${telegramData.user.last_name || ''}`.trim();
+        const sanitizedName = sanitizeName(rawName) || 'User';
+        const sanitizedAvatarUrl = sanitizeUrl(telegramData.user.photo_url);
+
+        // Create new user
+        user = await prisma.user.create({
+          data: {
+            telegramId,
+            name: sanitizedName,
+            avatarUrl: sanitizedAvatarUrl,
+          },
+        });
+        console.log('[Auth] New user created:', user.id);
+      } else {
+        console.log('[Auth] Existing user found:', user.id);
+      }
+
+      // Store in cache
+      userCache.set(telegramId, user);
     }
 
     // Attach user to request
