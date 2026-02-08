@@ -169,13 +169,26 @@ io.on('connection', (socket: any) => {
   });
 
   // Chat: Send message
-  socket.on('chat:send', async (data: { orderId: string; receiverId: string; content: string }) => {
+  socket.on('chat:send', async (data: { orderId: string; content: string }) => {
     try {
-      const { orderId, receiverId, content } = data;
+      const { orderId, content } = data;
       const senderId = user.id; // Securely get senderId
 
-      if (!(await canAccessOrder(orderId))) {
+      // Securely find receiver based on order participants
+      const order = await prisma.order.findUnique({
+        where: { id: orderId }
+      });
+
+      if (!order || (order.userId !== senderId && order.driverId !== senderId)) {
          socket.emit('chat:error', { message: 'Unauthorized' });
+         return;
+      }
+
+      // Determine receiver (the other participant)
+      const receiverId = order.userId === senderId ? order.driverId : order.userId;
+
+      if (!receiverId) {
+         socket.emit('chat:error', { message: 'No receiver found' });
          return;
       }
 
@@ -206,8 +219,6 @@ io.on('connection', (socket: any) => {
       socket.emit('chat:error', { message: 'Failed to send message' });
     }
   });
-
-  // Chat: Mark messages as read
   socket.on('chat:mark-read', async (data: { orderId: string }) => {
     try {
       const { orderId } = data;
