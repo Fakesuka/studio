@@ -10,7 +10,7 @@ export const handleChatSend = async (
 ) => {
   try {
     const { orderId, content } = data;
-    const senderId = user.id; // Securely get senderId from authenticated user
+    const senderId = user.id; // Securely get senderId from authenticated user. Do NOT use data.senderId!
 
     // Securely find receiver based on order participants
     const order = await prismaClient.order.findUnique({
