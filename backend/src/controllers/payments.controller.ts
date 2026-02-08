@@ -74,8 +74,25 @@ export async function handleYooKassaWebhook(req: Request, res: Response): Promis
 
     if (type === 'payment.succeeded') {
       const paymentId = object.id;
-      const userId = object.metadata?.userId;
-      const amount = parseFloat(object.amount.value);
+
+      // SECURITY: Verify payment status with YooKassa API to prevent spoofing
+      let verifiedPayment;
+      try {
+        verifiedPayment = await getPaymentStatus(paymentId);
+      } catch (err) {
+        console.error(`Failed to verify payment ${paymentId} with YooKassa:`, err);
+        res.status(500).json({ error: 'Payment verification failed' });
+        return;
+      }
+
+      if (verifiedPayment.status !== 'succeeded') {
+        console.error(`Security alert: Webhook says succeeded but API says ${verifiedPayment.status} for payment ${paymentId}`);
+        res.status(400).json({ error: 'Payment status mismatch' });
+        return;
+      }
+
+      const userId = verifiedPayment.metadata?.userId;
+      const amount = parseFloat(verifiedPayment.amount.value);
 
       if (!userId) {
         console.error('No userId in payment metadata');
@@ -83,13 +100,33 @@ export async function handleYooKassaWebhook(req: Request, res: Response): Promis
         return;
       }
 
-      // Обновляем статус платежа
-      await prisma.payment.update({
+      // Check for idempotency
+      const existingPayment = await prisma.payment.findUnique({
         where: { paymentId },
-        data: { status: 'succeeded' },
       });
 
-      // Пополняем баланс пользователя
+      if (existingPayment && existingPayment.status === 'succeeded') {
+        console.log(`Payment ${paymentId} already processed`);
+        res.status(200).json({ success: true });
+        return;
+      }
+
+      // Update or create payment record
+      await prisma.payment.upsert({
+        where: { paymentId },
+        update: { status: 'succeeded' },
+        create: {
+          paymentId,
+          userId,
+          amount,
+          status: 'succeeded',
+          type: 'topup',
+          provider: 'yookassa',
+          metadata: verifiedPayment.metadata,
+        }
+      });
+
+      // Credit user balance
       await prisma.user.update({
         where: { id: userId },
         data: {
@@ -99,7 +136,7 @@ export async function handleYooKassaWebhook(req: Request, res: Response): Promis
         },
       });
 
-      // Создаем запись в истории транзакций
+      // Create transaction record
       await prisma.transaction.create({
         data: {
           userId,
@@ -116,12 +153,24 @@ export async function handleYooKassaWebhook(req: Request, res: Response): Promis
     if (type === 'payment.canceled') {
       const paymentId = object.id;
 
-      await prisma.payment.update({
-        where: { paymentId },
-        data: { status: 'canceled' },
-      });
+      // Verify cancellation
+      let verifiedPayment;
+      try {
+        verifiedPayment = await getPaymentStatus(paymentId);
+      } catch (err) {
+         console.error(`Failed to verify payment ${paymentId} cancellation:`, err);
+         res.status(500).json({ error: 'Payment verification failed' });
+         return;
+      }
 
-      console.log(`❌ Payment ${paymentId} canceled`);
+      if (verifiedPayment.status === 'canceled') {
+        await prisma.payment.update({
+          where: { paymentId },
+          data: { status: 'canceled' },
+        });
+
+        console.log(`❌ Payment ${paymentId} canceled`);
+      }
     }
 
     res.status(200).json({ success: true });
