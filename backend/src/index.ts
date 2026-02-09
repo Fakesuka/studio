@@ -14,6 +14,7 @@ import analyticsRoutes from './routes/analytics.routes';
 import bonusesRoutes from './routes/bonuses.routes';
 import healthRoutes from './routes/health.routes';
 import aiRoutes from './routes/ai.routes';
+import uploadRoutes from './routes/upload.routes';
 import prisma from './utils/prisma';
 import { startBot, stopBot } from './bot';
 import { authenticateSocket, AuthenticatedSocket } from './middleware/socketAuth';
@@ -69,6 +70,8 @@ app.use('/api/chat', chatRoutes);
 app.use('/api/analytics', analyticsRoutes);
 app.use('/api/bonuses', bonusesRoutes);
 app.use('/api/ai', aiRoutes);
+app.use('/api/upload', uploadRoutes);
+app.use('/uploads', express.static('public/uploads'));
 
 // Apply authentication middleware to Socket.IO
 io.use(authenticateSocket());
