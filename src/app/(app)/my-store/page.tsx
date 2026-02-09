@@ -15,6 +15,7 @@ import {
   PackageOpen,
   Pencil,
 } from 'lucide-react';
+import { api } from '@/lib/api';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -114,6 +115,7 @@ export default function MyStorePage() {
   const { toast } = useToast();
   const [isAddProductDialogOpen, setIsAddProductDialogOpen] = useState(false);
   const [photoPreview, setPhotoPreview] = useState<string | null>(null);
+  const [photoFile, setPhotoFile] = useState<File | null>(null);
   const [editingProduct, setEditingProduct] = useState<any | null>(null);
   const [isEditShopOpen, setIsEditShopOpen] = useState(false);
   const [shopImagePreview, setShopImagePreview] = useState<string | null>(null);
@@ -239,10 +241,31 @@ export default function MyStorePage() {
     }
 
     try {
+      let imageUrl = photoPreview;
+
+      if (photoFile) {
+        try {
+          const uploadResult = await api.uploadImage(photoFile);
+          imageUrl = uploadResult.url;
+        } catch (uploadError) {
+          console.error('Upload failed:', uploadError);
+          toast({
+            title: 'Ошибка загрузки',
+            description: 'Не удалось загрузить фото. Попробуйте еще раз.',
+            variant: 'destructive',
+          });
+          return;
+        }
+      } else if (editingProduct) {
+        imageUrl = editingProduct.imageUrl;
+      } else if (!imageUrl) {
+        imageUrl = `https://picsum.photos/seed/${data.name}/600/400`;
+      }
+
       if (editingProduct) {
         await updateProduct(editingProduct.id, {
           ...finalProductData,
-          imageUrl: photoPreview || editingProduct.imageUrl,
+          imageUrl: imageUrl || editingProduct.imageUrl,
           imageHint: `photo of ${data.name}`,
         });
         toast({
@@ -252,10 +275,7 @@ export default function MyStorePage() {
       } else {
         await addProduct({
           ...finalProductData,
-          // TODO: Replace with real photo upload functionality
-          // Currently using placeholder image service
-          imageUrl:
-            photoPreview || `https://picsum.photos/seed/${data.name}/600/400`,
+          imageUrl: imageUrl || `https://picsum.photos/seed/${data.name}/600/400`,
           imageHint: `photo of ${data.name}`,
         });
         toast({
@@ -268,7 +288,9 @@ export default function MyStorePage() {
       setEditingProduct(null);
       productForm.reset();
       setPhotoPreview(null);
+      setPhotoFile(null);
     } catch (error) {
+      console.error('Error saving product:', error);
       toast({
         title: 'Ошибка',
         description: 'Не удалось сохранить товар.',
@@ -330,6 +352,7 @@ export default function MyStorePage() {
   ) => {
     const file = event.target.files?.[0];
     if (file) {
+      setPhotoFile(file);
       const dataUri = await fileToDataUri(file);
       setPhotoPreview(dataUri);
       productForm.setValue('image', dataUri);

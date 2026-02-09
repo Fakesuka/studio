@@ -674,6 +674,62 @@ class ApiClient {
   async getAllPromocodes() {
     return this.request('/bonuses/promocodes');
   }
+
+  // ===== UPLOADS =====
+  async uploadImage(file: File) {
+    const formData = new FormData();
+    formData.append('image', file);
+
+    const endpoint = '/upload';
+
+    // Check for dev mode
+    const isDevMode = typeof window !== 'undefined' &&
+                      (localStorage.getItem('devMode') === 'true' ||
+                       process.env.NODE_ENV === 'development');
+
+    const initData = isDevMode ? 'dev_mode_mock_data' : getTelegramInitData();
+
+    console.log(`[API] Upload request to ${endpoint}`, {
+      file: file.name,
+      size: file.size,
+      hasInitData: !!initData,
+      isDevMode,
+      timestamp: new Date().toISOString()
+    });
+
+    const headers: HeadersInit = {
+      // Content-Type is set automatically by browser with boundary for FormData
+      ...(initData && { 'X-Telegram-Init-Data': initData }),
+    };
+
+    try {
+      const response = await fetch(`${this.baseUrl}${endpoint}`, {
+        method: 'POST',
+        headers,
+        body: formData,
+      });
+
+      if (!response.ok) {
+        let errorData: any = {};
+        try {
+          errorData = await response.json();
+        } catch (e) {
+          // Ignore
+        }
+
+        const error = new Error(errorData.error || errorData.message || `HTTP ${response.status}`);
+        throw error;
+      }
+
+      const data = await response.json();
+      console.log(`[API] Upload success`, data);
+      return data;
+    } catch (error) {
+       console.error(`[API] Upload exception`);
+       safeErrorLog(error);
+       throw error;
+    }
+  }
 }
 
 // Создаем экземпляр API с улучшенной обработкой ошибок
